@@ -1,4 +1,4 @@
-const CACHE_NAME = 'brokerai-v143';
+const CACHE_NAME = 'brokerai-v144';
 const ASSETS = [
   './',
   './index.html',

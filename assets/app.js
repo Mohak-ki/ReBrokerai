@@ -3093,20 +3093,6 @@ _Feel free to reach our team at ${state.user?.fullName ? `${state.user.fullName}
         </article>
       </div>
 
-      <!-- AI OPERATIONS SPOTLIGHT -->
-      <section class="ai-spotlight">
-        <div>
-          <div class="ai-spotlight-title">✧ AI Deal Closer Spotlight</div>
-          <div class="ai-spotlight-sub">Instant broker intelligence, client WhatsApp follow-ups, and statutory tax calculations.</div>
-        </div>
-        <div class="ai-spotlight-chips">
-          <button class="ai-chip" data-dash-ai-prompt="Give me my morning briefing">🌅 Morning Briefing</button>
-          <button class="ai-chip" data-dash-ai-prompt="Draft a follow-up WhatsApp message for site visit">💬 WhatsApp Pitch</button>
-          <button class="ai-chip" data-dash-ai-prompt="Calculate stamp duty for a ₹1.25 Cr deal">📑 Stamp Duty (₹1.25 Cr)</button>
-          <button class="ai-chip" data-dash-ai-prompt="Show Title & Due Diligence Checklist">📋 Title Checklist</button>
-        </div>
-      </section>
-
       <!-- MAIN DASHBOARD SPLIT -->
       <div class="dashboard-grid">
         <!-- LEFT: DAILY ACTION COCKPIT -->
