@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, viewport-fit=cover" />
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+    <meta http-equiv="Pragma" content="no-cache" />
+    <meta http-equiv="Expires" content="0" />
+    <meta name="theme-color" content="#0b0f19" />
+    <meta name="description" content="Institutional Real Estate CRM & Deal Cockpit for Indian Brokers" />
+    
+    <!-- PWA & Mobile Meta Tags -->
+    <link rel="manifest" href="manifest.json" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="BrokerAI" />
+    <link rel="apple-touch-icon" href="assets/icon-192.svg" />
+    <link rel="icon" type="image/svg+xml" href="assets/icon-192.svg" />
+
+    <title>BrokerAI — Institutional Brokerage OS</title>
+    <link rel="stylesheet" href="assets/styles.css?v=1789709066099" />
+  </head>
+  <body>
+    <div id="app"></div>
+    <script src="config.js?v=1789709066099"></script>
+    <script src="assets/app.js?v=1789709066099"></script>
+    <script>
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('./sw.js?v=1789709066099')
+            .then(reg => {
+              console.log('✅ BrokerAI PWA ServiceWorker Registered:', reg.scope);
+              reg.update();
+            })
+            .catch(err => console.log('ServiceWorker registration failed:', err));
+        });
+        navigator.serviceWorker.addEventListener('controllerchange', () => {
+          console.log('ServiceWorker updated, reload to apply fresh version.');
+        });
+      }
+    </script>
+  </body>
+</html>

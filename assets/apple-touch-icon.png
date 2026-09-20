@@ -1,0 +1,53 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0F172A" />
+      <stop offset="50%" stop-color="#0B0F19" />
+      <stop offset="100%" stop-color="#020617" />
+    </linearGradient>
+    <linearGradient id="goldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#38BDF8" />
+      <stop offset="50%" stop-color="#2563EB" />
+      <stop offset="100%" stop-color="#1D4ED8" />
+    </linearGradient>
+    <linearGradient id="glowGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#10B981" />
+      <stop offset="100%" stop-color="#059669" />
+    </linearGradient>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="8" stdDeviation="16" flood-color="#000000" flood-opacity="0.6"/>
+    </filter>
+  </defs>
+
+  <!-- BACKGROUND ROUNDED SQUIRCLE -->
+  <rect width="512" height="512" rx="112" fill="url(#bgGrad)" />
+  <rect x="6" y="6" width="500" height="500" rx="106" fill="none" stroke="rgba(255,255,255,0.12)" stroke-width="3" />
+
+  <!-- GEOMETRIC LUXURY TOWER MONOGRAM -->
+  <g filter="url(#shadow)" transform="translate(106, 96)">
+    <!-- Tower Main -->
+    <path d="M70 320 V90 L150 40 L230 90 V320 Z" fill="url(#goldGrad)" />
+    <!-- Tower Facet -->
+    <path d="M150 40 L230 90 V320 H150 Z" fill="#1E40AF" opacity="0.4" />
+    <!-- Wing Left -->
+    <path d="M20 320 V160 L70 125 V320 Z" fill="url(#glowGrad)" opacity="0.9" />
+    <!-- Wing Right -->
+    <path d="M230 125 L280 160 V320 H230 Z" fill="url(#goldGrad)" opacity="0.75" />
+    
+    <!-- Architectural Windows -->
+    <rect x="95" y="110" width="30" height="12" rx="3" fill="#FFFFFF" opacity="0.9" />
+    <rect x="95" y="140" width="30" height="12" rx="3" fill="#FFFFFF" opacity="0.9" />
+    <rect x="95" y="170" width="30" height="12" rx="3" fill="#FFFFFF" opacity="0.9" />
+    <rect x="95" y="200" width="30" height="12" rx="3" fill="#FFFFFF" opacity="0.9" />
+    <rect x="95" y="230" width="30" height="12" rx="3" fill="#FFFFFF" opacity="0.9" />
+
+    <rect x="175" y="110" width="30" height="12" rx="3" fill="#93C5FD" opacity="0.7" />
+    <rect x="175" y="140" width="30" height="12" rx="3" fill="#93C5FD" opacity="0.7" />
+    <rect x="175" y="170" width="30" height="12" rx="3" fill="#93C5FD" opacity="0.7" />
+    <rect x="175" y="200" width="30" height="12" rx="3" fill="#93C5FD" opacity="0.7" />
+    <rect x="175" y="230" width="30" height="12" rx="3" fill="#93C5FD" opacity="0.7" />
+  </g>
+
+  <!-- SUBTLE BRAND TEXT -->
+  <text x="256" y="445" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="34" font-weight="800" fill="#F8FAFC" text-anchor="middle" letter-spacing="4">BROKERAI</text>
+</svg>
