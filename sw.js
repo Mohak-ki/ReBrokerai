@@ -1,12 +1,12 @@
-const CACHE_NAME = 'brokerai-v142';
+const CACHE_NAME = 'brokerai-v143';
 const ASSETS = [
-  '/',
-  '/index.html',
-  '/config.js',
-  '/manifest.json',
-  '/assets/styles.css',
-  '/assets/app.js',
-  '/assets/icon-192.svg'
+  './',
+  './index.html',
+  './config.js',
+  './manifest.json',
+  './assets/styles.css',
+  './assets/app.js',
+  './assets/icon-192.svg'
 ];
 
 self.addEventListener('install', (event) => {
@@ -44,7 +44,7 @@ self.addEventListener('fetch', (event) => {
         return caches.match(event.request).then((cached) => {
           if (cached) return cached;
           if (event.request.headers.get('accept')?.includes('text/html')) {
-            return caches.match('/index.html');
+            return caches.match('./index.html') || caches.match('index.html');
           }
         });
       })
