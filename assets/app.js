@@ -13306,10 +13306,10 @@ Best regards,
   ];
 
   const tenureDiscounts = {
-    1: { label: '1 Month', discountPercent: 0, saveTag: null },
-    3: { label: '3 Months', discountPercent: 10, saveTag: 'Save 10%' },
-    6: { label: '6 Months', discountPercent: 15, saveTag: 'Save 15%' },
-    12: { label: '12 Months (Annual)', discountPercent: 20, saveTag: '🔥 20% OFF' }
+    1: { label: '1 Month', discount: 0, discountPercent: 0, saveTag: null },
+    3: { label: '3 Months', discount: 0.10, discountPercent: 10, saveTag: 'Save 10%' },
+    6: { label: '6 Months', discount: 0.15, discountPercent: 15, saveTag: 'Save 15%' },
+    12: { label: '12 Months (Annual)', discount: 0.20, discountPercent: 20, saveTag: '🔥 20% OFF' }
   };
   let selectedTenureMonths = 12;
 
@@ -13342,7 +13342,8 @@ Best regards,
       <!-- 3 PRICING CARDS -->
       <div class="pricing-grid">
         ${pricingTiers.map(tier => {
-          const discountFactor = 1 - tenure.discount;
+          const discount = (tenure.discount !== undefined ? tenure.discount : (tenure.discountPercent || 0) / 100);
+          const discountFactor = 1 - discount;
           const discountedMonthly = Math.round(tier.baseMonthly * discountFactor);
           const totalBilled = discountedMonthly * selectedTenureMonths;
           const originalTotal = tier.baseMonthly * selectedTenureMonths;
@@ -13358,7 +13359,7 @@ Best regards,
                   <span class="plan-price-cur">₹</span>
                   <span class="plan-price-num tnum">${discountedMonthly.toLocaleString('en-IN')}</span>
                   <span class="plan-price-period">/ month</span>
-                  ${tenure.discount > 0 ? `<span class="plan-price-strike tnum">₹${tier.baseMonthly.toLocaleString('en-IN')}</span>` : ''}
+                  ${discount > 0 ? `<span class="plan-price-strike tnum">₹${tier.baseMonthly.toLocaleString('en-IN')}</span>` : ''}
                 </div>
                 ${selectedTenureMonths > 1 ? `
                   <div class="plan-billed-note">
@@ -13515,7 +13516,8 @@ Best regards,
   function planActivationModal(planId, months) {
     const tier = pricingTiers.find(t => t.id === planId) || pricingTiers[1];
     const tenure = tenureDiscounts[months] || tenureDiscounts[12];
-    const discountFactor = 1 - tenure.discount;
+    const discount = (tenure.discount !== undefined ? tenure.discount : (tenure.discountPercent || 0) / 100);
+    const discountFactor = 1 - discount;
     const discountedMonthly = Math.round(tier.baseMonthly * discountFactor);
     const totalBilled = discountedMonthly * months;
     const originalTotal = tier.baseMonthly * months;
