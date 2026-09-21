@@ -766,7 +766,7 @@ const demoDocuments = [
         name: 'Agency Elite',
         badge: '💎 Agency Elite',
         color: '#059669',
-        priceMonthly: 2500,
+        priceMonthly: 3000,
         maxLeads: Infinity,
         maxProperties: Infinity,
         maxWhatsAppPitches: Infinity,
@@ -13288,7 +13288,7 @@ Best regards,
       id: 'agency',
       name: 'Agency Elite',
       tagline: 'For boutique real estate firms, partnerships & channel partners',
-      baseMonthly: 2500,
+      baseMonthly: 3000,
       badge: '💎 INSTITUTIONAL',
       popular: false,
       seats: '20 Closer Seats with Role Access',
@@ -13638,7 +13638,7 @@ Best regards,
       reraNumber: 'A51800099887',
       city: 'Majiwada, Thane',
       plan: 'SOLO_BROKER',
-      monthlyFee: 500,
+      monthlyFee: 600,
       status: 'ACTIVE',
       joinedDate: '2026-08-10',
       expiresAt: '2027-08-10',
@@ -14298,7 +14298,7 @@ Best regards,
                   </td>
                   <td>
                     <span class="stage">${a.plan === 'AGENCY_PRO' ? '🏛️ Agency Elite' : a.plan === 'PRO_CLOSER' ? '⚡ Pro Closer' : '👤 Starter Solo'}</span>
-                    <div style="font-size:12px;color:#15803d;font-weight:700;margin-top:2px;">₹${(a.monthlyFee || (a.plan === 'AGENCY_PRO' ? 3000 : a.plan === 'PRO_CLOSER' ? 1000 : 500)).toLocaleString('en-IN')}/mo</div>
+                    <div style="font-size:12px;color:#15803d;font-weight:700;margin-top:2px;">₹${(a.monthlyFee || (a.plan === 'AGENCY_PRO' ? 3000 : a.plan === 'PRO_CLOSER' ? 1200 : 600)).toLocaleString('en-IN')}/mo</div>
                   </td>
                   <td>
                     <div style="font-size:12.5px;color:var(--ink);">👥 <strong>${a.totalLeads}</strong> Leads · 🏡 <strong>${a.totalProperties}</strong> Listings</div>
@@ -14428,7 +14428,7 @@ Best regards,
             <div class="field">
               <label>Subscription Tier *</label>
               <select class="select" name="plan">
-                <option value="agency">💎 Agency Elite (₹2,500/mo · 20 Seats)</option>
+                <option value="agency">💎 Agency Elite (₹3,000/mo · 20 Seats)</option>
                 <option value="pro" selected>⚡ Pro Closer (₹1,200/mo · 3 Seats)</option>
                 <option value="starter">✦ Starter Solo (₹600/mo · 1 Seat)</option>
               </select>
@@ -14480,7 +14480,7 @@ Best regards,
         reraNumber,
         city,
         plan,
-        monthlyFee: plan === 'agency' ? 2500 : plan === 'pro' ? 1200 : 600,
+        monthlyFee: plan === 'agency' ? 3000 : plan === 'pro' ? 1200 : 600,
         status,
         joinedDate: new Date().toISOString().slice(0, 10),
         expiresAt: new Date(Date.now() + 365 * 86400000).toISOString().slice(0, 10),
