@@ -13314,7 +13314,8 @@ Best regards,
   let selectedTenureMonths = 12;
 
   function pricingView() {
-    const tenure = tenureDiscounts[selectedTenureMonths] || tenureDiscounts[12];
+    const tenureMonths = Number(selectedTenureMonths) || 12;
+    const tenure = tenureDiscounts[tenureMonths] || tenureDiscounts[12] || { label: '12 Months (Annual)', discount: 0.20, discountPercent: 20 };
 
     app.innerHTML = layout(`
       <!-- HEADER -->
@@ -13331,7 +13332,7 @@ Best regards,
       <div class="tenure-picker-container">
         <div class="tenure-picker">
           ${Object.entries(tenureDiscounts).map(([months, opt]) => `
-            <button class="tenure-btn ${Number(months) === selectedTenureMonths ? 'active' : ''}" data-months="${months}">
+            <button class="tenure-btn ${Number(months) === tenureMonths ? 'active' : ''}" data-months="${months}">
               <span>${opt.label}</span>
               ${opt.saveTag ? `<span class="tenure-save-tag">${opt.saveTag}</span>` : ''}
             </button>
@@ -13342,11 +13343,12 @@ Best regards,
       <!-- 3 PRICING CARDS -->
       <div class="pricing-grid">
         ${pricingTiers.map(tier => {
-          const discount = (tenure.discount !== undefined ? tenure.discount : (tenure.discountPercent || 0) / 100);
-          const discountFactor = 1 - discount;
-          const discountedMonthly = Math.round(tier.baseMonthly * discountFactor);
-          const totalBilled = discountedMonthly * selectedTenureMonths;
-          const originalTotal = tier.baseMonthly * selectedTenureMonths;
+          const baseMonthly = Number(tier.baseMonthly) || (tier.id === 'agency' ? 3000 : (tier.id === 'pro' ? 1200 : 600));
+          const discount = (typeof tenure.discount === 'number' ? tenure.discount : (typeof tenure.discountPercent === 'number' ? tenure.discountPercent / 100 : 0.20));
+          const discountFactor = Math.max(0, 1 - discount);
+          const discountedMonthly = Math.round(baseMonthly * discountFactor);
+          const totalBilled = discountedMonthly * tenureMonths;
+          const originalTotal = baseMonthly * tenureMonths;
           const totalSaved = originalTotal - totalBilled;
 
           return `
@@ -13359,11 +13361,11 @@ Best regards,
                   <span class="plan-price-cur">₹</span>
                   <span class="plan-price-num tnum">${discountedMonthly.toLocaleString('en-IN')}</span>
                   <span class="plan-price-period">/ month</span>
-                  ${discount > 0 ? `<span class="plan-price-strike tnum">₹${tier.baseMonthly.toLocaleString('en-IN')}</span>` : ''}
+                  ${discount > 0 ? `<span class="plan-price-strike tnum">₹${baseMonthly.toLocaleString('en-IN')}</span>` : ''}
                 </div>
-                ${selectedTenureMonths > 1 ? `
+                ${tenureMonths > 1 ? `
                   <div class="plan-billed-note">
-                    ✓ Billed ₹${totalBilled.toLocaleString('en-IN')} for ${selectedTenureMonths} months
+                    ✓ Billed ₹${totalBilled.toLocaleString('en-IN')} for ${tenureMonths} months
                     ${totalSaved > 0 ? `<span style="color:#059669;font-weight:800;"> (Save ₹${totalSaved.toLocaleString('en-IN')})</span>` : ''}
                   </div>
                 ` : `<div class="plan-billed-note" style="color:var(--muted);">Billed monthly · Cancel anytime</div>`}
