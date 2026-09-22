@@ -1,11 +1,11 @@
-const CACHE_NAME = 'brokerai-v152';
+const CACHE_NAME = 'brokerai-v153';
 const ASSETS = [
   './',
   './index.html',
-  './config.js?v=152',
+  './config.js?v=153',
   './manifest.json',
-  './assets/styles.css?v=152',
-  './assets/app.js?v=152',
+  './assets/styles.css?v=153',
+  './assets/app.js?v=153',
   './assets/icon-192.svg'
 ];
 

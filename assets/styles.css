@@ -4005,15 +4005,12 @@ aside.drawer {
   border: 1px solid rgba(0, 0, 0, 0.08) !important;
   z-index: 10000 !important;
   box-sizing: border-box !important;
-  margin: auto !important;
   animation: popInModal 0.22s cubic-bezier(0.16, 1, 0.3, 1) forwards !important;
 }
 
 @keyframes popInModal {
   from { opacity: 0; }
   to { opacity: 1; }
-}
-  to { opacity: 1; transform: scale(1) translateY(0); }
 }
 
 /* 5. Drawer Internal Typography & Controls */
@@ -7345,11 +7342,6 @@ button:active, .button:active, .btn:active, .ai-chip:active, .view-btn:active {
 @keyframes smoothModalSpring {
   from { opacity: 0; }
   to { opacity: 1; }
-}
-  to {
-    opacity: 1;
-    transform: scale(1) translateY(0);
-  }
 }
 
 /* LIVE INTERACTIVE DEMO TRIAL CARD */

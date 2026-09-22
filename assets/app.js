@@ -2828,6 +2828,7 @@ _Feel free to reach our team at ${state.user?.fullName ? `${state.user.fullName}
 
   function visitFeedbackDrawer(visit) {
     document.querySelectorAll('.modal-backdrop, .drawer-backdrop, .spotlight-backdrop').forEach(b => b.remove());
+    const v = visit || (state.visits && state.visits[0]) || (typeof demoVisits !== 'undefined' ? demoVisits[0] : { id: 1, leadName: 'Rajesh Sharma', propertyTitle: '2 BHK Hiranandani', propertyLocation: 'Thane' });
     const backdrop = document.createElement('div');
     backdrop.className = 'drawer-backdrop';
     const drawer = document.createElement('aside');
@@ -2836,7 +2837,7 @@ _Feel free to reach our team at ${state.user?.fullName ? `${state.user.fullName}
       <div class="drawer-head">
         <div>
           <h2 class="panel-title">Record Showing Outcome & Feedback</h2>
-          <div class="subtle">${esc(visit.leadName)} × ${esc(visit.propertyTitle)}</div>
+          <div class="subtle">${esc(v.leadName || 'Client')} × ${esc(v.propertyTitle || 'Property')}</div>
         </div>
         <button class="close">×</button>
       </div>
@@ -2848,15 +2849,15 @@ _Feel free to reach our team at ${state.user?.fullName ? `${state.user.fullName}
             <div class="field full">
               <label>Buyer Interest Level</label>
               <select class="select" name="interestLevel" required>
-                <option value="VERY_INTERESTED" ${visit.interestLevel === 'VERY_INTERESTED' ? 'selected' : ''}>🔥 Very Interested (Ready to place token deposit)</option>
-                <option value="INTERESTED" ${visit.interestLevel === 'INTERESTED' ? 'selected' : ''}>👍 Interested (Comparing with family)</option>
-                <option value="MAYBE" ${visit.interestLevel === 'MAYBE' ? 'selected' : ''}>🤔 Maybe (Price/floor objections)</option>
-                <option value="NOT_INTERESTED" ${visit.interestLevel === 'NOT_INTERESTED' ? 'selected' : ''}>❌ Not Interested (Disliked layout/location)</option>
+                <option value="VERY_INTERESTED" ${v.interestLevel === 'VERY_INTERESTED' ? 'selected' : ''}>🔥 Very Interested (Ready to place token deposit)</option>
+                <option value="INTERESTED" ${v.interestLevel === 'INTERESTED' ? 'selected' : ''}>👍 Interested (Comparing with family)</option>
+                <option value="MAYBE" ${v.interestLevel === 'MAYBE' ? 'selected' : ''}>🤔 Maybe (Price/floor objections)</option>
+                <option value="NOT_INTERESTED" ${v.interestLevel === 'NOT_INTERESTED' ? 'selected' : ''}>❌ Not Interested (Disliked layout/location)</option>
               </select>
             </div>
             <div class="field full">
               <label>Client Feedback & Counter-Offers</label>
-              <textarea class="input" name="feedback" placeholder="What did the client like or dislike? Any price counter-offers?" rows="4">${esc(visit.feedback || '')}</textarea>
+              <textarea class="input" name="feedback" placeholder="What did the client like or dislike? Any price counter-offers?" rows="4">${esc(v.feedback || '')}</textarea>
             </div>
           </div>
         </div>
@@ -2877,15 +2878,15 @@ _Feel free to reach our team at ${state.user?.fullName ? `${state.user.fullName}
         feedback: form.get('feedback') || null
       };
       try {
-        visit.interestLevel = payload.interestLevel;
-        visit.feedback = payload.feedback;
-        visit.status = 'COMPLETED';
+        v.interestLevel = payload.interestLevel;
+        v.feedback = payload.feedback;
+        v.status = 'COMPLETED';
 
         if (!state.visits || !state.visits.length) {
           state.visits = JSON.parse(JSON.stringify(demoVisits));
         }
-        const idx = state.visits.findIndex(v => v.id === visit.id);
-        if (idx !== -1) state.visits[idx] = visit;
+        const idx = state.visits.findIndex(item => item.id === v.id);
+        if (idx !== -1) state.visits[idx] = v;
         localStorage.setItem('brokerai.visits', JSON.stringify(state.visits));
 
         showToast(`✓ Showing feedback recorded for ${esc(visit.leadName)}!`, 'success');
@@ -11603,6 +11604,17 @@ Password: *${pass}*
 
   function letterheadModal(s) {
     document.querySelectorAll('.modal-backdrop, .drawer-backdrop').forEach(b => b.remove());
+    const settings = s || state.agencySettings || defaultAgencySettings || {
+      agencyName: 'Apex Realty Group',
+      brandTagline: 'Institutional Real Estate Advisory',
+      officeAddress: 'Hiranandani Estate, Ghodbunder Road, Thane West',
+      reraNumber: 'A51700012345',
+      gstin: '27AABCB1234F1Z8',
+      panNumber: 'ABCDE1234F',
+      contactEmail: 'contact@apexrealty.in',
+      contactPhone: '+91 98200 12345'
+    };
+
     const backdrop = document.createElement('div');
     backdrop.className = 'modal-backdrop';
     const modal = document.createElement('div');
@@ -11614,30 +11626,30 @@ Password: *${pass}*
         <div>
           <div class="brand auth-brand" style="margin-bottom:4px;justify-content:flex-start;">
             <span class="mark"><svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M4 20V10l8-6 8 6v10"/><path d="M9 20v-6h6v6"/></svg></span>
-            <span style="font-size:22px;font-weight:800;color:var(--ink);">${esc(s.agencyName)}</span>
+            <span style="font-size:22px;font-weight:800;color:var(--ink);">${esc(settings.agencyName)}</span>
           </div>
-          <div style="font-size:12.5px;color:var(--muted);font-weight:600;">${esc(s.brandTagline)}</div>
-          <div style="font-size:11.5px;color:#475569;margin-top:4px;">📍 ${esc(s.officeAddress)}</div>
+          <div style="font-size:12.5px;color:var(--muted);font-weight:600;">${esc(settings.brandTagline || 'Institutional Real Estate Advisory')}</div>
+          <div style="font-size:11.5px;color:#475569;margin-top:4px;">📍 ${esc(settings.officeAddress || 'Thane West')}</div>
         </div>
         <div style="text-align:right;font-size:11px;color:#475569;">
           <div style="background:#ecfdf5;border:1px solid #a7f3d0;color:#047857;padding:3px 8px;border-radius:6px;font-weight:800;display:inline-block;margin-bottom:4px;">
-            MahaRERA: ${esc(s.reraNumber)}
+            MahaRERA: ${esc(settings.reraNumber || 'A51700012345')}
           </div>
-          <div>GSTIN: ${esc(s.gstin || '27AABCB1234F1Z8')}</div>
-          <div>PAN: ${esc(s.panNumber || 'ABCDE1234F')}</div>
-          <div>Email: ${esc(s.contactEmail)}</div>
-          <div>Phone: ${esc(s.contactPhone)}</div>
+          <div>GSTIN: ${esc(settings.gstin || '27AABCB1234F1Z8')}</div>
+          <div>PAN: ${esc(settings.panNumber || 'ABCDE1234F')}</div>
+          <div>Email: ${esc(settings.contactEmail || 'contact@apexrealty.in')}</div>
+          <div>Phone: ${esc(settings.contactPhone || '+91 98200 12345')}</div>
         </div>
       </div>
 
       <div style="padding:10px 0;font-size:13px;line-height:1.6;color:#334155;min-height:180px;">
         <p><strong>OFFICIAL BROKERAGE MANDATE / PROPOSAL SUMMARY</strong></p>
-        <p>This is a formal agency representation document issued under MahaRERA Registered Real Estate Brokerage License <strong>${esc(s.reraNumber)}</strong>.</p>
+        <p>This is a formal agency representation document issued under MahaRERA Registered Real Estate Brokerage License <strong>${esc(settings.reraNumber || 'A51700012345')}</strong>.</p>
         <p>All property listings, legal title verification, and escrow token management adhere to RERA compliance standards.</p>
       </div>
 
       <div style="border-top:1px solid var(--line);padding-top:16px;display:flex;justify-content:space-between;align-items:center;">
-        <div style="font-size:11px;color:var(--muted);">Authorized Signatory · ${esc(s.agencyName)}</div>
+        <div style="font-size:11px;color:var(--muted);">Authorized Signatory · ${esc(settings.agencyName)}</div>
         <div style="display:flex;gap:8px;">
           <button class="button secondary" id="close-letterhead-modal">Close</button>
           <button class="button primary" id="print-letterhead-btn">🖨️ Print Letterhead</button>
@@ -13548,13 +13560,16 @@ Best regards,
   ];
 
   function planActivationModal(planId, months) {
-    const tier = pricingTiers.find(t => t.id === planId) || pricingTiers[1];
-    const tenure = tenureDiscounts[months] || tenureDiscounts[12];
-    const discount = (tenure.discount !== undefined ? tenure.discount : (tenure.discountPercent || 0) / 100);
-    const discountFactor = 1 - discount;
-    const discountedMonthly = Math.round(tier.baseMonthly * discountFactor);
-    const totalBilled = discountedMonthly * months;
-    const originalTotal = tier.baseMonthly * months;
+    const normId = (planId === 'starter' || planId === 'solo_starter' || planId === 'starter_solo') ? 'starter' : (planId === 'agency' || planId === 'agency_elite') ? 'agency' : 'pro';
+    const tier = pricingTiers.find(t => t.id === normId) || pricingTiers[1];
+    const tenureMonths = Number(months) || Number(selectedTenureMonths) || 12;
+    const tenure = tenureDiscounts[tenureMonths] || tenureDiscounts[12] || { label: '12 Months (Annual)', discount: 0.20, discountPercent: 20 };
+    const discount = (typeof tenure.discount === 'number' ? tenure.discount : (typeof tenure.discountPercent === 'number' ? tenure.discountPercent / 100 : 0.20));
+    const discountFactor = Math.max(0, 1 - discount);
+    const baseMonthly = Number(tier.baseMonthly) || (tier.id === 'agency' ? 3000 : (tier.id === 'pro' ? 1200 : 600));
+    const discountedMonthly = Math.round(baseMonthly * discountFactor);
+    const totalBilled = discountedMonthly * tenureMonths;
+    const originalTotal = baseMonthly * tenureMonths;
     const totalSaved = originalTotal - totalBilled;
 
     document.querySelectorAll('.modal-backdrop, .drawer-backdrop').forEach(b => b.remove());
@@ -13924,13 +13939,25 @@ Best regards,
 
   function auditEventsModal(session) {
     document.querySelectorAll('.modal-backdrop, .drawer-backdrop, .spotlight-backdrop').forEach(b => b.remove());
+    const sess = session || {
+      user: 'Mohak Vaswani',
+      agency: 'Apex Realty Group',
+      device: 'Desktop Chrome',
+      status: 'ONLINE',
+      loginTime: 'Today, 10:00 AM',
+      logoutTime: null,
+      sessionDuration: '2 hrs 15 mins',
+      actionsCount: 5,
+      events: [{ time: '10:05 AM', text: 'Logged in successfully' }]
+    };
+
     const backdrop = document.createElement('div');
     backdrop.className = 'modal-backdrop';
     const modal = document.createElement('div');
     modal.className = 'modal';
     modal.style.cssText = 'max-width:560px;width:92vw;max-height:85vh;overflow-y:auto;box-shadow:0 25px 60px rgba(0,0,0,0.4);border-radius:18px;padding:24px;background:#fff;';
 
-    const isOnline = session.status === 'ONLINE';
+    const isOnline = sess.status === 'ONLINE';
 
     modal.innerHTML = `
       <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:16px;border-bottom:1px solid var(--line);padding-bottom:12px;">
@@ -13943,7 +13970,7 @@ Best regards,
             </span>
           </div>
           <div style="font-size:13px;color:var(--muted);margin-top:4px;">
-            <strong>${esc(session.user)}</strong> (${esc(session.agency)}) · ${esc(session.device)}
+            <strong>${esc(sess.user)}</strong> (${esc(sess.agency)}) · ${esc(sess.device)}
           </div>
         </div>
         <button class="close" id="close-audit-modal" style="font-size:22px;">×</button>
@@ -13953,21 +13980,21 @@ Best regards,
       <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:18px;background:#f8fafc;padding:12px;border-radius:10px;border:1px solid var(--line);">
         <div>
           <div style="font-size:11px;color:var(--muted);font-weight:700;">LOGIN TIME</div>
-          <div style="font-size:13px;font-weight:750;color:#0f172a;">${esc(session.loginTime)}</div>
+          <div style="font-size:13px;font-weight:750;color:#0f172a;">${esc(sess.loginTime)}</div>
         </div>
         <div>
           <div style="font-size:11px;color:var(--muted);font-weight:700;">LOGOUT / STATUS</div>
           <div style="font-size:13px;font-weight:750;color:${isOnline ? '#15803d' : '#475569'};">
-            ${session.logoutTime ? esc(session.logoutTime) : '🟢 Active in Session'}
+            ${sess.logoutTime ? esc(sess.logoutTime) : '🟢 Active in Session'}
           </div>
         </div>
         <div>
           <div style="font-size:11px;color:var(--muted);font-weight:700;">SESSION DURATION</div>
-          <div style="font-size:13px;font-weight:750;color:#165dff;">${esc(session.sessionDuration || 'Active')}</div>
+          <div style="font-size:13px;font-weight:750;color:#165dff;">${esc(sess.sessionDuration || 'Active')}</div>
         </div>
         <div>
           <div style="font-size:11px;color:var(--muted);font-weight:700;">TOTAL ACTIONS</div>
-          <div style="font-size:13px;font-weight:750;color:#047857;">${session.actionsCount || session.events.length} Actions Logged</div>
+          <div style="font-size:13px;font-weight:750;color:#047857;">${sess.actionsCount || (sess.events ? sess.events.length : 0)} Actions Logged</div>
         </div>
       </div>
 
@@ -13977,15 +14004,14 @@ Best regards,
       </div>
 
       <div style="display:flex;flex-direction:column;gap:8px;max-height:280px;overflow-y:auto;padding-right:4px;">
-        ${(session.events || []).map((ev, i) => `
+        ${(sess.events || []).map((ev, i) => `
           <div style="display:flex;align-items:flex-start;gap:10px;background:#ffffff;border:1px solid #e2e8f0;padding:10px 12px;border-radius:8px;">
             <span style="font-size:11px;font-weight:800;color:#2563eb;background:#eff6ff;padding:2px 6px;border-radius:4px;white-space:nowrap;">
-              ${esc(ev.time)}
+              ${esc(ev.time || '10:00 AM')}
             </span>
             <div style="font-size:13px;color:#1e293b;font-weight:600;line-height:1.4;">
-              ${esc(ev.text)}
+              ${esc(ev.text || ev.action || 'Performed action')}
             </div>
-          </div>
         `).join('')}
       </div>
 
@@ -14680,6 +14706,66 @@ Best regards,
     if (cleanPage) state.page = cleanPage;
     render();
   });
+
+  // Universal Window API Exports for all views and modals
+  window.demoTourModal = demoTourModal;
+  window.planSimulatorModal = planSimulatorModal;
+  window.spotlightCommandModal = spotlightCommandModal;
+  window.installPwaModal = installPwaModal;
+  window.siteVisitDrawer = siteVisitDrawer;
+  window.visitFeedbackDrawer = visitFeedbackDrawer;
+  window.csvImportModal = csvImportModal;
+  window.leadDrawer = leadDrawer;
+  window.propertyGalleryModal = propertyGalleryModal;
+  window.propertyBrochurePdfModal = propertyBrochurePdfModal;
+  window.coBrokeringAgreementModal = coBrokeringAgreementModal;
+  window.whatsAppDispatcherModal = whatsAppDispatcherModal;
+  window.propertyMoreSheet = propertyMoreSheet;
+  window.leadMatchesDrawer = leadMatchesDrawer;
+  window.propertyBuyersDrawer = propertyBuyersDrawer;
+  window.propertyDrawer = propertyDrawer;
+  window.followUpDrawer = followUpDrawer;
+  window.dealDrawer = dealDrawer;
+  window.costSheetModal = costSheetModal;
+  window.salesDemoGeneratorModal = salesDemoGeneratorModal;
+  window.mobileMenuModal = mobileMenuModal;
+  window.checkMobileInstallBanner = checkMobileInstallBanner;
+  window.clientMicrositeModal = clientMicrositeModal;
+  window.clientMicrositeView = clientMicrositeView;
+  window.stampDutyCostCalculatorModal = stampDutyCostCalculatorModal;
+  window.rentalAgreementModal = rentalAgreementModal;
+  window.allotmentLetterModal = allotmentLetterModal;
+  window.tokenReceiptModal = tokenReceiptModal;
+  window.letterheadModal = letterheadModal;
+  window.magicWhatsAppParserModal = magicWhatsAppParserModal;
+  window.brokerageInvoiceModal = brokerageInvoiceModal;
+  window.commissionDrawer = commissionDrawer;
+  window.promptAddAgentModal = promptAddAgentModal;
+  window.promptAddBranchDeskModal = promptAddBranchDeskModal;
+  window.letterheadView = letterheadView;
+  window.planActivationModal = planActivationModal;
+  window.auditEventsModal = auditEventsModal;
+  window.provisionAgencyModal = provisionAgencyModal;
+  window.sendTestWhatsAppPitch = sendTestWhatsAppPitch;
+  window.exportTeamDirectoryCSV = exportTeamDirectoryCSV;
+  window.render = render;
+  window.dashboard = dashboard;
+  window.pricingView = pricingView;
+  window.superAdminView = superAdminView;
+  window.leadsView = leadsView;
+  window.propertiesView = propertiesView;
+  window.matchesView = matchesView;
+  window.followUpsView = followUpsView;
+  window.siteVisitsView = siteVisitsView;
+  window.documentsView = documentsView;
+  window.dealsView = dealsView;
+  window.teamView = teamView;
+  window.branchesView = branchesView;
+  window.commissionsView = commissionsView;
+  window.reportsView = reportsView;
+  window.assistantView = assistantView;
+  window.notificationsView = notificationsView;
+  window.settingsView = settingsView;
 
   if (typeof initMasterSessionTracker === 'function') initMasterSessionTracker();
 
