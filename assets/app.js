@@ -2049,12 +2049,7 @@ const request = async (path, options = {}) => {
   // PRIVATE STAGING GATE & COMING SOON ENGINE (MOBILE OPTIMIZED)
   // ==========================================
   function isPrivateGateActive() {
-    try {
-      const val = localStorage.getItem('brokerai.privateGateActive');
-      return val === 'true';
-    } catch(e) {
-      return false;
-    }
+    return false; // Website is 100% public, open access - never show lock screen
   }
 
   function isPrivateUnlocked() {
@@ -4980,7 +4975,7 @@ Presented by *${state.user?.fullName || 'Aarav Mehta'}*
                       <div class="showroom-cover" style="position:relative;height:160px;background:${coverImg ? `url('${coverImg}') center/cover` : 'linear-gradient(135deg, #1e3a8a, #0f172a)'};border-radius:12px 12px 0 0;display:flex;flex-direction:column;justify-content:space-between;padding:12px;">
                         <div style="display:flex;justify-content:space-between;align-items:center;">
                           <span class="showroom-verified-badge">💎 Verified Direct Listing</span>
-                          <span style="background:rgba(0,0,0,0.65);color:#fff;padding:3px 8px;border-radius:20px;font-size:11px;font-weight:700;backdrop-filter:blur(4px);">📸 ${imgCount} Photos</span>
+                          <span style="background:rgba(0,0,0,0.75);color:#fff;padding:3px 8px;border-radius:20px;font-size:11px;font-weight:700;">📸 ${imgCount} Photos</span>
                         </div>
                         <div style="background:linear-gradient(to top, rgba(0,0,0,0.85), transparent);margin:-12px;padding:12px;border-radius:0 0 0 0;">
                           <div style="color:#fff;font-size:18px;font-weight:800;letter-spacing:-0.4px;">
@@ -9945,7 +9940,7 @@ Password: *${pass}*
     document.querySelectorAll('.modal-backdrop').forEach(b => b.remove());
     const backdrop = document.createElement('div');
     backdrop.className = 'modal-backdrop';
-    backdrop.style.cssText = 'position:fixed;inset:0;background:rgba(15,23,42,0.6);backdrop-filter:blur(4px);z-index:9998 !important;display:flex;align-items:center;justify-content:center;padding:16px;box-sizing:border-box;';
+    backdrop.style.cssText = 'position:fixed;inset:0;background:rgba(15,23,42,0.65);z-index:9998 !important;display:flex;align-items:center;justify-content:center;padding:16px;box-sizing:border-box;';
 
     const modal = document.createElement('div');
     modal.className = 'modal';
