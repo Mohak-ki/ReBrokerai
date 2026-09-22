@@ -4010,7 +4010,9 @@ aside.drawer {
 }
 
 @keyframes popInModal {
-  from { opacity: 0; transform: scale(0.96) translateY(10px); }
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
   to { opacity: 1; transform: scale(1) translateY(0); }
 }
 
@@ -4811,13 +4813,15 @@ aside.drawer {
 /* Desktop layout (centered modal sheet) */
 @media (min-width: 641px) {
   .bottom-action-sheet {
-    top: 50% !important;
-    left: 50% !important;
-    transform: translate(-50%, -50%) !important;
+    position: relative !important;
+    margin: auto !important;
+    top: auto !important;
+    left: auto !important;
+    transform: none !important;
     width: min(540px, 94vw) !important;
     max-height: 88vh !important;
     border-radius: 18px !important;
-    animation: popInModal 0.22s cubic-bezier(0.16, 1, 0.3, 1) forwards !important;
+    animation: popInModal 0.18s ease-out forwards !important;
   }
 }
 
@@ -7330,7 +7334,7 @@ button:active, .button:active, .btn:active, .ai-chip:active, .view-btn:active {
 }
 
 .modal, .drawer {
-  animation: smoothModalSpring 0.28s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation: smoothFadeIn 0.18s ease-out forwards;
 }
 
 @keyframes smoothFadeIn {
@@ -7339,10 +7343,9 @@ button:active, .button:active, .btn:active, .ai-chip:active, .view-btn:active {
 }
 
 @keyframes smoothModalSpring {
-  from {
-    opacity: 0;
-    transform: scale(0.95) translateY(12px);
-  }
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
   to {
     opacity: 1;
     transform: scale(1) translateY(0);

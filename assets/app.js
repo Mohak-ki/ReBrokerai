@@ -1618,9 +1618,11 @@ const request = async (path, options = {}) => {
         </div>
       </div>`;
 
-    document.body.append(backdrop, modal);
-    const close = () => { backdrop.remove(); modal.remove(); };
-    backdrop.onclick = close;
+    backdrop.appendChild(modal);
+    document.body.appendChild(backdrop);
+    const close = () => backdrop.remove();
+    backdrop.onclick = (e) => { if (e.target === backdrop) close(); };
+    modal.onclick = (e) => e.stopPropagation();
 
     const input = modal.querySelector('#spotlight-search-input');
     const results = modal.querySelector('#spotlight-results-list');
@@ -1762,11 +1764,12 @@ const request = async (path, options = {}) => {
       return;
     }
 
+    document.querySelectorAll('.modal-backdrop, .drawer-backdrop').forEach(b => b.remove());
     const backdrop = document.createElement('div');
-    backdrop.className = 'drawer-backdrop';
+    backdrop.className = 'modal-backdrop';
     const modal = document.createElement('div');
-    modal.className = 'auth-card';
-    modal.style.cssText = 'position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:30;max-width:500px;width:92%;background:#fff;';
+    modal.className = 'modal';
+    modal.style.cssText = 'max-width:500px;width:92vw;background:#fff;padding:24px;border-radius:20px;box-shadow:0 25px 60px rgba(0,0,0,0.3);position:relative;box-sizing:border-box;';
 
     const isIos = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
 
@@ -1799,9 +1802,11 @@ const request = async (path, options = {}) => {
         <button class="button primary full" id="pwa-install-got-it-btn" style="background:#0f172a;font-weight:700;padding:10px;">Got It · Close</button>
       </div>`;
 
-    document.body.append(backdrop, modal);
-    const close = () => { backdrop.remove(); modal.remove(); };
-    backdrop.onclick = close;
+    backdrop.appendChild(modal);
+    document.body.appendChild(backdrop);
+    const close = () => backdrop.remove();
+    backdrop.onclick = (e) => { if (e.target === backdrop) close(); };
+    modal.onclick = (e) => e.stopPropagation();
     if (modal.querySelector('#pwa-install-got-it-btn')) modal.querySelector('#pwa-install-got-it-btn').onclick = close;
   }
 
@@ -5551,9 +5556,12 @@ ${agencyBranding}
         </button>
       </div>
     `;
-    document.body.append(backdrop, sheet);
-    const close = () => { backdrop.remove(); sheet.remove(); };
-    backdrop.onclick = close;
+    document.querySelectorAll('.modal-backdrop, .drawer-backdrop').forEach(b => b.remove());
+    backdrop.appendChild(sheet);
+    document.body.appendChild(backdrop);
+    const close = () => backdrop.remove();
+    backdrop.onclick = (e) => { if (e.target === backdrop) close(); };
+    sheet.onclick = (e) => e.stopPropagation();
     sheet.querySelector('.sheet-close').onclick = close;
 
     sheet.querySelector('#sheet-find-buyers').onclick = () => { close(); propertyBuyersDrawer(property); };
@@ -8824,11 +8832,12 @@ Best regards,
     const defaultHost = (typeof window !== 'undefined' && window.location?.origin) ? window.location.origin : 'https://www.rebrokerai.in';
     const defaultPass = `VIP#${Math.floor(1000 + Math.random() * 9000)}`;
 
+    document.querySelectorAll('.modal-backdrop, .drawer-backdrop').forEach(b => b.remove());
     const backdrop = document.createElement('div');
-    backdrop.className = 'drawer-backdrop';
+    backdrop.className = 'modal-backdrop';
     const modal = document.createElement('div');
-    modal.className = 'auth-card';
-    modal.style.cssText = 'position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:30;max-width:680px;width:94%;max-height:92vh;overflow:auto;background:#fff;';
+    modal.className = 'modal';
+    modal.style.cssText = 'max-width:680px;width:94vw;max-height:92vh;overflow-y:auto;background:#fff;padding:24px;border-radius:20px;box-shadow:0 25px 60px rgba(0,0,0,0.3);position:relative;box-sizing:border-box;';
 
     modal.innerHTML = `
       <div style="border-bottom:2px solid var(--line);padding-bottom:14px;margin-bottom:16px;display:flex;justify-content:space-between;align-items:flex-start;">
@@ -8880,10 +8889,11 @@ Best regards,
         </div>
       </div>`;
 
-    document.body.append(backdrop, modal);
-
-    const close = () => { backdrop.remove(); modal.remove(); };
-    backdrop.onclick = close;
+    backdrop.appendChild(modal);
+    document.body.appendChild(backdrop);
+    const close = () => backdrop.remove();
+    backdrop.onclick = (e) => { if (e.target === backdrop) close(); };
+    modal.onclick = (e) => e.stopPropagation();
     if (modal.querySelector('#close-sales-modal')) modal.querySelector('#close-sales-modal').onclick = close;
     if (modal.querySelector('#close-sales-btn')) modal.querySelector('#close-sales-btn').onclick = close;
 
@@ -11572,11 +11582,12 @@ Password: *${pass}*
   }
 
   function letterheadModal(s) {
+    document.querySelectorAll('.modal-backdrop, .drawer-backdrop').forEach(b => b.remove());
     const backdrop = document.createElement('div');
-    backdrop.className = 'drawer-backdrop';
+    backdrop.className = 'modal-backdrop';
     const modal = document.createElement('div');
-    modal.className = 'auth-card';
-    modal.style.cssText = 'position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:30;max-width:680px;width:92%;max-height:90vh;overflow:auto;background:#fff;';
+    modal.className = 'modal';
+    modal.style.cssText = 'max-width:680px;width:94vw;max-height:90vh;overflow-y:auto;background:#fff;padding:24px;border-radius:20px;box-shadow:0 25px 60px rgba(0,0,0,0.3);position:relative;box-sizing:border-box;';
     
     modal.innerHTML = `
       <div style="border-bottom:3px solid #165dff;padding-bottom:18px;margin-bottom:20px;display:flex;justify-content:space-between;align-items:flex-start;">
@@ -11612,9 +11623,11 @@ Password: *${pass}*
           <button class="button primary" id="print-letterhead-btn">🖨️ Print Letterhead</button>
         </div>
       </div>`;
-    document.body.append(backdrop, modal);
-    const close = () => { backdrop.remove(); modal.remove(); };
-    backdrop.onclick = close;
+    backdrop.appendChild(modal);
+    document.body.appendChild(backdrop);
+    const close = () => backdrop.remove();
+    backdrop.onclick = (e) => { if (e.target === backdrop) close(); };
+    modal.onclick = (e) => e.stopPropagation();
     if (modal.querySelector('#close-letterhead-modal')) modal.querySelector('#close-letterhead-modal').onclick = close;
     if (modal.querySelector('#print-letterhead-btn')) modal.querySelector('#print-letterhead-btn').onclick = () => window.print();
   }
@@ -12292,11 +12305,12 @@ Immediate possession. Call broker: 9833445566`
       paymentDueDate: 'Within 7 Days'
     };
     comm = comm || (state.commissions && state.commissions[0]) || defaultComm;
+    document.querySelectorAll('.modal-backdrop, .drawer-backdrop').forEach(b => b.remove());
     const backdrop = document.createElement('div');
-    backdrop.className = 'drawer-backdrop';
+    backdrop.className = 'modal-backdrop';
     const modal = document.createElement('div');
-    modal.className = 'auth-card';
-    modal.style.cssText = 'position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:10000;max-width:640px;width:92%;max-height:90vh;overflow:auto;';
+    modal.className = 'modal';
+    modal.style.cssText = 'max-width:640px;width:94vw;max-height:90vh;overflow-y:auto;background:#fff;padding:24px;border-radius:20px;box-shadow:0 25px 60px rgba(0,0,0,0.3);position:relative;box-sizing:border-box;';
     
     const subtotal = comm.grossBrokerage || 0;
     const cgst = Math.round(subtotal * 0.09);
@@ -12379,9 +12393,11 @@ Immediate possession. Call broker: 9833445566`
           <button class="button primary" id="print-invoice-btn">🖨️ Print / Save PDF</button>
         </div>
       </div>`;
-    document.body.append(backdrop, modal);
-    const close = () => { backdrop.remove(); modal.remove(); };
-    backdrop.onclick = close;
+    backdrop.appendChild(modal);
+    document.body.appendChild(backdrop);
+    const close = () => backdrop.remove();
+    backdrop.onclick = (e) => { if (e.target === backdrop) close(); };
+    modal.onclick = (e) => e.stopPropagation();
     if (modal.querySelector('#close-invoice-modal')) modal.querySelector('#close-invoice-modal').onclick = close;
     if (modal.querySelector('#print-invoice-btn')) modal.querySelector('#print-invoice-btn').onclick = () => window.print();
   }
@@ -13520,11 +13536,12 @@ Best regards,
     const originalTotal = tier.baseMonthly * months;
     const totalSaved = originalTotal - totalBilled;
 
+    document.querySelectorAll('.modal-backdrop, .drawer-backdrop').forEach(b => b.remove());
     const backdrop = document.createElement('div');
-    backdrop.className = 'drawer-backdrop';
+    backdrop.className = 'modal-backdrop';
     const modal = document.createElement('div');
-    modal.className = 'auth-card';
-    modal.style.cssText = 'position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:1002;max-width:540px;width:92%;background:#fff;';
+    modal.className = 'modal';
+    modal.style.cssText = 'max-width:540px;width:94vw;max-height:90vh;overflow-y:auto;background:#fff;padding:24px;border-radius:20px;box-shadow:0 25px 60px rgba(0,0,0,0.3);position:relative;box-sizing:border-box;';
 
     const agencyName = state.agencySettings?.agencyName || 'My Real Estate Agency';
 
