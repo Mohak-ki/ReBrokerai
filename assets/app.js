@@ -1541,6 +1541,7 @@ const request = async (path, options = {}) => {
 
   // --- 2. SPOTLIGHT COMMAND BAR (CTRL + K) ---
   function spotlightCommandModal() {
+    document.querySelectorAll('.modal-backdrop, .drawer-backdrop, .spotlight-backdrop').forEach(b => b.remove());
     if (document.querySelector('.spotlight-backdrop')) return;
     const backdrop = document.createElement('div');
     backdrop.className = 'spotlight-backdrop';
@@ -2680,6 +2681,7 @@ _Feel free to reach our team at ${state.user?.fullName ? `${state.user.fullName}
   }
 
   async function siteVisitDrawer(defaultLeadId = null, defaultPropertyId = null) {
+    document.querySelectorAll('.modal-backdrop, .drawer-backdrop, .spotlight-backdrop').forEach(b => b.remove());
     let leads = state.leads;
     let properties = state.properties;
 
@@ -2825,6 +2827,7 @@ _Feel free to reach our team at ${state.user?.fullName ? `${state.user.fullName}
   }
 
   function visitFeedbackDrawer(visit) {
+    document.querySelectorAll('.modal-backdrop, .drawer-backdrop, .spotlight-backdrop').forEach(b => b.remove());
     const backdrop = document.createElement('div');
     backdrop.className = 'drawer-backdrop';
     const drawer = document.createElement('aside');
@@ -3551,6 +3554,7 @@ _Feel free to reach our team at ${state.user?.fullName ? `${state.user.fullName}
   }
 
   function csvImportModal(type) {
+    document.querySelectorAll('.modal-backdrop, .drawer-backdrop, .spotlight-backdrop').forEach(b => b.remove());
     const isLeads = type === 'leads';
     const backdrop = document.createElement('div');
     backdrop.className = 'modal-backdrop';
@@ -4050,6 +4054,7 @@ Best regards,
 
   // --- LEAD DRAWER (MOBILE & TOUCH OPTIMIZED) ---
   function leadDrawer(lead = null) {
+    document.querySelectorAll('.modal-backdrop, .drawer-backdrop, .spotlight-backdrop').forEach(b => b.remove());
     const caps = getPlanCapabilities();
     const currentLeadsCount = (state.leads || []).length;
     if (!lead && currentLeadsCount >= caps.maxLeads) {
@@ -4275,6 +4280,7 @@ Best regards,
   // --- 1. VISUAL PROPERTY GALLERY & FLOOR PLAN VIEWER ---
     // --- 1. VISUAL PROPERTY GALLERY & FLOOR PLAN VIEWER (FLAWLESS FUNCTIONING) ---
   function propertyGalleryModal(prop) {
+    document.querySelectorAll('.modal-backdrop, .drawer-backdrop, .spotlight-backdrop').forEach(b => b.remove());
     const backdrop = document.createElement('div');
     backdrop.className = 'modal-backdrop';
 
@@ -4510,6 +4516,7 @@ Presented by *${state.user?.fullName || 'Aarav Mehta'}*
 
   // --- 2. ONE-CLICK WHATSAPP PDF BROCHURE / FLYER GENERATOR ---
   function propertyBrochurePdfModal(prop) {
+    document.querySelectorAll('.modal-backdrop, .drawer-backdrop, .spotlight-backdrop').forEach(b => b.remove());
     const backdrop = document.createElement('div');
     backdrop.className = 'modal-backdrop';
 
@@ -4654,6 +4661,7 @@ Presented by *${state.user?.fullName || 'Aarav Mehta'}*
 
   // --- 3. 50:50 CO-BROKERING COMMISSION SPLIT AGREEMENT (MOU) ---
   function coBrokeringAgreementModal(prop) {
+    document.querySelectorAll('.modal-backdrop, .drawer-backdrop, .spotlight-backdrop').forEach(b => b.remove());
     const backdrop = document.createElement('div');
     backdrop.className = 'modal-backdrop';
 
@@ -5216,6 +5224,7 @@ Presented by *${state.user?.fullName || 'Aarav Mehta'}*
 
     // --- 1-CLICK WHATSAPP CLIENT BROCHURE & PITCH DISPATCHER ---
   function whatsAppDispatcherModal(property = null, preselectedLead = null, customData = {}) {
+    document.querySelectorAll('.modal-backdrop, .drawer-backdrop, .spotlight-backdrop').forEach(b => b.remove());
     const allProps = (state.properties && state.properties.length) ? state.properties : demoProperties;
     const allLeads = (state.leads && state.leads.length) ? state.leads : demoLeads;
 
@@ -5484,6 +5493,7 @@ ${agencyBranding}
 
   // --- STREAMLINED PROPERTY BOTTOM ACTION SHEET (··· MORE ACTIONS) ---
   function propertyMoreSheet(property) {
+    document.querySelectorAll('.modal-backdrop, .drawer-backdrop, .spotlight-backdrop').forEach(b => b.remove());
     if (!property) return;
     const backdrop = document.createElement('div');
     backdrop.className = 'drawer-backdrop';
@@ -5574,6 +5584,7 @@ ${agencyBranding}
 
   // --- 1-TAP SMART MATCH DRAWER FOR BUYER LEADS ---
   async function leadMatchesDrawer(lead) {
+    document.querySelectorAll('.modal-backdrop, .drawer-backdrop, .spotlight-backdrop').forEach(b => b.remove());
     if (!lead) return;
     const backdrop = document.createElement('div');
     backdrop.className = 'drawer-backdrop';
@@ -5718,6 +5729,7 @@ ${agencyBranding}
   }
 
   async function propertyBuyersDrawer(property) {
+    document.querySelectorAll('.modal-backdrop, .drawer-backdrop, .spotlight-backdrop').forEach(b => b.remove());
     if (!property) return;
     const backdrop = document.createElement('div');
     backdrop.className = 'drawer-backdrop';
@@ -5808,6 +5820,7 @@ ${agencyBranding}
   }
 
   function propertyDrawer(property = null) {
+    document.querySelectorAll('.modal-backdrop, .drawer-backdrop, .spotlight-backdrop').forEach(b => b.remove());
     const caps = getPlanCapabilities();
     const currentPropsCount = (state.properties || []).length;
     if (!property && currentPropsCount >= caps.maxProperties) {
@@ -6654,6 +6667,7 @@ Best regards,
   }
 
   async function followUpDrawer(followUp = null, defaultLeadId = null) {
+    document.querySelectorAll('.modal-backdrop, .drawer-backdrop, .spotlight-backdrop').forEach(b => b.remove());
     let leads = state.leads;
     if (!leads.length && !state.demo) {
       const page = await request('/leads?page=0&size=100').catch(() => ({ content: [] }));
@@ -8345,6 +8359,7 @@ Best regards,
   }
 
   function dealDrawer(deal = null) {
+    document.querySelectorAll('.modal-backdrop, .drawer-backdrop, .spotlight-backdrop').forEach(b => b.remove());
     let leads = state.leads.length ? state.leads : (state.demo ? demoLeads : []);
     let properties = state.properties.length ? state.properties : (state.demo ? demoProperties : []);
 
@@ -8480,6 +8495,7 @@ Best regards,
   
 
   function costSheetModal(property = null, deal = null) {
+    document.querySelectorAll('.modal-backdrop, .drawer-backdrop, .spotlight-backdrop').forEach(b => b.remove());
     const s = state.agencySettings || defaultAgencySettings;
     const initialPrice = property?.price || deal?.agreedPrice || 12500000;
     const initialTitle = property?.title || deal?.propertyTitle || 'Spacious 2 BHK at Hiranandani Estate, Thane';
@@ -9052,6 +9068,7 @@ Password: *${pass}*
   
   // --- MOBILE FULL MENU DRAWER ---
     function mobileMenuModal() {
+    document.querySelectorAll('.modal-backdrop, .drawer-backdrop, .spotlight-backdrop').forEach(b => b.remove());
     const backdrop = document.createElement('div');
     backdrop.className = 'drawer-backdrop';
     const drawer = document.createElement('aside');
@@ -10175,6 +10192,7 @@ Password: *${pass}*
   // ==========================================================================
 
   function rentalAgreementModal(property = null, lead = null) {
+    document.querySelectorAll('.modal-backdrop, .drawer-backdrop, .spotlight-backdrop').forEach(b => b.remove());
     const allProps = (state.properties && state.properties.length) ? state.properties : demoProperties;
     const allLeads = (state.leads && state.leads.length) ? state.leads : demoLeads;
     const s = state.agencySettings || defaultAgencySettings;
@@ -10522,6 +10540,7 @@ Password: *${pass}*
   // ==========================================================================
 
   function allotmentLetterModal(property = null, lead = null) {
+    document.querySelectorAll('.modal-backdrop, .drawer-backdrop, .spotlight-backdrop').forEach(b => b.remove());
     const allProps = (state.properties && state.properties.length) ? state.properties : demoProperties;
     const allLeads = (state.leads && state.leads.length) ? state.leads : demoLeads;
     const s = state.agencySettings || defaultAgencySettings;
@@ -10664,6 +10683,7 @@ Password: *${pass}*
 
 // --- ENHANCED TOKEN BOOKING RECEIPT DRAWER & PREVIEW ---
   async function tokenReceiptModal() {
+    document.querySelectorAll('.modal-backdrop, .drawer-backdrop, .spotlight-backdrop').forEach(b => b.remove());
     let leads = state.leads;
     let properties = state.properties;
     const s = state.agencySettings || defaultAgencySettings;
@@ -12438,6 +12458,7 @@ Best regards,
   }
 
   function commissionDrawer(comm = null) {
+    document.querySelectorAll('.modal-backdrop, .drawer-backdrop, .spotlight-backdrop').forEach(b => b.remove());
     let deals = state.deals.length ? state.deals : (state.demo ? demoDeals : []);
 
     const backdrop = document.createElement('div');
@@ -13594,9 +13615,11 @@ Best regards,
         </button>
       </div>`;
 
-    document.body.append(backdrop, modal);
-    const close = () => { backdrop.remove(); modal.remove(); };
-    backdrop.onclick = close;
+    backdrop.appendChild(modal);
+    document.body.appendChild(backdrop);
+    const close = () => backdrop.remove();
+    backdrop.onclick = (e) => { if (e.target === backdrop) close(); };
+    modal.onclick = (e) => e.stopPropagation();
     if (modal.querySelector('#close-activation-modal')) modal.querySelector('#close-activation-modal').onclick = close;
 
     if (modal.querySelector('#wa-instant-activate-btn')) modal.querySelector('#wa-instant-activate-btn').onclick = () => {
@@ -13900,6 +13923,7 @@ Best regards,
   let superAdminActiveTab = 'sessions'; // default to live telemetry
 
   function auditEventsModal(session) {
+    document.querySelectorAll('.modal-backdrop, .drawer-backdrop, .spotlight-backdrop').forEach(b => b.remove());
     const backdrop = document.createElement('div');
     backdrop.className = 'modal-backdrop';
     const modal = document.createElement('div');
@@ -14403,6 +14427,7 @@ Best regards,
 
 
   function provisionAgencyModal() {
+    document.querySelectorAll('.modal-backdrop, .drawer-backdrop, .spotlight-backdrop').forEach(b => b.remove());
     const backdrop = document.createElement('div');
     backdrop.className = 'drawer-backdrop';
     const drawer = document.createElement('aside');
