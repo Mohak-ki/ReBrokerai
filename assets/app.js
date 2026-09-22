@@ -2065,7 +2065,7 @@ const request = async (path, options = {}) => {
       <div class="private-gate-container" style="min-height:100vh;min-height:100dvh;background:#060911;color:#f8fafc;font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','Segoe UI',Roboto,sans-serif;display:flex;flex-direction:column;justify-content:space-between;padding:24px 16px;box-sizing:border-box;position:relative;overflow-x:hidden;-webkit-text-size-adjust:100%;">
         
         <!-- GLOW ACCENT BACKGROUND -->
-        <div style="position:absolute;top:-100px;left:50%;transform:translateX(-50%);width:min(600px, 100vw);height:300px;background:radial-gradient(circle, rgba(16,185,129,0.2) 0%, rgba(37,99,235,0.1) 50%, transparent 75%);filter:blur(50px);pointer-events:none;"></div>
+        <div style="position:absolute;top:-100px;left:50%;transform:translateX(-50%);width:min(600px, 100vw);height:300px;background:radial-gradient(circle, rgba(16,185,129,0.15) 0%, rgba(37,99,235,0.08) 50%, transparent 75%);pointer-events:none;"></div>
 
         <!-- TOP BRAND BAR -->
         <header style="max-width:1100px;margin:0 auto;width:100%;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;position:relative;z-index:10;">
@@ -2101,7 +2101,7 @@ const request = async (path, options = {}) => {
           </p>
 
           <!-- MOBILE-OPTIMIZED PASSCODE UNLOCK BOX -->
-          <div style="background:rgba(15,23,42,0.92);border:1px solid rgba(255,255,255,0.15);border-radius:20px;padding:24px 20px;box-shadow:0 25px 50px rgba(0,0,0,0.6);backdrop-filter:blur(20px);max-width:460px;margin:0 auto 32px;text-align:left;box-sizing:border-box;">
+          <div style="background:#0f172a;border:1px solid rgba(255,255,255,0.15);border-radius:20px;padding:24px 20px;box-shadow:0 25px 50px rgba(0,0,0,0.6);max-width:460px;margin:0 auto 32px;text-align:left;box-sizing:border-box;">
             <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
               <div style="display:flex;align-items:center;gap:8px;">
                 <span style="font-size:20px;">🔑</span>

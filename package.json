@@ -1,0 +1,23 @@
+{
+  "name": "brokerai-web",
+  "version": "1.0.0",
+  "description": "Dependency-free responsive browser client for the BrokerAI backend. It uses the real authentication and leads APIs—there is no static demo inventory or hard-coded CRM data.",
+  "main": "config.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Mohak-Ki/ReBrokerai.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Mohak-Ki/ReBrokerai/issues"
+  },
+  "homepage": "https://github.com/Mohak-Ki/ReBrokerai#readme",
+  "devDependencies": {
+    "jsdom": "^29.1.1"
+  }
+}
