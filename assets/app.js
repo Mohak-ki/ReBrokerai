@@ -837,33 +837,54 @@ const demoDocuments = [
     const cap = getPlanCapabilities();
     const pid = cap.planId;
 
-    const items = [
+    if (pid === 'starter') {
+      return [
+        ['dashboard', 'dashboard', 'Dashboard'],
+        ['leads', 'leads', 'Leads (75 Quota)'],
+        ['properties', 'properties', 'Properties (50 Quota)'],
+        ['deals', 'deals', 'Deals Pipeline'],
+        ['visits', 'visits', 'Site Visits'],
+        ['follow-ups', 'followups', 'Follow-ups'],
+        ['documents', 'documents', 'Calculators & Docs'],
+        ['pricing', 'pricing', '⚡ Upgrade to Pro (₹1,200)'],
+        ['settings', 'settings', 'Settings']
+      ];
+    }
+
+    if (pid === 'pro') {
+      return [
+        ['dashboard', 'dashboard', 'Dashboard'],
+        ['leads', 'leads', 'Buyer Leads (Unlimited)'],
+        ['properties', 'properties', 'Properties (Unlimited)'],
+        ['matches', 'matches', '⚡ AI Matchmaker'],
+        ['deals', 'deals', 'Deals Pipeline'],
+        ['visits', 'visits', 'Site Visits'],
+        ['follow-ups', 'followups', 'Follow-ups'],
+        ['documents', 'documents', 'Legal Vault & Receipts'],
+        ['reports', 'reports', 'Reports & Analytics'],
+        ['pricing', 'pricing', '💎 Upgrade to Agency (₹3,000)'],
+        ['settings', 'settings', 'Settings']
+      ];
+    }
+
+    // Agency Elite (All Unlocked)
+    return [
       ['dashboard', 'dashboard', 'Dashboard'],
-      ['leads', 'leads', pid === 'starter' ? 'Leads (75 Quota)' : 'Buyer Leads'],
-      ['properties', 'properties', pid === 'starter' ? 'Properties (50 Quota)' : 'Properties'],
-      ['matches', 'matches', pid === 'starter' ? '⚡ AI Matches 🔒' : '⚡ AI Matches'],
+      ['leads', 'leads', 'Leads (Agency CRM)'],
+      ['properties', 'properties', 'Properties (Portfolio)'],
+      ['matches', 'matches', '⚡ AI Matchmaker'],
       ['deals', 'deals', 'Deals Pipeline'],
       ['visits', 'visits', 'Site Visits'],
       ['follow-ups', 'followups', 'Follow-ups'],
-      ['documents', 'documents', pid === 'starter' ? 'Documents' : 'Legal Vault & Docs']
+      ['documents', 'documents', 'Legal Vault & Receipts'],
+      ['team', 'team', '👥 Closer Team (20 Seats)'],
+      ['branches', 'branches', '📍 Territory Desks'],
+      ['letterhead', 'letterhead', '🖨️ MahaRERA Letterhead'],
+      ['commissions', 'commissions', '💰 Commission Splits'],
+      ['reports', 'reports', 'Reports & Analytics'],
+      ['pricing', 'pricing', '💎 Manage Subscription'],
+      ['settings', 'settings', 'Settings']
     ];
-
-    if (pid === 'agency') {
-      items.push(['team', 'team', '👥 Closer Team (20 Seats)']);
-      items.push(['branches', 'branches', '📍 Territory Desks']);
-      items.push(['letterhead', 'letterhead', '🖨️ MahaRERA Letterhead']);
-      items.push(['commissions', 'commissions', '💰 Commission Splits']);
-    } else {
-      items.push(['team', 'team', '👥 Closer Team 🔒']);
-      items.push(['branches', 'branches', '📍 Territory Desks 🔒']);
-      items.push(['letterhead', 'letterhead', '🖨️ MahaRERA Letterhead 🔒']);
-    }
-
-    items.push(['reports', 'reports', 'Reports']);
-    items.push(['pricing', 'pricing', '💎 Plans & Upgrade']);
-    items.push(['settings', 'settings', 'Settings']);
-
-    return items;
   }
 
   function getSecondaryNavItems() {
@@ -7383,6 +7404,19 @@ Best regards,
 
   // --- OVERHAULED AI MATCHMAKING COCKPIT VIEW ---
   async function matchesView(selectedLeadId = null, selectedPropId = null) {
+    const caps = getPlanCapabilities();
+    if (caps.planId === 'starter') {
+      mountView(planUpgradeWall('Pro Closer', 'AI 2-Way Matchmaking Engine'), 'AI Matchmaking · Upgrade Required', 'matches');
+      const btn = document.querySelector('#upgrade-wall-switch-btn');
+      if (btn) btn.onclick = () => {
+        state.currentPlan = 'pro';
+        localStorage.setItem('brokerai.currentPlan', 'pro');
+        showToast('✓ Unlocked Pro Closer! AI Matchmaking active.', 'success');
+        setTimeout(() => { matchesView(); }, 300);
+      };
+      return;
+    }
+  
     if (!state.matchingMode) state.matchingMode = 'BUYER_TO_PROPS';
     if (!state.matchingThreshold) state.matchingThreshold = 'ALL';
     if (!state.matchingViewMode) state.matchingViewMode = 'CARDS';
@@ -10388,6 +10422,39 @@ Password: *${pass}*
 
 // --- ENHANCED TOKEN BOOKING RECEIPT DRAWER & PREVIEW ---
   async function tokenReceiptModal() {
+    const caps = getPlanCapabilities();
+    if (caps.planId === 'starter') {
+      document.querySelectorAll('.modal-backdrop, .drawer-backdrop, .spotlight-backdrop').forEach(b => b.remove());
+      const backdrop = document.createElement('div');
+      backdrop.className = 'modal-backdrop';
+      const modal = document.createElement('div');
+      modal.className = 'modal';
+      modal.style.cssText = 'max-width:500px;width:92vw;padding:24px;background:#ffffff;border-radius:20px;text-align:center;position:relative;box-sizing:border-box;box-shadow:0 20px 50px rgba(0,0,0,0.2);';
+      modal.innerHTML = `
+        <div style="font-size:40px;margin-bottom:12px;">📑</div>
+        <div style="display:inline-block;padding:3px 12px;border-radius:20px;background:#eff6ff;color:#2563eb;font-weight:800;font-size:11px;margin-bottom:8px;text-transform:uppercase;">Pro Closer Feature</div>
+        <h3 style="font-size:20px;font-weight:800;color:#0f172a;margin:0 0 8px;">Digital Token Receipts Locked</h3>
+        <p style="font-size:13.5px;color:#64748b;line-height:1.5;margin:0 0 20px;">Generating formal digital token advance receipts and encrypted client receipts requires the <strong>Pro Closer</strong> plan.</p>
+        <div style="display:flex;gap:10px;justify-content:center;">
+          <button class="button secondary" id="token-lock-close-btn">Cancel</button>
+          <button class="button primary" id="token-lock-upgrade-btn" style="background:#2563eb;font-weight:700;">⚡ Switch to Pro Closer (₹1,200)</button>
+        </div>
+      `;
+      backdrop.appendChild(modal);
+      document.body.appendChild(backdrop);
+      const close = () => backdrop.remove();
+      backdrop.onclick = (e) => { if (e.target === backdrop) close(); };
+      modal.querySelector('#token-lock-close-btn').onclick = close;
+      modal.querySelector('#token-lock-upgrade-btn').onclick = () => {
+        state.currentPlan = 'pro';
+        localStorage.setItem('brokerai.currentPlan', 'pro');
+        close();
+        showToast('✓ Switched to Pro Closer! Token Receipts unlocked.', 'success');
+        tokenReceiptModal();
+      };
+      return;
+    }
+  
     document.querySelectorAll('.modal-backdrop, .drawer-backdrop, .spotlight-backdrop').forEach(b => b.remove());
     let leads = state.leads;
     let properties = state.properties;
@@ -11409,6 +11476,39 @@ Would you like to schedule a private walkthrough this evening?
   // ==========================================================================
 
   function magicWhatsAppParserModal(initialText = '') {
+    const caps = getPlanCapabilities();
+    if (caps.planId === 'starter') {
+      document.querySelectorAll('.modal-backdrop, .drawer-backdrop, .spotlight-backdrop').forEach(b => b.remove());
+      const backdrop = document.createElement('div');
+      backdrop.className = 'modal-backdrop';
+      const modal = document.createElement('div');
+      modal.className = 'modal';
+      modal.style.cssText = 'max-width:500px;width:92vw;padding:24px;background:#ffffff;border-radius:20px;text-align:center;position:relative;box-sizing:border-box;box-shadow:0 20px 50px rgba(0,0,0,0.2);';
+      modal.innerHTML = `
+        <div style="font-size:40px;margin-bottom:12px;">⚡</div>
+        <div style="display:inline-block;padding:3px 12px;border-radius:20px;background:#eff6ff;color:#2563eb;font-weight:800;font-size:11px;margin-bottom:8px;text-transform:uppercase;">Pro Closer Feature</div>
+        <h3 style="font-size:20px;font-weight:800;color:#0f172a;margin:0 0 8px;">WhatsApp Magic Parser is Locked</h3>
+        <p style="font-size:13.5px;color:#64748b;line-height:1.5;margin:0 0 20px;">Automated extraction of property listings and buyer inquiries from raw WhatsApp messages requires the <strong>Pro Closer</strong> plan.</p>
+        <div style="display:flex;gap:10px;justify-content:center;">
+          <button class="button secondary" id="wa-lock-close-btn">Cancel</button>
+          <button class="button primary" id="wa-lock-upgrade-btn" style="background:#2563eb;font-weight:700;">⚡ Switch to Pro Closer (₹1,200)</button>
+        </div>
+      `;
+      backdrop.appendChild(modal);
+      document.body.appendChild(backdrop);
+      const close = () => backdrop.remove();
+      backdrop.onclick = (e) => { if (e.target === backdrop) close(); };
+      modal.querySelector('#wa-lock-close-btn').onclick = close;
+      modal.querySelector('#wa-lock-upgrade-btn').onclick = () => {
+        state.currentPlan = 'pro';
+        localStorage.setItem('brokerai.currentPlan', 'pro');
+        close();
+        showToast('✓ Switched to Pro Closer! WhatsApp Parser unlocked.', 'success');
+        magicWhatsAppParserModal();
+      };
+      return;
+    }
+  
     document.querySelectorAll('.modal-backdrop').forEach(b => b.remove());
     const backdrop = document.createElement('div');
     backdrop.className = 'modal-backdrop';
@@ -11732,6 +11832,19 @@ Immediate possession. Call broker: 9833445566`
 
 
   async function commissionsView() {
+    const caps = getPlanCapabilities();
+    if (caps.planId !== 'agency') {
+      mountView(planUpgradeWall('Agency Elite', 'Commission Splits Ledger & 18% GST Invoicing'), 'Commission Splits · Upgrade Required', 'commissions');
+      const btn = document.querySelector('#upgrade-wall-switch-btn');
+      if (btn) btn.onclick = () => {
+        state.currentPlan = 'agency';
+        localStorage.setItem('brokerai.currentPlan', 'agency');
+        showToast('✓ Unlocked Agency Elite! Commission Ledger active.', 'success');
+        setTimeout(() => { commissionsView(); }, 300);
+      };
+      return;
+    }
+  
     app.innerHTML = layout(`${pageHeader('Commissions & Brokerage Splits', state.demo ? 'Demo preview — Agency revenue splits, agent payouts, and official GST brokerage invoicing.' : 'Track expected brokerage, realized revenues, internal agent splits, and tax invoicing.', `
       <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
         <div class="view-switcher">
