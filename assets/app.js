@@ -549,13 +549,30 @@ const demoDocuments = [
   };
 
   
-  const toast = (msg, type = 'success') => {
-    if (typeof showToast === 'function') {
-      showToast(msg, type);
-    } else {
-      console.log('[' + type + '] ' + msg);
+  function showToast(msg, type = 'success', duration = 3200) {
+    if (typeof document === 'undefined') return;
+    let container = document.querySelector('.toast-container');
+    if (!container) {
+      container = document.createElement('div');
+      container.className = 'toast-container';
+      document.body.appendChild(container);
     }
-  };
+    const pill = document.createElement('div');
+    pill.className = `toast-pill ${type}`;
+    const icon = type === 'error' ? '⚠️' : (type === 'info' ? 'ℹ️' : '✓');
+    pill.innerHTML = `<span class="toast-icon">${icon}</span><span>${String(msg).replace(/\n/g, '<br/>')}</span>`;
+    container.appendChild(pill);
+
+    setTimeout(() => {
+      pill.classList.add('toast-exit');
+      setTimeout(() => { pill.remove(); }, 250);
+    }, duration);
+  }
+  const toast = showToast;
+  if (typeof window !== 'undefined') {
+    window.showToast = showToast;
+    window.toast = toast;
+  }
 
   function mountView(content, title = '', navKey = '') {
     const app = document.querySelector('#app');
@@ -817,43 +834,46 @@ const demoDocuments = [
 
   // --- DYNAMIC PLAN-BASED NAVIGATION ITEMS ---
   function getNavItems() {
-    return [
-      ['dashboard', 'dashboard', 'Dashboard'],
-      ['leads', 'leads', 'Leads'],
-      ['properties', 'properties', 'Properties'],
-      ['clients', 'team', 'Clients'],
-      ['calendar', 'visits', 'Calendar'],
-      ['messages', 'assistant', 'Messages'],
-      ['deals', 'deals', 'Deals'],
-      ['reports', 'reports', 'Reports'],
-      ['settings', 'settings', 'Settings']
-    ];
-  }
-
-  function getSecondaryNavItems() {
     const cap = getPlanCapabilities();
     const pid = cap.planId;
-    const isOwnerAuth = (typeof localStorage !== 'undefined' && localStorage.getItem('brokerai.owner_auth') === 'true') || (typeof state !== 'undefined' && state && state.isOwnerAuthenticated === true);
 
-    const items = [];
+    const items = [
+      ['dashboard', 'dashboard', 'Dashboard'],
+      ['leads', 'leads', pid === 'starter' ? 'Leads (75 Quota)' : 'Buyer Leads'],
+      ['properties', 'properties', pid === 'starter' ? 'Properties (50 Quota)' : 'Properties'],
+      ['matches', 'matches', pid === 'starter' ? '⚡ AI Matches 🔒' : '⚡ AI Matches'],
+      ['deals', 'deals', 'Deals Pipeline'],
+      ['visits', 'visits', 'Site Visits'],
+      ['follow-ups', 'followups', 'Follow-ups'],
+      ['documents', 'documents', pid === 'starter' ? 'Documents' : 'Legal Vault & Docs']
+    ];
 
-    // Agency Elite gets Letterhead & Branding Desk
     if (pid === 'agency') {
-      items.push(['letterhead', 'letterhead', '🖨️ MahaRERA Letterhead & Brand']);
+      items.push(['team', 'team', '👥 Closer Team (20 Seats)']);
+      items.push(['branches', 'branches', '📍 Territory Desks']);
+      items.push(['letterhead', 'letterhead', '🖨️ MahaRERA Letterhead']);
+      items.push(['commissions', 'commissions', '💰 Commission Splits']);
+    } else {
+      items.push(['team', 'team', '👥 Closer Team 🔒']);
+      items.push(['branches', 'branches', '📍 Territory Desks 🔒']);
+      items.push(['letterhead', 'letterhead', '🖨️ MahaRERA Letterhead 🔒']);
     }
 
+    items.push(['reports', 'reports', 'Reports']);
     items.push(['pricing', 'pricing', '💎 Plans & Upgrade']);
-    items.push(['settings', 'settings', '⚙️ Agency Settings']);
-    items.push(['notifications', 'notifications', '🔔 Notifications']);
-
-    // Super Admin is 100% private to Mohak Vaswani at #/admin and never listed in any package sidebar
+    items.push(['settings', 'settings', 'Settings']);
 
     return items;
   }
 
+  function getSecondaryNavItems() {
+    return [
+      ['pricing', 'pricing', '💎 Subscription Plans & Discounts'],
+      ['settings', 'settings', '⚙️ Agency & Account Settings'],
+      ['notifications', 'notifications', '🔔 Deal Alerts & Notifications']
+    ];
+  }
 
-  
-  
   function demoTourModal() {
     document.querySelectorAll('.modal-backdrop, .drawer-backdrop').forEach(b => b.remove());
     const backdrop = document.createElement('div');
@@ -1498,26 +1518,6 @@ const demoDocuments = [
 
   const unreadNotifCount = () => (state.notifications || []).filter(n => !n.read).length;
 
-  // --- 1. APPLE-STYLE FLOATING TOASTS ---
-  const showToast = (message, type = 'success', duration = 2800) => {
-    let container = document.querySelector('.toast-container');
-    if (!container) {
-      container = document.createElement('div');
-      container.className = 'toast-container';
-      document.body.appendChild(container);
-    }
-    const toast = document.createElement('div');
-    toast.className = `toast-pill ${type}`;
-    const icon = type === 'success' ? svgIcon('check', 15) : svgIcon('notifications', 15);
-    toast.innerHTML = `<span class="toast-icon">${icon}</span><span>${esc(message)}</span>`;
-    container.appendChild(toast);
-
-    setTimeout(() => {
-      toast.classList.add('toast-exit');
-      setTimeout(() => toast.remove(), 220);
-    }, duration);
-  };
-
   // --- 2. SPOTLIGHT COMMAND BAR (CTRL + K) ---
   function spotlightCommandModal() {
     document.querySelectorAll('.modal-backdrop, .drawer-backdrop, .spotlight-backdrop').forEach(b => b.remove());
@@ -1882,6 +1882,7 @@ const demoDocuments = [
 
     function layout(content) {
     const unread = unreadNotifCount();
+    const cap = getPlanCapabilities();
     const navItems = getNavItems();
     const currentPage = state.page || 'dashboard';
     const userName = state.user?.fullName || 'Mohak Vaswani';
@@ -1905,22 +1906,34 @@ const demoDocuments = [
           <span>${esc(state.agencySettings?.agencyName || 'BrokerCRM')}</span>
         </div>
 
-        <nav class="nav" style="display:flex;flex-direction:column;gap:3px;margin-top:6px;">
+        <nav class="nav" style="display:flex;flex-direction:column;gap:3px;margin-top:6px;flex:1;overflow-y:auto;">
           ${navItems.map(([id, iconName, label]) => {
             const isActive = currentPage === id || 
-              (currentPage === 'visits' && id === 'calendar') || 
-              (currentPage === 'assistant' && id === 'messages') || 
-              (currentPage === 'matches' && id === 'clients') ||
-              (currentPage === 'follow-ups' && id === 'dashboard') ||
-              (currentPage === 'documents' && id === 'deals');
+              (currentPage === 'visits' && id === 'visits') || 
+              (currentPage === 'assistant' && id === 'assistant') || 
+              (currentPage === 'matches' && id === 'matches') ||
+              (currentPage === 'follow-ups' && id === 'follow-ups') ||
+              (currentPage === 'documents' && id === 'documents');
             return `
-              <button data-page="${id}" class="${isActive ? 'active' : ''}">
+              <button data-page="${id}" class="${isActive ? 'active' : ''}" style="justify-content:flex-start;">
                 <span class="nav-icon">${svgIcon(iconName, 18)}</span>
-                <span style="flex:1;">${label}</span>
-                ${id === 'messages' && unread ? `<span style="background:#ef4444;color:#fff;font-size:10px;font-weight:800;padding:1px 6px;border-radius:10px;">${unread}</span>` : ''}
+                <span style="flex:1;text-align:left;">${label}</span>
+                ${id === 'assistant' && unread ? `<span style="background:#ef4444;color:#fff;font-size:10px;font-weight:800;padding:1px 6px;border-radius:10px;">${unread}</span>` : ''}
               </button>`;
           }).join('')}
         </nav>
+
+        <!-- ACTIVE PLAN SWITCHER CARD IN SIDEBAR -->
+        <div class="sidebar-plan-card" style="margin:12px 14px 6px;padding:10px 12px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.12);border-radius:12px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;" id="sidebar-plan-switch-btn" title="Click to Switch or Simulate Plan">
+          <div>
+            <div style="font-size:10px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:0.04em;">Active Plan</div>
+            <div style="font-size:12px;font-weight:800;color:#ffffff;display:flex;align-items:center;gap:5px;margin-top:2px;">
+              <span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:${cap.color};"></span>
+              <span>${cap.badge}</span>
+            </div>
+          </div>
+          <span style="font-size:11px;font-weight:700;background:rgba(37,99,235,0.25);color:#93c5fd;border:1px solid rgba(37,99,235,0.4);padding:3px 8px;border-radius:6px;">Switch</span>
+        </div>
 
         <div class="account">
           <div class="account-avatar">${userInit}</div>
@@ -1956,8 +1969,8 @@ const demoDocuments = [
               ${svgIcon('calculator', 14)} <span>Cost & EMI</span>
             </button>
             
-            <button class="plan-indicator-badge" id="topbar-plan-pill" title="Click to switch/simulate subscription plans">
-              ${getPlanCapabilities().badge} ▾
+            <button class="plan-indicator-badge" id="topbar-plan-pill" style="cursor:pointer;display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:700;padding:5px 12px;border-radius:20px;border:1px solid rgba(255,255,255,0.2);background:${cap.color};color:#ffffff;" title="Click to switch/simulate subscription plans">
+              ${cap.badge} ▾
             </button>
 
             <button class="topbar-icon-btn" id="topbar-notif-bell" title="Notifications">
@@ -1965,7 +1978,7 @@ const demoDocuments = [
               ${unread ? `<span class="notif-badge">${unread}</span>` : ''}
             </button>
 
-            <button class="topbar-icon-btn" id="topbar-msg-btn" title="Messages" onclick="location.hash='#/messages';">
+            <button class="topbar-icon-btn" id="topbar-msg-btn" title="Messages" onclick="location.hash='#/assistant';">
               ${svgIcon('assistant', 16)}
             </button>
 
@@ -2898,9 +2911,31 @@ _Feel free to reach our team at ${state.user?.fullName ? `${state.user.fullName}
 
     app.innerHTML = layout(`
       <!-- GREETING HEADER -->
-      <div style="margin-bottom:24px;">
+      <div style="margin-bottom:16px;">
         <h1 style="font-size:24px;font-weight:800;letter-spacing:-0.025em;color:#0f172a;margin:0 0 4px;">Good morning, ${esc(userName)}</h1>
         <p style="font-size:13.5px;color:#64748b;margin:0;">Here's what's happening with your properties today.</p>
+      </div>
+
+      <!-- ACTIVE PLAN STATUS RIBBON -->
+      <div class="apple-card" style="margin-bottom:20px;padding:12px 16px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:12px;">
+        <div style="display:flex;align-items:center;gap:12px;">
+          <div style="width:36px;height:36px;border-radius:10px;background:${getPlanCapabilities().color}15;color:${getPlanCapabilities().color};display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:800;">
+            ${getPlanCapabilities().planId === 'agency' ? '💎' : (getPlanCapabilities().planId === 'pro' ? '⚡' : '📍')}
+          </div>
+          <div>
+            <div style="font-size:13px;font-weight:800;color:#0f172a;display:flex;align-items:center;gap:8px;">
+              <span>Active Plan: ${getPlanCapabilities().name}</span>
+              <span class="apple-badge active" style="font-size:10px;background:${getPlanCapabilities().color};color:#fff;">${getPlanCapabilities().badge}</span>
+              <span style="font-size:11.5px;font-weight:600;color:#64748b;">(₹${getPlanCapabilities().priceMonthly}/mo)</span>
+            </div>
+            <div style="font-size:12px;color:#64748b;margin-top:2px;">
+              ${getPlanCapabilities().planId === 'starter' ? '📍 1 Local Micro-Market (Thane West) · 1 Seat · 50 Listings & 75 Leads Quota' : (getPlanCapabilities().planId === 'pro' ? '🌐 All Suburbs & Metros · 3 Seats · Unlimited Leads & Stock · AI Matchmaking Active' : '🏢 Multi-Branch Territory Desks · 20 Seats · MahaRERA White-Label Letterhead · 18% GST Invoicing')}
+            </div>
+          </div>
+        </div>
+        <button class="button secondary" id="dashboard-plan-sim-btn" style="padding:6px 14px;font-size:12px;font-weight:700;border-radius:8px;display:inline-flex;align-items:center;gap:6px;cursor:pointer;">
+          <span>⇄</span> Switch / Simulate Plan
+        </button>
       </div>
 
       <!-- 4 TOP KPI CARDS -->
@@ -8955,6 +8990,7 @@ Password: *${pass}*
     document.querySelectorAll('.plan-indicator-badge').forEach(btn => btn.addEventListener('click', openPlanSwitcher));
     document.querySelector('#sidebar-plan-switch-btn')?.addEventListener('click', openPlanSwitcher);
     document.querySelector('#sidebar-plan-badge')?.addEventListener('click', openPlanSwitcher);
+    document.querySelector('#dashboard-plan-sim-btn')?.addEventListener('click', openPlanSwitcher);
 
     // Topbar Action & Tool Buttons
     document.querySelector('#topbar-magic-parser-btn')?.addEventListener('click', (e) => {
