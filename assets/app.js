@@ -2570,22 +2570,8 @@ _Feel free to reach our team at ${state.user?.fullName ? `${state.user.fullName}
 
   async function siteVisitDrawer(defaultLeadId = null, defaultPropertyId = null) {
     document.querySelectorAll('.modal-backdrop, .drawer-backdrop, .spotlight-backdrop').forEach(b => b.remove());
-    let leads = state.leads;
-    let properties = state.properties;
-
-    if (!leads.length && !state.demo) {
-      const page = await request('/leads?page=0&size=100').catch(() => ({ content: [] }));
-      leads = page.content || [];
-    } else if (!leads.length && state.demo) {
-      leads = demoLeads;
-    }
-
-    if (!properties.length && !state.demo) {
-      const page = await request('/properties?page=0&size=100').catch(() => ({ content: [] }));
-      properties = page.content || [];
-    } else if (!properties.length && state.demo) {
-      properties = demoProperties;
-    }
+    const leads = (state.leads && state.leads.length) ? state.leads : (typeof demoLeads !== 'undefined' ? demoLeads : getStoredLeads());
+    const properties = (state.properties && state.properties.length) ? state.properties : (typeof demoProperties !== 'undefined' ? demoProperties : getStoredProperties());
 
     const backdrop = document.createElement('div');
     backdrop.className = 'drawer-backdrop';
@@ -6623,7 +6609,161 @@ Best regards,
   }
 
   // --- DOCUMENTS & VAULT MODULE ---
-  async function documentsView() {
+  
+  // --- DOCUMENT DRAWER (LEGAL VAULT UPLOAD & METADATA) ---
+  function documentDrawer(doc = null) {
+    document.querySelectorAll('.modal-backdrop, .drawer-backdrop, .spotlight-backdrop').forEach(b => b.remove());
+    const properties = (state.properties && state.properties.length) ? state.properties : (typeof demoProperties !== 'undefined' ? demoProperties : getStoredProperties());
+
+    const backdrop = document.createElement('div');
+    backdrop.className = 'drawer-backdrop';
+    const drawer = document.createElement('aside');
+    drawer.className = 'drawer';
+    drawer.style.cssText = 'width:min(640px,100vw);';
+
+    const defaultTitle = doc?.title || '';
+    const defaultPropId = doc?.propertyId || (properties[0]?.id || '');
+    const defaultType = doc?.documentType || '7/12 Extract & Index II';
+    const defaultNum = doc?.documentNumber || `DOC-${Math.floor(100000 + Math.random() * 900000)}`;
+    const defaultStatus = doc?.status || 'VERIFIED';
+    const defaultNotes = doc?.notes || 'Verified by legal counsel under MahaRERA guidelines.';
+
+    drawer.innerHTML = `
+      <div class="drawer-head">
+        <div>
+          <h2 class="panel-title">${doc ? 'Edit Legal Document' : 'Upload Legal Record to Vault'}</h2>
+          <div class="subtle">Securely attach MahaRERA title, sanction, and agreement records.</div>
+        </div>
+        <button class="close">×</button>
+      </div>
+      <form class="form" id="doc-form">
+        <div id="doc-notice"></div>
+        <div class="form-section">
+          <h3>Document Classification & Title</h3>
+          <div class="form-grid">
+            <div class="field full">
+              <label>Document Title</label>
+              <input class="input" name="title" value="${esc(defaultTitle)}" placeholder="e.g. 7/12 Extract, RERA Certificate, Sanction Plan" required />
+            </div>
+            <div class="field">
+              <label>Document Type</label>
+              <select class="select" name="documentType">
+                <option value="7/12 Extract & Index II" ${defaultType.includes('7/12') ? 'selected' : ''}>7/12 Extract & Index II</option>
+                <option value="MahaRERA Registration Certificate" ${defaultType.includes('MahaRERA') ? 'selected' : ''}>MahaRERA Registration Certificate</option>
+                <option value="Title Search Report (30 Yrs)" ${defaultType.includes('Title Search') ? 'selected' : ''}>Title Search Report (30 Yrs)</option>
+                <option value="Sanctioned Architectural Plan" ${defaultType.includes('Sanctioned') ? 'selected' : ''}>Sanctioned Architectural Plan</option>
+                <option value="Occupancy Certificate (OC)" ${defaultType.includes('Occupancy') ? 'selected' : ''}>Occupancy Certificate (OC)</option>
+                <option value="Commencement Certificate (CC)" ${defaultType.includes('Commencement') ? 'selected' : ''}>Commencement Certificate (CC)</option>
+                <option value="Bank Tripartite APF Letter" ${defaultType.includes('Bank') ? 'selected' : ''}>Bank Tripartite APF Letter</option>
+                <option value="11-Month Registered Rent Agreement" ${defaultType.includes('Rent') ? 'selected' : ''}>11-Month Registered Rent Agreement</option>
+                <option value="RERA Token Advance Receipt" ${defaultType.includes('Token') ? 'selected' : ''}>RERA Token Advance Receipt</option>
+              </select>
+            </div>
+            <div class="field">
+              <label>Associated Property</label>
+              <select class="select" name="propertyId">
+                <option value="">General Agency Record</option>
+                ${properties.map(p => `<option value="${p.id}" ${String(p.id) === String(defaultPropId) ? 'selected' : ''}>${esc(p.title || p.name)} (${esc(p.location || 'Thane')})</option>`).join('')}
+              </select>
+            </div>
+            <div class="field">
+              <label>Document Reference / Reg #</label>
+              <input class="input" name="documentNumber" value="${esc(defaultNum)}" placeholder="e.g. MH/2026/DOC/8821" />
+            </div>
+            <div class="field">
+              <label>Verification Status</label>
+              <select class="select" name="status">
+                <option value="VERIFIED" ${defaultStatus === 'VERIFIED' ? 'selected' : ''}>✓ Verified Clear</option>
+                <option value="UNDER_REVIEW" ${defaultStatus === 'UNDER_REVIEW' ? 'selected' : ''}>⏳ Under Review</option>
+                <option value="PENDING_LEGAL" ${defaultStatus === 'PENDING_LEGAL' ? 'selected' : ''}>⚠️ Pending Legal Opinion</option>
+              </select>
+            </div>
+            <div class="field full">
+              <label>File Upload / Scan Attachment</label>
+              <div style="border:2px dashed #cbd5e1;border-radius:12px;padding:20px;text-align:center;background:#f8fafc;cursor:pointer;" id="doc-dropzone">
+                <div style="font-size:24px;margin-bottom:6px;">📄</div>
+                <div style="font-size:13px;font-weight:700;color:#0f172a;">Drag & Drop PDF or Image here</div>
+                <div style="font-size:11.5px;color:#64748b;margin-top:2px;">Supports PDF, PNG, JPG up to 25 MB</div>
+                <input type="file" id="doc-file-input" style="display:none;" accept=".pdf,.png,.jpg,.jpeg" />
+              </div>
+            </div>
+            <div class="field full">
+              <label>Legal Inspection Notes</label>
+              <textarea class="textarea" name="notes" rows="2" placeholder="Notes on encumbrance, demarcation, or legal clearance...">${esc(defaultNotes)}</textarea>
+            </div>
+          </div>
+        </div>
+        <div class="form-actions" style="margin-top:16px;">
+          <button type="button" class="button secondary" id="cancel-doc-drawer">Cancel</button>
+          <button type="submit" class="button primary" style="background:#2563eb;font-weight:700;">${doc ? 'Update Document' : 'Save to Legal Vault'}</button>
+        </div>
+      </form>
+    `;
+
+    document.body.append(backdrop, drawer);
+
+    const close = () => { backdrop.remove(); drawer.remove(); };
+    backdrop.onclick = close;
+    if (drawer.querySelector('.close')) drawer.querySelector('.close').onclick = close;
+    if (drawer.querySelector('#cancel-doc-drawer')) drawer.querySelector('#cancel-doc-drawer').onclick = close;
+
+    const dropzone = drawer.querySelector('#doc-dropzone');
+    const fileInput = drawer.querySelector('#doc-file-input');
+    if (dropzone && fileInput) {
+      dropzone.onclick = () => fileInput.click();
+      fileInput.onchange = () => {
+        if (fileInput.files && fileInput.files[0]) {
+          dropzone.innerHTML = `<div style="font-size:24px;color:#059669;margin-bottom:6px;">✓</div><div style="font-size:13px;font-weight:700;color:#059669;">Attached: ${esc(fileInput.files[0].name)}</div>`;
+        }
+      };
+    }
+
+    const form = drawer.querySelector('#doc-form');
+    if (form) {
+      form.onsubmit = (e) => {
+        e.preventDefault();
+        const fd = new FormData(form);
+        const title = fd.get('title')?.trim();
+        if (!title) return;
+
+        const newDoc = {
+          id: doc?.id || `doc-${Date.now()}`,
+          title: title,
+          documentType: fd.get('documentType'),
+          propertyId: fd.get('propertyId') || null,
+          documentNumber: fd.get('documentNumber') || `DOC-${Date.now()}`,
+          status: fd.get('status') || 'VERIFIED',
+          notes: fd.get('notes') || '',
+          uploadedAt: new Date().toISOString().slice(0, 10),
+          fileUrl: '#'
+        };
+
+        if (!state.documents || !state.documents.length) {
+          state.documents = getStoredDocuments();
+        }
+
+        if (doc) {
+          const idx = state.documents.findIndex(d => d.id === doc.id);
+          if (idx !== -1) state.documents[idx] = newDoc;
+          else state.documents.unshift(newDoc);
+        } else {
+          state.documents.unshift(newDoc);
+        }
+
+        try {
+          localStorage.setItem('brokerai.documents', JSON.stringify(state.documents));
+        } catch(e) {}
+
+        showToast(`✓ Document "${esc(title)}" saved to Legal Vault!`, 'success');
+        close();
+        if (state.page === 'documents') documentsView();
+        else render();
+      };
+    }
+  }
+
+
+async function documentsView() {
     const caps = getPlanCapabilities();
     if (!caps.tokenReceipts) {
       app.innerHTML = layout(renderGatedFeatureScreen('Tripartite MahaRERA Token Receipts & Legal Vault', 'Pro Closer', 'pro'));
