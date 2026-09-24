@@ -2326,6 +2326,8 @@ const demoDocuments = [
   }
 
   function authView(mode = 'login', error = '') {
+    const app = document.getElementById('app') || document.querySelector('#app');
+    document.querySelectorAll('.modal-backdrop, .drawer-backdrop, .spotlight-backdrop').forEach(b => b.remove());
     const isOtpStep = (state.authStep === 'OTP');
 
     if (!isOtpStep) {
@@ -9317,10 +9319,17 @@ Password: *${pass}*
     const signoutBtn = drawer.querySelector('#drawer-signout-btn');
     if (signoutBtn) signoutBtn.onclick = () => {
       close();
-      localStorage.clear();
-      state.token = null;
-      location.hash = '#/login';
-      render();
+      if (typeof handleSignOut === 'function') handleSignOut();
+      else {
+        localStorage.removeItem('brokerai.token');
+        localStorage.removeItem('brokerai.user');
+        localStorage.removeItem('brokerai.owner_auth');
+        state.token = null;
+        state.user = null;
+        state.authStep = 'PHONE';
+        location.hash = '#/login';
+        authView('login');
+      }
     };
   }
 
@@ -9522,9 +9531,11 @@ Password: *${pass}*
       state.isOwnerAuthenticated = false;
       state.authStep = 'PHONE';
       state.authPhone = '';
-      window.location.hash = '#/auth/login';
-      render();
+      document.querySelectorAll('.modal-backdrop, .drawer-backdrop, .spotlight-backdrop').forEach(b => b.remove());
+      window.location.hash = '#/login';
+      authView('login');
     };
+    window.handleSignOut = handleSignOut;
     document.querySelector('#signout')?.addEventListener('click', handleSignOut);
     document.querySelector('#logout-btn')?.addEventListener('click', handleSignOut);
   }
