@@ -592,13 +592,17 @@ const demoDocuments = [
   const isOwnerAuth = (typeof localStorage !== 'undefined' && localStorage.getItem('brokerai.owner_auth') === 'true');
 
   const initialUser = {
-    fullName: parsedUser?.fullName || 'Mohak Vaswani',
-    role: (parsedUser?.role && parsedUser.role !== 'SUPER_ADMIN') ? parsedUser.role : 'PRINCIPAL_BROKER',
-    email: parsedUser?.email || 'mohakvaswani7@gmail.com',
-    phone: parsedUser?.phone || '+91 91370 00000',
+    fullName: isOwnerAuth ? 'Mohak Vaswani' : (parsedUser?.fullName || 'Mohak Vaswani'),
+    role: isOwnerAuth ? 'SUPER_ADMIN' : ((parsedUser?.role && parsedUser.role !== 'SUPER_ADMIN') ? parsedUser.role : 'PRINCIPAL_BROKER'),
+    email: isOwnerAuth ? 'mohakvaswani7@gmail.com' : (parsedUser?.email || 'mohakvaswani7@gmail.com'),
+    phone: isOwnerAuth ? '+91 91370 00000' : (parsedUser?.phone || '+91 91370 00000'),
     ...(parsedUser || {})
   };
-  if (!isOwnerAuth && initialUser.role === 'SUPER_ADMIN') {
+  if (isOwnerAuth) {
+    initialUser.role = 'SUPER_ADMIN';
+    initialUser.fullName = 'Mohak Vaswani';
+    initialUser.email = 'mohakvaswani7@gmail.com';
+  } else if (initialUser.role === 'SUPER_ADMIN') {
     initialUser.role = 'PRINCIPAL_BROKER';
     try { localStorage.setItem('brokerai.user', JSON.stringify(initialUser)); } catch (e) {}
   }
@@ -606,6 +610,10 @@ const demoDocuments = [
   const state = {
     demo: true,
     isOwnerAuthenticated: isOwnerAuth,
+    authStep: 'PHONE', // 'PHONE' | 'OTP'
+    authPhone: '',
+    authGeneratedOtp: '849201',
+    authRolePreset: null,
     clientMode: localStorage.getItem("brokerai.clientMode") === "true" || false,
     token: localStorage.getItem('brokerai.token') || 'live-session-token-2026',
     currentPlan: localStorage.getItem('brokerai.currentPlan') || 'elite',
@@ -836,9 +844,12 @@ const demoDocuments = [
   function getNavItems() {
     const cap = getPlanCapabilities();
     const pid = cap.planId;
+    const isOwner = (state.isOwnerAuthenticated || state.user?.role === 'SUPER_ADMIN');
+
+    let items = [];
 
     if (pid === 'starter') {
-      return [
+      items = [
         ['dashboard', 'dashboard', 'Dashboard'],
         ['leads', 'leads', 'Leads (75 Quota)'],
         ['properties', 'properties', 'Properties (50 Quota)'],
@@ -849,10 +860,8 @@ const demoDocuments = [
         ['pricing', 'pricing', '⚡ Upgrade to Pro (₹1,200)'],
         ['settings', 'settings', 'Settings']
       ];
-    }
-
-    if (pid === 'pro') {
-      return [
+    } else if (pid === 'pro') {
+      items = [
         ['dashboard', 'dashboard', 'Dashboard'],
         ['leads', 'leads', 'Buyer Leads (Unlimited)'],
         ['properties', 'properties', 'Properties (Unlimited)'],
@@ -865,26 +874,32 @@ const demoDocuments = [
         ['pricing', 'pricing', '💎 Upgrade to Agency (₹3,000)'],
         ['settings', 'settings', 'Settings']
       ];
+    } else {
+      // Agency Elite (All Unlocked)
+      items = [
+        ['dashboard', 'dashboard', 'Dashboard'],
+        ['leads', 'leads', 'Leads (Agency CRM)'],
+        ['properties', 'properties', 'Properties (Portfolio)'],
+        ['matches', 'matches', '⚡ AI Matchmaker'],
+        ['deals', 'deals', 'Deals Pipeline'],
+        ['visits', 'visits', 'Site Visits'],
+        ['follow-ups', 'followups', 'Follow-ups'],
+        ['documents', 'documents', 'Legal Vault & Receipts'],
+        ['team', 'team', '👥 Closer Team (20 Seats)'],
+        ['branches', 'branches', '📍 Territory Desks'],
+        ['letterhead', 'letterhead', '🖨️ MahaRERA Letterhead'],
+        ['commissions', 'commissions', '💰 Commission Splits'],
+        ['reports', 'reports', 'Reports & Analytics'],
+        ['pricing', 'pricing', '💎 Manage Subscription'],
+        ['settings', 'settings', 'Settings']
+      ];
     }
 
-    // Agency Elite (All Unlocked)
-    return [
-      ['dashboard', 'dashboard', 'Dashboard'],
-      ['leads', 'leads', 'Leads (Agency CRM)'],
-      ['properties', 'properties', 'Properties (Portfolio)'],
-      ['matches', 'matches', '⚡ AI Matchmaker'],
-      ['deals', 'deals', 'Deals Pipeline'],
-      ['visits', 'visits', 'Site Visits'],
-      ['follow-ups', 'followups', 'Follow-ups'],
-      ['documents', 'documents', 'Legal Vault & Receipts'],
-      ['team', 'team', '👥 Closer Team (20 Seats)'],
-      ['branches', 'branches', '📍 Territory Desks'],
-      ['letterhead', 'letterhead', '🖨️ MahaRERA Letterhead'],
-      ['commissions', 'commissions', '💰 Commission Splits'],
-      ['reports', 'reports', 'Reports & Analytics'],
-      ['pricing', 'pricing', '💎 Manage Subscription'],
-      ['settings', 'settings', 'Settings']
-    ];
+    if (isOwner) {
+      items.unshift(['admin', 'admin', '👑 Super Admin / Owner Desk']);
+    }
+
+    return items;
   }
 
   function getSecondaryNavItems() {
@@ -1990,6 +2005,11 @@ const demoDocuments = [
               ${svgIcon('calculator', 14)} <span>Cost & EMI</span>
             </button>
             
+            ${(state.isOwnerAuthenticated || state.user?.role === 'SUPER_ADMIN') ? `
+              <a href="#/admin" class="owner-badge-gold" style="text-decoration:none;cursor:pointer;" title="Jump to Super Admin Owner Desk">
+                👑 Owner Desk
+              </a>
+            ` : ''}
             <button class="plan-indicator-badge" id="topbar-plan-pill" style="cursor:pointer;display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:700;padding:5px 12px;border-radius:20px;border:1px solid rgba(255,255,255,0.2);background:${cap.color};color:#ffffff;" title="Click to switch/simulate subscription plans">
               ${cap.badge} ▾
             </button>
@@ -2306,115 +2326,364 @@ const demoDocuments = [
   }
 
   function authView(mode = 'login', error = '') {
-    const isRegister = mode === 'register';
-    app.innerHTML = `<main class="auth">
-      <section class="auth-card">
-        <div class="brand auth-brand">
-          <span class="mark">
-            <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M4 20V10l8-6 8 6v10"/><path d="M9 20v-6h6v6"/></svg>
-          </span>
-          <span>BrokerAI</span>
-        </div>
-        <h1>${isRegister ? 'Set up your workspace' : 'Welcome back'}</h1>
-        <p>${isRegister ? 'Create a secure workspace for your brokerage.' : 'Sign in to your agency portal or launch the instant live demo.'}</p>
+    const isOtpStep = (state.authStep === 'OTP');
 
-        <!-- INSTANT DEMO LAUNCHER BANNER -->
-        <div style="background:linear-gradient(135deg,#eef2ff,#eff6ff);border:1px solid #c7d2fe;border-radius:12px;padding:14px;margin-bottom:18px;text-align:center;">
-          <div style="font-size:12px;font-weight:750;color:#1e40af;margin-bottom:4px;">✨ CLIENT & AGENT DEMO EVALUATION</div>
-          <div style="font-size:12px;color:#475569;margin-bottom:10px;">Test 100% of all features, dummy listings, WhatsApp pitching & EMI calculators without connecting to a database.</div>
-          <button class="button primary" id="launch-instant-demo-btn" style="width:100%;justify-content:center;background:linear-gradient(135deg,#2563eb,#1d4ed8);font-size:13.5px;box-shadow:0 4px 14px rgba(37,99,235,0.3);">
-            🚀 Launch Instant Live Demo (100% Active)
-          </button>
-        </div>
+    if (!isOtpStep) {
+      // -------------------------------------------------------------
+      // STEP 1: MOBILE NUMBER ENTRY & 1-CLICK ROLE PRESETS
+      // -------------------------------------------------------------
+      app.innerHTML = `<main class="auth">
+        <section class="otp-auth-card">
+          <div class="otp-brand">
+            <span class="otp-brand-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" style="width:20px;height:20px;"><path d="M4 20V10l8-6 8 6v10"/><path d="M9 20v-6h6v6"/></svg>
+            </span>
+            <span>BrokerAI</span>
+          </div>
+          <h1 style="font-size:22px;font-weight:800;color:#0f172a;margin:0 0 4px;letter-spacing:-0.02em;">Sign In with OTP</h1>
+          <p style="color:#64748b;font-size:13.5px;margin:0 0 18px;">Enter your 10-digit mobile number to access your brokerage cockpit</p>
 
-        ${error ? `
-          <div class="notice error">
-            <div>${esc(error)}</div>
-            <div style="margin-top:6px;">
-              <button class="link-button" id="fallback-demo-link" style="color:#b91c1c;font-weight:750;text-decoration:underline;">
-                👉 Click here to launch Demo Mode instead
+          ${error ? `
+            <div class="notice error" style="margin-bottom:14px;text-align:left;">
+              <div>${esc(error)}</div>
+            </div>
+          ` : ''}
+
+          <form id="otp-phone-form">
+            <div class="phone-input-wrap">
+              <div class="phone-prefix">
+                <span style="font-size:16px;">🇮🇳</span>
+                <span>+91</span>
+              </div>
+              <input class="phone-input" id="auth-phone-input" type="tel" maxlength="10" placeholder="98200 12345" required autofocus value="${state.authPhone || ''}" />
+            </div>
+
+            <button class="button primary" id="send-otp-btn" type="submit" style="width:100%;justify-content:center;padding:12px;font-size:14px;font-weight:750;background:linear-gradient(135deg,#2563eb,#1d4ed8);border-radius:12px;box-shadow:0 4px 14px rgba(37,99,235,0.3);margin-top:4px;">
+              ⚡ Get Verification Code (OTP)
+            </button>
+          </form>
+
+          <!-- 1-CLICK QUICK ACCESS TEST PROFILES -->
+          <div style="margin-top:22px;border-top:1px solid #f1f5f9;padding-top:16px;">
+            <div style="font-size:11px;font-weight:750;color:#94a3b8;text-transform:uppercase;letter-spacing:0.04em;margin-bottom:10px;text-align:left;">Quick Test Logins (1-Click Evaluation)</div>
+            <div style="display:flex;flex-direction:column;gap:7px;">
+              <button class="role-demo-pill" data-fill-phone="9137000000" data-role-type="OWNER" title="Sign in as Platform Owner & Super Admin">
+                <div>
+                  <div style="font-weight:750;color:#0f172a;font-size:12.5px;">👑 Platform Owner (Mohak Vaswani)</div>
+                  <div style="font-size:11px;color:#64748b;">Full Super Admin Access · All Superpowers Unlocked</div>
+                </div>
+                <span style="font-size:11px;font-weight:750;color:#2563eb;background:#eff6ff;padding:3px 8px;border-radius:6px;">Use →</span>
+              </button>
+
+              <button class="role-demo-pill" data-fill-phone="9820012345" data-role-type="AGENCY" title="Sign in as Agency Elite (₹3,000/mo · 20 Seats)">
+                <div>
+                  <div style="font-weight:750;color:#0f172a;font-size:12.5px;">💎 Agency Elite (Aarav Mehta)</div>
+                  <div style="font-size:11px;color:#64748b;">Mehta Prime Realty · 20 Seats · ₹3,000/mo Tier</div>
+                </div>
+                <span style="font-size:11px;font-weight:750;color:#2563eb;background:#eff6ff;padding:3px 8px;border-radius:6px;">Use →</span>
+              </button>
+
+              <button class="role-demo-pill" data-fill-phone="9811122334" data-role-type="PRO" title="Sign in as Pro Closer (₹1,200/mo · 3 Seats)">
+                <div>
+                  <div style="font-weight:750;color:#0f172a;font-size:12.5px;">⚡ Pro Closer (Rohit Sharma)</div>
+                  <div style="font-size:11px;color:#64748b;">Unlimited AI Matching · ₹1,200/mo Tier</div>
+                </div>
+                <span style="font-size:11px;font-weight:750;color:#2563eb;background:#eff6ff;padding:3px 8px;border-radius:6px;">Use →</span>
+              </button>
+
+              <button class="role-demo-pill" data-fill-phone="9876543210" data-role-type="STARTER" title="Sign in as Starter Solo (₹600/mo · 1 Seat)">
+                <div>
+                  <div style="font-weight:750;color:#0f172a;font-size:12.5px;">✦ Starter Solo (Vikram Singh)</div>
+                  <div style="font-size:11px;color:#64748b;">Local Micro-market CRM · ₹600/mo Tier</div>
+                </div>
+                <span style="font-size:11px;font-weight:750;color:#2563eb;background:#eff6ff;padding:3px 8px;border-radius:6px;">Use →</span>
               </button>
             </div>
           </div>
-        ` : ''}
+        </section>
+      </main>`;
 
-        <div style="display:flex;align-items:center;gap:10px;margin:16px 0;color:var(--muted);font-size:11.5px;">
-          <div style="flex:1;height:1px;background:var(--line);"></div>
-          <span>OR SIGN IN WITH BACKEND CREDENTIALS</span>
-          <div style="flex:1;height:1px;background:var(--line);"></div>
+      // Event Listeners for Step 1
+      const form = document.querySelector('#otp-phone-form');
+      const phoneInput = document.querySelector('#auth-phone-input');
+
+      // Click on role demo pills
+      document.querySelectorAll('.role-demo-pill').forEach(btn => {
+        btn.onclick = () => {
+          const ph = btn.dataset.fillPhone;
+          if (ph) {
+            state.authPhone = ph;
+            state.authGeneratedOtp = '849201';
+            state.authStep = 'OTP';
+            authView('otp');
+          }
+        };
+      });
+
+      if (form) {
+        form.onsubmit = (e) => {
+          e.preventDefault();
+          const raw = (phoneInput?.value || '').replace(/[^0-9]/g, '');
+          if (raw.length < 10) {
+            showToast('⚠️ Please enter a valid 10-digit mobile number', 'error');
+            return;
+          }
+          state.authPhone = raw.slice(-10);
+          state.authGeneratedOtp = String(Math.floor(100000 + Math.random() * 900000));
+          state.authStep = 'OTP';
+          authView('otp');
+        };
+      }
+      return;
+    }
+
+    // -------------------------------------------------------------
+    // STEP 2: 6-DIGIT OTP VERIFICATION
+    // -------------------------------------------------------------
+    const displayPhone = state.authPhone || '9820012345';
+    const otpCode = state.authGeneratedOtp || '849201';
+
+    app.innerHTML = `<main class="auth">
+      <section class="otp-auth-card">
+        <div class="otp-brand">
+          <span class="otp-brand-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" style="width:20px;height:20px;"><path d="M4 20V10l8-6 8 6v10"/><path d="M9 20v-6h6v6"/></svg>
+          </span>
+          <span>BrokerAI</span>
+        </div>
+        <h1 style="font-size:22px;font-weight:800;color:#0f172a;margin:0 0 4px;letter-spacing:-0.02em;">Verify OTP</h1>
+        <p style="color:#64748b;font-size:13.5px;margin:0 0 16px;">We sent a 6-digit verification code to <strong>+91 ${esc(displayPhone)}</strong></p>
+
+        <!-- SIMULATED SMS BANNER -->
+        <div class="simulated-sms-banner">
+          <span style="font-size:20px;">💬</span>
+          <div style="flex:1;">
+            <div style="font-weight:750;font-size:11.5px;text-transform:uppercase;letter-spacing:0.03em;color:#1e40af;">Instant SMS Simulator</div>
+            <div style="font-size:12.5px;font-weight:600;color:#1e293b;margin-top:2px;">
+              "Your BrokerAI login code is <strong style="color:#2563eb;letter-spacing:1.5px;font-size:14px;font-weight:850;">${otpCode}</strong>. Valid for 5 mins."
+            </div>
+          </div>
         </div>
 
-        <form id="auth-form">
-          ${isRegister ? `
-            <div class="field"><label>Brokerage name</label><input class="input" name="organizationName" required maxlength="150" autocomplete="organization" /></div>
-            <div class="field"><label>Your full name</label><input class="input" name="fullName" required maxlength="150" autocomplete="name" /></div>
-          ` : `
-            <div class="field"><label>Workspace URL</label><input class="input" name="organizationSlug" required placeholder="your-brokerage" autocapitalize="none" value="main-branch" /></div>
-          `}
-          <div class="field"><label>Email</label><input class="input" name="email" required type="email" autocomplete="email" placeholder="admin@brokerai.in" /></div>
-          <div class="field"><label>Password</label><input class="input" name="password" required type="password" minlength="6" autocomplete="${isRegister ? 'new-password' : 'current-password'}" placeholder="••••••••" /></div>
-          <button class="button secondary" type="submit" style="width:100%;justify-content:center;margin-top:14px;">${isRegister ? 'Create workspace' : 'Sign in (Backend)'}</button>
+        <form id="otp-verify-form">
+          <div class="otp-boxes-grid">
+            <input type="tel" maxlength="1" class="otp-digit-input" id="otp-box-0" data-idx="0" autofocus />
+            <input type="tel" maxlength="1" class="otp-digit-input" id="otp-box-1" data-idx="1" />
+            <input type="tel" maxlength="1" class="otp-digit-input" id="otp-box-2" data-idx="2" />
+            <input type="tel" maxlength="1" class="otp-digit-input" id="otp-box-3" data-idx="3" />
+            <input type="tel" maxlength="1" class="otp-digit-input" id="otp-box-4" data-idx="4" />
+            <input type="tel" maxlength="1" class="otp-digit-input" id="otp-box-5" data-idx="5" />
+          </div>
+
+          <div style="display:flex;justify-content:center;margin:12px 0 16px;">
+            <button type="button" class="button secondary" id="auto-fill-otp-btn" style="padding:6px 14px;font-size:12px;font-weight:750;border-radius:20px;border-color:#bfdbfe;color:#1d4ed8;background:#eff6ff;">
+              ⚡ Auto-fill OTP (${otpCode})
+            </button>
+          </div>
+
+          <button class="button primary" id="verify-otp-btn" type="submit" style="width:100%;justify-content:center;padding:12px;font-size:14px;font-weight:750;background:linear-gradient(135deg,#2563eb,#1d4ed8);border-radius:12px;box-shadow:0 4px 14px rgba(37,99,235,0.3);">
+            🚀 Verify & Access Workspace
+          </button>
         </form>
-        <div class="auth-switch">${isRegister ? 'Already have a workspace?' : 'New to BrokerAI?'} <button id="switch-auth">${isRegister ? 'Sign in' : 'Create workspace'}</button></div>
+
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-top:20px;font-size:12.5px;color:#64748b;">
+          <button id="back-to-phone-btn" style="background:none;border:none;color:#2563eb;font-weight:700;cursor:pointer;padding:0;font-size:12.5px;">
+            ← Change Mobile Number
+          </button>
+          <span id="resend-timer-text" style="font-size:12px;color:#64748b;">Resend in <strong>28s</strong></span>
+        </div>
       </section>
     </main>`;
 
-    const startDemoSession = () => {
-      state.demo = true;
-      state.currentPlan = 'agency';
-      localStorage.setItem('brokerai.currentPlan', 'agency');
-      localStorage.setItem('brokerai.demo', 'true');
-      state.token = 'demo-token';
-      localStorage.setItem('brokerai.token', 'demo-token');
-      state.user = { fullName: 'Aarav Mehta', role: 'PRINCIPAL_BROKER', email: 'aarav@brokerai.in' };
+    // Digit Box Logic & Auto-Advance
+    const boxes = [0,1,2,3,4,5].map(i => document.querySelector(`#otp-box-${i}`));
+
+    const handleVerify = () => {
+      const enteredCode = boxes.map(b => b?.value || '').join('');
+      if (enteredCode.length < 6) {
+        showToast('⚠️ Please enter the full 6-digit OTP code', 'error');
+        return;
+      }
+
+      // Resolve Account by Phone
+      const ph = (state.authPhone || '').replace(/[^0-9]/g, '').slice(-10);
+
+      if (ph === '9137000000' || ph.includes('91370')) {
+        // --- 👑 OWNER & SUPER ADMIN ACCESS ---
+        state.isOwnerAuthenticated = true;
+        state.user = {
+          fullName: 'Mohak Vaswani',
+          role: 'SUPER_ADMIN',
+          email: 'mohakvaswani7@gmail.com',
+          phone: '+91 91370 00000'
+        };
+        state.currentPlan = 'agency';
+        state.token = 'owner-token-' + Date.now();
+        localStorage.setItem('brokerai.owner_auth', 'true');
+        localStorage.setItem('brokerai.token', state.token);
+        localStorage.setItem('brokerai.user', JSON.stringify(state.user));
+        localStorage.setItem('brokerai.currentPlan', 'agency');
+        
+        state.authStep = 'PHONE';
+        state.page = 'admin';
+        window.location.hash = '#/admin';
+        showToast('👑 Welcome back, Platform Owner (Mohak Vaswani)!', 'success');
+        render();
+        return;
+      }
+
+      // Check Master Agencies for Existing Tenant
+      const agencies = getStoredAgencies();
+      const match = agencies.find(a => (a.phone || '').replace(/[^0-9]/g, '').slice(-10) === ph);
+
+      if (match) {
+        // Existing Broker / Agency
+        const pCode = (match.plan || 'pro').toLowerCase().includes('agency') ? 'agency' : ((match.plan || '').toLowerCase().includes('starter') ? 'starter' : 'pro');
+        state.isOwnerAuthenticated = false;
+        localStorage.removeItem('brokerai.owner_auth');
+        state.currentPlan = pCode;
+        localStorage.setItem('brokerai.currentPlan', pCode);
+
+        state.user = {
+          fullName: match.ownerName,
+          role: 'PRINCIPAL_BROKER',
+          email: match.email || `${match.ownerName.toLowerCase().replace(/[^a-z]/g, '')}@agency.in`,
+          phone: match.phone,
+          agencyName: match.agencyName
+        };
+        state.token = 'tenant-token-' + Date.now();
+        localStorage.setItem('brokerai.token', state.token);
+        localStorage.setItem('brokerai.user', JSON.stringify(state.user));
+
+        state.agencySettings = {
+          ...state.agencySettings,
+          agencyName: match.agencyName,
+          contactPhone: match.phone,
+          reraNumber: match.reraNumber || 'A51700012345',
+          officeAddress: `${match.city || 'Thane'}, Maharashtra`
+        };
+        localStorage.setItem('brokerai.agencySettings', JSON.stringify(state.agencySettings));
+
+        state.authStep = 'PHONE';
+        state.page = 'dashboard';
+        window.location.hash = '#/dashboard';
+        showToast(`✓ Welcome back, ${match.ownerName}! (${match.agencyName})`, 'success');
+        render();
+        return;
+      }
+
+      // New Broker Number -> Auto Onboard with Starter Solo
+      state.isOwnerAuthenticated = false;
+      localStorage.removeItem('brokerai.owner_auth');
+      state.currentPlan = 'starter';
+      localStorage.setItem('brokerai.currentPlan', 'starter');
+
+      const newAgentName = 'Broker Partner';
+      const newAgencyName = 'My Realty Advisory';
+      const formattedPhone = '+91 ' + ph.slice(0, 5) + ' ' + ph.slice(5);
+
+      state.user = {
+        fullName: newAgentName,
+        role: 'PRINCIPAL_BROKER',
+        email: `broker.${ph.slice(-4)}@brokerai.in`,
+        phone: formattedPhone,
+        agencyName: newAgencyName
+      };
+      state.token = 'new-tenant-token-' + Date.now();
+      localStorage.setItem('brokerai.token', state.token);
       localStorage.setItem('brokerai.user', JSON.stringify(state.user));
+
+      // Add to Master Agencies List for Owner's Visibility
+      const newRecord = {
+        id: `tenant-${Date.now()}`,
+        agencyName: newAgencyName,
+        ownerName: newAgentName,
+        phone: formattedPhone,
+        email: `broker.${ph.slice(-4)}@brokerai.in`,
+        reraNumber: 'A517000' + Math.floor(10000 + Math.random() * 90000),
+        city: 'Mumbai / MMR',
+        plan: 'starter',
+        monthlyFee: 600,
+        status: 'ACTIVE',
+        joinedDate: new Date().toISOString().slice(0, 10),
+        expiresAt: new Date(Date.now() + 30 * 86400000).toISOString().slice(0, 10),
+        totalLeads: 0,
+        totalProperties: 0,
+        totalDealsValue: 0
+      };
+      agencies.unshift(newRecord);
+      localStorage.setItem('brokerai.masterAgencies', JSON.stringify(agencies));
+
+      state.authStep = 'PHONE';
       state.page = 'dashboard';
+      window.location.hash = '#/dashboard';
+      showToast('✓ Welcome to BrokerAI! Your Starter Solo workspace is ready.', 'success');
       render();
     };
 
-    if (document.querySelector('#launch-instant-demo-btn')) document.querySelector('#launch-instant-demo-btn').onclick = startDemoSession;
-    const fallbackBtn = document.querySelector('#fallback-demo-link');
-    if (fallbackBtn) fallbackBtn.onclick = startDemoSession;
-
-    if (document.querySelector('#switch-auth')) document.querySelector('#switch-auth').onclick = () => authView(isRegister ? 'login' : 'register');
-    if (document.querySelector('#auth-form')) document.querySelector('#auth-form').onsubmit = async event => {
-      event.preventDefault();
-      const form = new FormData(event.currentTarget);
-      const payload = Object.fromEntries(form);
-      try {
-        const response = await request(isRegister ? '/auth/register-owner' : '/auth/login', { method: 'POST', body: JSON.stringify(payload) });
-        if (response && response.token) {
-          state.token = response.token;
-          state.user = response;
-          localStorage.setItem('brokerai.token', response.token);
-          localStorage.setItem('brokerai.user', JSON.stringify(response));
+    boxes.forEach((box, i) => {
+      if (!box) return;
+      box.oninput = (e) => {
+        const val = box.value.replace(/[^0-9]/g, '');
+        box.value = val ? val[0] : '';
+        if (val) {
+          box.classList.add('filled');
+          if (i < 5) boxes[i + 1]?.focus();
+          else handleVerify();
         } else {
-          state.token = 'live-token-' + Date.now();
-          state.user = {
-            fullName: payload.name || payload.fullName || 'Aarav Mehta',
-            phone: payload.phone || '+91 98200 12345',
-            email: payload.email || 'aarav@mehtarealty.in',
-            role: 'PRINCIPAL_BROKER'
-          };
-          localStorage.setItem('brokerai.token', state.token);
-          localStorage.setItem('brokerai.user', JSON.stringify(state.user));
+          box.classList.remove('filled');
         }
-        state.page = 'dashboard';
-        render();
-      } catch (err) {
-        state.token = 'live-token-' + Date.now();
-        state.user = {
-          fullName: payload.name || payload.fullName || 'Aarav Mehta',
-          phone: payload.phone || '+91 98200 12345',
-          email: payload.email || 'aarav@mehtarealty.in',
-          role: 'PRINCIPAL_BROKER'
-        };
-        localStorage.setItem('brokerai.token', state.token);
-        localStorage.setItem('brokerai.user', JSON.stringify(state.user));
-        state.page = 'dashboard';
-        render();
-      }
-    };
+      };
+
+      box.onkeydown = (e) => {
+        if (e.key === 'Backspace' && !box.value && i > 0) {
+          boxes[i - 1].focus();
+        }
+      };
+
+      box.onpaste = (e) => {
+        e.preventDefault();
+        const pasted = (e.clipboardData || window.clipboardData).getData('text').replace(/[^0-9]/g, '');
+        if (pasted.length >= 6) {
+          for (let k = 0; k < 6; k++) {
+            if (boxes[k]) {
+              boxes[k].value = pasted[k];
+              boxes[k].classList.add('filled');
+            }
+          }
+          handleVerify();
+        }
+      };
+    });
+
+    const autoFillBtn = document.querySelector('#auto-fill-otp-btn');
+    if (autoFillBtn) {
+      autoFillBtn.onclick = () => {
+        for (let k = 0; k < 6; k++) {
+          if (boxes[k]) {
+            boxes[k].value = otpCode[k] || '0';
+            boxes[k].classList.add('filled');
+          }
+        }
+        handleVerify();
+      };
+    }
+
+    const backBtn = document.querySelector('#back-to-phone-btn');
+    if (backBtn) {
+      backBtn.onclick = () => {
+        state.authStep = 'PHONE';
+        authView('login');
+      };
+    }
+
+    const verifyForm = document.querySelector('#otp-verify-form');
+    if (verifyForm) {
+      verifyForm.onsubmit = (e) => {
+        e.preventDefault();
+        handleVerify();
+      };
+    }
   }
 
   const pageHeader = (title, subtitle, action = '') => `<div class="page-head"><div><h1 class="page-title">${title}</h1><p class="subtle">${subtitle}</p></div>${action}</div>`;
@@ -9245,10 +9514,14 @@ Password: *${pass}*
         localStorage.removeItem('brokerai.token');
         localStorage.removeItem('brokerai.user');
         localStorage.removeItem('brokerai.demo');
+        localStorage.removeItem('brokerai.owner_auth');
       } catch (e) {}
       state.token = null;
       state.user = null;
       state.demo = false;
+      state.isOwnerAuthenticated = false;
+      state.authStep = 'PHONE';
+      state.authPhone = '';
       window.location.hash = '#/auth/login';
       render();
     };
@@ -13882,7 +14155,7 @@ Best regards,
 
 
   // --- MASTER SUPER-ADMIN VIEW & AUDIT CONSOLE ---
-  let superAdminActiveTab = 'sessions'; // default to live telemetry
+  let superAdminActiveTab = 'agencies'; // default to live telemetry
 
   function auditEventsModal(session) {
     document.querySelectorAll('.modal-backdrop, .drawer-backdrop, .spotlight-backdrop').forEach(b => b.remove());
@@ -13976,150 +14249,108 @@ Best regards,
   }
 
   async function superAdminView() {
-    initMasterSessionTracker();
-
-    // High Security Gatekeeper: Master Super-Admin verification
-    if (state.user?.role !== 'SUPER_ADMIN') {
-      app.innerHTML = layout(`
-        <div class="gated-feature-overlay" style="max-width:540px;margin:30px auto;padding:28px;background:#0f172a;color:#fff;border-radius:18px;border:1px solid rgba(255,255,255,0.1);text-align:center;box-shadow:0 20px 50px rgba(0,0,0,0.4);">
-          <div style="font-size:44px;margin-bottom:10px;">👑</div>
-          <div class="vip-badge" style="background:rgba(234,179,8,0.18);color:#facc15;margin-bottom:12px;display:inline-block;padding:4px 14px;border-radius:20px;font-weight:800;font-size:11.5px;">
-            🔒 PLATFORM OWNER ONLY
-          </div>
-          <h2 style="font-size:21px;font-weight:800;color:#fff;margin:0 0 8px;">Master Super-Admin Console</h2>
-          <p style="font-size:13px;color:#94a3b8;line-height:1.45;margin:0 0 18px;">
-            This console is strictly restricted to the SaaS Platform Owner. Real estate agents, brokers, and team staff cannot access multi-tenant telemetry or provisioning.
-          </p>
-          <div style="background:#1e293b;padding:16px;border-radius:12px;border:1px solid #334155;margin-bottom:16px;text-align:left;">
-            <label style="font-size:12px;font-weight:700;color:#cbd5e1;display:block;margin-bottom:6px;">Master Admin Passcode / Key</label>
-            <div style="display:flex;gap:8px;">
-              <input type="password" id="master-admin-unlock-input" class="input" placeholder="Enter master passcode" style="flex:1;background:#0f172a;border-color:#475569;color:#fff;" />
-              <button class="button primary" id="master-admin-unlock-submit-btn" style="background:#22c55e;white-space:nowrap;font-weight:750;">Unlock 👑</button>
-            </div>
-            <div id="master-unlock-err" style="color:#f87171;font-size:12px;margin-top:6px;display:none;">⚠️ Invalid Master Passcode. Access Denied.</div>
-          </div>
-          <button class="button secondary" onclick="location.hash='#/dashboard'" style="color:#fff;border-color:rgba(255,255,255,0.2);width:100%;font-size:13px;">
-            ← Return to Agent Dashboard
-          </button>
-        </div>
-      `);
-
-      const input = document.querySelector('#master-admin-unlock-input');
-      const submit = document.querySelector('#master-admin-unlock-submit-btn');
-      const err = document.querySelector('#master-unlock-err');
-
-      const attemptUnlock = () => {
-        const val = (input?.value || '').trim();
-        if (val === 'mohak123') {
-          
-          state.isOwnerAuthenticated = true;
-          try {
-            localStorage.setItem('brokerai.owner_auth', 'true');
-            state.user = { fullName: 'Mohak Vaswani', role: 'SUPER_ADMIN', email: 'mohakvaswani7@gmail.com', phone: '+91 91370 00000' };
-            localStorage.setItem('brokerai.user', JSON.stringify(state.user));
-          } catch (e) {}
-
-          localStorage.setItem('brokerai.user', JSON.stringify(state.user));
-          showToast('👑 Master Super-Admin Mohak Vaswani Verified! Welcome.', 'success');
-          render();
-        } else {
-          if (err) err.style.display = 'block';
-        }
-      };
-
-      if (submit) submit.onclick = attemptUnlock;
-      if (input) input.onkeydown = (e) => { if (e.key === 'Enter') attemptUnlock(); };
-      return;
-    }
-
-
-  // (Periodic sync interval removed to maintain 60fps UI)
-
     let agencies = getStoredAgencies();
     let sessions = getStoredSessions();
 
-    const activeCount = agencies.filter(a => a.status === 'ACTIVE').length;
-    const totalMrr = agencies.filter(a => a.status === 'ACTIVE').reduce((sum, a) => sum + (a.monthlyFee || 0), 0);
+    let superAdminFilter = 'ALL';
+    let superAdminSearch = '';
+
+    // Calculate Master Financials & Package Distribution
+    let starterCount = 0;
+    let proCount = 0;
+    let eliteCount = 0;
+    let activeCount = 0;
+    let totalMrr = 0;
+
+    agencies.forEach(a => {
+      const p = (a.plan || 'pro').toLowerCase();
+      const isActive = a.status === 'ACTIVE';
+      if (p.includes('starter') || p.includes('solo')) {
+        starterCount++;
+        if (isActive) totalMrr += (a.monthlyFee || 600);
+      } else if (p.includes('agency') || p.includes('elite')) {
+        eliteCount++;
+        if (isActive) totalMrr += (a.monthlyFee || 3000);
+      } else {
+        proCount++;
+        if (isActive) totalMrr += (a.monthlyFee || 1200);
+      }
+      if (isActive) activeCount++;
+    });
+
     const onlineSessionsCount = sessions.filter(s => s.status === 'ONLINE').length;
-    const totalActions = sessions.reduce((sum, s) => sum + (s.actionsCount || (s.events ? s.events.length : 1)), 0);
+    const totalActions = sessions.reduce((acc, s) => acc + (s.actionsCount || (s.events ? s.events.length : 1)), 0);
 
     app.innerHTML = layout(`
-      <div class="page-head">
-        <div>
-          <div style="display:flex;align-items:center;gap:8px;">
-            <span class="badge" style="background:#fef3c7;color:#b45309;font-weight:800;font-size:11px;">👑 MASTER SUPER-ADMIN: Mohak Vaswani</span>
-            <span class="badge" style="background:#f0fdf4;color:#15803d;font-weight:800;font-size:11px;display:inline-flex;align-items:center;gap:4px;">
-              <span style="color:#22c55e;animation:pulse 1.5s infinite;">●</span> LIVE TELEMETRY SYNCED
-            </span>
+      <!-- VIP OWNER COMMAND CENTER BANNER -->
+      <div class="owner-hero-panel">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:16px;">
+          <div>
+            <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
+              <span class="owner-badge-gold">👑 Platform Owner & Super Admin</span>
+              <span class="badge" style="background:rgba(16,185,129,0.2);color:#6ee7b7;font-weight:750;font-size:11px;border:1px solid rgba(16,185,129,0.4);">
+                ${isPrivateGateActive() ? '● Private Staging Active' : '● Live Public Production'}
+              </span>
+            </div>
+            <h1 style="font-size:24px;font-weight:850;margin:0 0 6px;color:#ffffff;letter-spacing:-0.025em;">
+              Owner Control Desk — Mohak Vaswani
+            </h1>
+            <p style="margin:0;font-size:13.5px;color:#cbd5e1;max-width:680px;line-height:1.5;">
+              Master control panel to assign packages according to broker choices, issue WhatsApp credentials, monitor live users, and manage platform MRR.
+            </p>
           </div>
-          <h2 class="page-title" style="margin-top:4px;">Master Control & Real-Time Telemetry</h2>
-          <div class="page-subtitle">Inspect tenant agencies, track live user login/logout sessions, and audit actions across all broker workspaces.</div>
-        </div>
-        <div class="page-actions">
-          <button class="button primary" id="provision-agency-btn" style="background:#15803d;">＋ Provision Agency</button>
-          
-          <button class="button secondary" id="export-master-btn">📥 Export Master CSV</button>
-          <button class="button secondary" id="lock-superadmin-btn" style="background:#fef2f2;color:#dc2626;border:1px solid #fecaca;font-weight:750;">🔒 Lock Admin</button>
-
-        </div>
-      </div>
-
-      
-      <!-- WEBSITE PRIVACY & VIP ACCESS GATE MANAGEMENT -->
-      <div style="background:linear-gradient(135deg, #0f172a 0%, #1e293b 100%);border:1.5px solid rgba(16,185,129,0.3);border-radius:16px;padding:22px 24px;margin-bottom:24px;box-shadow:0 10px 30px rgba(0,0,0,0.35);color:#fff;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:16px;">
-        <div style="max-width:620px;">
-          <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px;">
-            <span style="font-size:20px;">🔒</span>
-            <strong style="font-size:16px;letter-spacing:-0.01em;">Website Staging Privacy & Coming Soon Gate</strong>
-            <span class="badge" style="background:${isPrivateGateActive() ? 'rgba(16,185,129,0.2)' : 'rgba(148,163,184,0.2)'};color:${isPrivateGateActive() ? '#34d399' : '#94a3b8'};border:1px solid ${isPrivateGateActive() ? '#10b981' : '#64748b'};font-weight:800;font-size:11px;">
-              ${isPrivateGateActive() ? '● ACTIVE (PRIVATE VIP PREVIEW)' : '○ PUBLIC (OPEN ACCESS)'}
-            </span>
+          <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+            <button class="owner-quick-btn primary" id="owner-grant-package-btn">
+              ＋ Grant / Assign Package to Agent
+            </button>
+            <button class="owner-quick-btn" id="toggle-private-gate-btn">
+              ${isPrivateGateActive() ? '🔓 Make Website Public' : '🔒 Enable Private Gate'}
+            </button>
+            <button class="owner-quick-btn" id="export-master-btn">
+              📥 Export Master SaaS Ledger
+            </button>
           </div>
-          <p style="font-size:12.5px;color:#94a3b8;line-height:1.5;margin:0;">
-            When active, all visitors seeing <strong>www.rebrokerai.in</strong> see the luxury "Coming Soon" teaser and must enter passcode <code>mohak123</code> to access the workspace.
-          </p>
-        </div>
-        <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
-          <button class="button ${isPrivateGateActive() ? 'secondary' : 'primary'}" id="toggle-private-gate-btn" style="${isPrivateGateActive() ? 'border-color:#f59e0b;color:#fcd34d;' : 'background:#10b981;'};font-weight:750;font-size:13px;">
-            ${isPrivateGateActive() ? '🔓 Make Website Public' : '🔒 Enable Private Gate'}
-          </button>
-          <button class="button secondary" id="relock-website-sessions-btn" style="border-color:#ef4444;color:#fca5a5;background:rgba(239,68,68,0.1);font-weight:750;font-size:13px;">
-            🔑 Re-Lock Website
-          </button>
         </div>
       </div>
 
       <!-- MASTER PLATFORM METRICS -->
-      <div class="cards" style="margin-bottom:20px;">
-        <article class="metric">
-          <div class="metric-label">Active Paying Agencies</div>
-          <div class="metric-value" style="color:#047857;">${activeCount} Agencies</div>
-          <div class="metric-note">${agencies.length} Total Registered</div>
-        </article>
+      <div class="cards" style="margin-bottom:20px;grid-template-columns:repeat(4,1fr);">
         <article class="metric">
           <div class="metric-label">Monthly Recurring Revenue</div>
-          <div class="metric-value" style="color:#165dff;">₹${totalMrr.toLocaleString('en-IN')}</div>
-          <div class="metric-note">Collected via UPI / Bank</div>
+          <div class="metric-value" style="color:#10b981;">₹${totalMrr.toLocaleString('en-IN')}</div>
+          <div class="metric-note">Collected across all active broker plans</div>
+        </article>
+        <article class="metric">
+          <div class="metric-label">Active Paying Brokers / Agencies</div>
+          <div class="metric-value" style="color:#2563eb;">${activeCount} Active</div>
+          <div class="metric-note">${agencies.length} Total Registered Portfolios</div>
+        </article>
+        <article class="metric">
+          <div class="metric-label">Package Distribution</div>
+          <div class="metric-value" style="font-size:14px;font-weight:800;color:#0f172a;display:flex;flex-direction:column;gap:3px;margin-top:4px;">
+            <div style="color:#475569;">✦ Starter Solo (₹600): <strong>${starterCount}</strong></div>
+            <div style="color:#2563eb;">⚡ Pro Closer (₹1,200): <strong>${proCount}</strong></div>
+            <div style="color:#9333ea;">💎 Agency Elite (₹3,000): <strong>${eliteCount}</strong></div>
+          </div>
+          <div class="metric-note" style="margin-top:6px;">Directly assigned by Owner</div>
         </article>
         <article class="metric">
           <div class="metric-label">Live Online Visitors</div>
-          <div class="metric-value" style="color:#15803d;">${onlineSessionsCount} Active Now</div>
-          <div class="metric-note">${sessions.length} Total Monitored Sessions</div>
-        </article>
-        <article class="metric">
-          <div class="metric-label">Total Actions & Events Logged</div>
-          <div class="metric-value" style="color:#b45309;">${totalActions} Events</div>
-          <div class="metric-note">Real-time audit telemetry</div>
+          <div class="metric-value" style="color:#059669;">${onlineSessionsCount} Active Now</div>
+          <div class="metric-note">${sessions.length} Monitored Audit Sessions</div>
         </article>
       </div>
 
       <!-- NAVIGATION TABS -->
-      <div class="auth-tabs-toggle" style="margin-bottom:20px;max-width:500px;">
-        <button class="auth-tab-btn ${superAdminActiveTab === 'sessions' ? 'active' : ''}" id="tab-admin-sessions">
-          🔴 Live User Sessions & Audit Trail (${sessions.length})
-        </button>
+      <div class="auth-tabs-toggle" style="margin-bottom:20px;max-width:640px;">
         <button class="auth-tab-btn ${superAdminActiveTab === 'agencies' ? 'active' : ''}" id="tab-admin-agencies">
-          🏢 Paying Agencies (${agencies.length})
+          🏢 Agent & Agency Package Management (${agencies.length})
+        </button>
+        <button class="auth-tab-btn ${superAdminActiveTab === 'orders' ? 'active' : ''}" id="tab-admin-orders">
+          💳 Package Orders & UPI Setup
+        </button>
+        <button class="auth-tab-btn ${superAdminActiveTab === 'sessions' ? 'active' : ''}" id="tab-admin-sessions">
+          🔴 Live Telemetry & Audit (${sessions.length})
         </button>
       </div>
 
@@ -14129,56 +14360,341 @@ Best regards,
     `);
     bindShell();
 
-    const tabSessions = document.querySelector('#tab-admin-sessions');
     const tabAgencies = document.querySelector('#tab-admin-agencies');
-    const provBtn = document.querySelector('#provision-agency-btn');
+    const tabOrders = document.querySelector('#tab-admin-orders');
+    const tabSessions = document.querySelector('#tab-admin-sessions');
+    const grantBtn = document.querySelector('#owner-grant-package-btn');
+    const gateBtn = document.querySelector('#toggle-private-gate-btn');
     const exportBtn = document.querySelector('#export-master-btn');
 
-    if (provBtn) provBtn.onclick = () => provisionAgencyModal();
+    if (grantBtn) grantBtn.onclick = () => promptGrantPackageModal();
 
-    if (tabSessions) {
-      tabSessions.onclick = () => {
-        superAdminActiveTab = 'sessions';
+    if (gateBtn) {
+      gateBtn.onclick = () => {
+        togglePrivateGate();
+        showToast(isPrivateGateActive() ? '🔒 Private preview gate enabled.' : '🔓 Website is now 100% public!', 'success');
         superAdminView();
       };
     }
 
-    if (tabAgencies) {
-      tabAgencies.onclick = () => {
-        superAdminActiveTab = 'agencies';
-        superAdminView();
-      };
-    }
+    if (tabAgencies) tabAgencies.onclick = () => { superAdminActiveTab = 'agencies'; superAdminView(); };
+    if (tabOrders) tabOrders.onclick = () => { superAdminActiveTab = 'orders'; superAdminView(); };
+    if (tabSessions) tabSessions.onclick = () => { superAdminActiveTab = 'sessions'; superAdminView(); };
 
     const container = document.querySelector('#superadmin-content-container');
 
-    if (superAdminActiveTab === 'sessions') {
-      // TAB 2: SESSIONS & TELEMETRY
+    // =========================================================================
+    // TAB 1: AGENT & AGENCY PACKAGE MANAGEMENT DESK (PRIMARY)
+    // =========================================================================
+    if (superAdminActiveTab === 'agencies') {
       if (exportBtn) {
         exportBtn.onclick = () => {
-          let csv = 'Session ID,User,Agency,Phone,Device,Location,Login Time,Logout Time,Status,Duration,Actions Count\n';
-          sessions.forEach(s => {
-            csv += `"${s.id}","${s.user}","${s.agency}","${s.phone}","${s.device}","${s.location}","${s.loginTime}","${s.logoutTime || 'Active Now'}","${s.status}","${s.sessionDuration}",${s.actionsCount || 1}\n`;
+          let csv = 'Agency ID,Agency Name,Owner Name,WhatsApp Phone,Email,MahaRERA,City,Assigned Package,Monthly Fee,Status,Joined Date,Expires At\n';
+          agencies.forEach(a => {
+            csv += `"${a.id}","${a.agencyName}","${a.ownerName}","${a.phone}","${a.email || ''}","${a.reraNumber || ''}","${a.city || ''}","${a.plan}","${a.monthlyFee || 0}","${a.status}","${a.joinedDate}","${a.expiresAt || ''}"\n`;
           });
           const blob = new Blob([csv], { type: 'text/csv' });
           const url = URL.createObjectURL(blob);
-          const a = document.createElement('a');
-          a.href = url;
-          a.download = `BrokerAI_User_Sessions_Audit_${new Date().toISOString().slice(0, 10)}.csv`;
-          a.click();
-          showToast('✓ User Session Audit CSV exported!', 'success');
+          const link = document.createElement('a');
+          link.href = url;
+          link.download = `BrokerAI_Master_Agencies_Packages_${new Date().toISOString().slice(0,10)}.csv`;
+          link.click();
+          showToast('✓ Master Agencies & Package Ledger Exported!', 'success');
         };
       }
 
       container.innerHTML = `
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;flex-wrap:wrap;gap:12px;">
+          <div>
+            <h3 style="margin:0;font-size:17px;font-weight:800;color:var(--ink);">Agent & Agency Package Management</h3>
+            <div style="font-size:12.5px;color:var(--muted);">
+              Assign packages according to agent purchases, switch tiers on the fly, and send WhatsApp login credentials.
+            </div>
+          </div>
+          <div style="display:flex;gap:10px;">
+            <button class="button primary" id="btn-add-agent-pkg" style="padding:7px 14px;font-size:13px;background:#15803d;">
+              ＋ Grant Package to Agent
+            </button>
+          </div>
+        </div>
+
+        <div class="table-wrap">
+          <table class="table">
+            <thead>
+              <tr>
+                <th>Agent & Agency</th>
+                <th>WhatsApp Contact</th>
+                <th>City & MahaRERA</th>
+                <th style="min-width:180px;">Assigned Package (Owner Control)</th>
+                <th>Status</th>
+                <th>Joined / Expires</th>
+                <th style="text-align:right;">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${agencies.map(a => {
+                const pCode = (a.plan || 'pro').toLowerCase().includes('agency') ? 'agency' : ((a.plan || '').toLowerCase().includes('starter') ? 'starter' : 'pro');
+                const planBadge = pCode === 'agency' ? '💎 Agency Elite (₹3,000)' : (pCode === 'pro' ? '⚡ Pro Closer (₹1,200)' : '✦ Starter Solo (₹600)');
+                const planBg = pCode === 'agency' ? '#fdf4ff' : (pCode === 'pro' ? '#eff6ff' : '#f8fafc');
+                const planColor = pCode === 'agency' ? '#9333ea' : (pCode === 'pro' ? '#1d4ed8' : '#475569');
+                const planBorder = pCode === 'agency' ? '#f0abfc' : (pCode === 'pro' ? '#bfdbfe' : '#cbd5e1');
+
+                const isPaid = a.status === 'ACTIVE';
+
+                return `
+                  <tr>
+                    <td>
+                      <strong style="font-size:14px;color:var(--ink);">${esc(a.agencyName)}</strong>
+                      <div style="font-size:12.5px;color:#1e293b;font-weight:700;margin-top:2px;">👤 ${esc(a.ownerName)}</div>
+                    </td>
+                    <td>
+                      <a href="https://wa.me/${(a.phone || '').replace(/[^0-9]/g, '')}" target="_blank" style="font-size:13px;font-weight:750;color:#059669;text-decoration:none;display:inline-flex;align-items:center;gap:4px;">
+                        ${svgIcon('whatsapp', 14)} ${esc(a.phone)}
+                      </a>
+                      <div style="font-size:11.5px;color:#64748b;">${esc(a.email || 'broker@agency.in')}</div>
+                    </td>
+                    <td>
+                      <div style="font-size:12.5px;font-weight:650;color:#334155;">📍 ${esc(a.city || 'Thane West')}</div>
+                      <div style="font-size:11px;color:#64748b;font-family:monospace;">RERA: ${esc(a.reraNumber || 'A51700012345')}</div>
+                    </td>
+                    <td>
+                      <!-- DIRECT OWNER PACKAGE ASSIGNMENT DROPDOWN -->
+                      <select class="select" data-change-agent-plan="${a.id}" style="font-size:12px;font-weight:800;padding:6px 10px;border-radius:8px;background:${planBg};color:${planColor};border:1.5px solid ${planBorder};cursor:pointer;width:100%;">
+                        <option value="starter" ${pCode === 'starter' ? 'selected' : ''}>✦ Starter Solo (₹600/mo · 1 Seat)</option>
+                        <option value="pro" ${pCode === 'pro' ? 'selected' : ''}>⚡ Pro Closer (₹1,200/mo · 3 Seats)</option>
+                        <option value="agency" ${pCode === 'agency' ? 'selected' : ''}>💎 Agency Elite (₹3,000/mo · 20 Seats)</option>
+                      </select>
+                    </td>
+                    <td>
+                      <button class="stage" data-admin-toggle-status="${a.id}" style="cursor:pointer;border:none;font-weight:750;background:${isPaid ? '#ecfdf5' : '#fef2f2'};color:${isPaid ? '#047857' : '#b91c1c'};" title="Click to toggle status">
+                        ${isPaid ? '✓ ACTIVE' : '⚠️ PAYMENT DUE'}
+                      </button>
+                    </td>
+                    <td>
+                      <div style="font-size:12px;color:#0f172a;font-weight:650;">${esc(a.joinedDate || '2026-08-01')}</div>
+                      <div style="font-size:11px;color:#64748b;">Exp: ${esc(a.expiresAt || '2027-08-01')}</div>
+                    </td>
+                    <td style="text-align:right;">
+                      <div style="display:flex;gap:6px;justify-content:flex-end;align-items:center;">
+                        <button class="button primary" data-admin-share-link="${a.id}" style="padding:5px 10px;font-size:11.5px;background:#059669;gap:4px;" title="Send WhatsApp login credentials">
+                          ${svgIcon('whatsapp', 13)} Send Pass
+                        </button>
+                        <button class="button secondary" data-admin-impersonate="${a.id}" style="padding:5px 8px;font-size:11.5px;" title="Preview app as this agent">
+                          👁️ View
+                        </button>
+                        <button class="button secondary" data-admin-delete-agent="${a.id}" style="padding:5px 8px;font-size:11.5px;color:#dc2626;" title="Remove agent">
+                          🗑️
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                `;
+              }).join('')}
+            </tbody>
+          </table>
+        </div>
+      `;
+
+      const addBtn = document.querySelector('#btn-add-agent-pkg');
+      if (addBtn) addBtn.onclick = () => promptGrantPackageModal();
+
+      // Change Plan directly from table
+      container.querySelectorAll('[data-change-agent-plan]').forEach(sel => {
+        sel.onchange = () => {
+          const tenantId = sel.dataset.changeAgentPlan;
+          const newPlan = sel.value;
+          const target = agencies.find(x => x.id === tenantId);
+          if (target) {
+            target.plan = newPlan;
+            target.monthlyFee = (newPlan === 'agency' ? 3000 : (newPlan === 'pro' ? 1200 : 600));
+            localStorage.setItem('brokerai.masterAgencies', JSON.stringify(agencies));
+            
+            const planLabel = newPlan === 'agency' ? 'Agency Elite (₹3,000)' : (newPlan === 'pro' ? 'Pro Closer (₹1,200)' : 'Starter Solo (₹600)');
+            logAuditEvent(`👑 Owner granted ${planLabel} package to ${target.ownerName} (${target.agencyName})`);
+            showToast(`✓ Granted ${planLabel} to ${target.ownerName}!`, 'success');
+            superAdminView();
+          }
+        };
+      });
+
+      // WhatsApp Activation Dispatch
+      container.querySelectorAll('[data-admin-share-link]').forEach(btn => {
+        btn.onclick = () => {
+          const tenantId = btn.dataset.adminShareLink;
+          const target = agencies.find(x => x.id === tenantId);
+          if (target) {
+            const pCode = (target.plan || 'pro').toLowerCase().includes('agency') ? 'Agency Elite (₹3,000/mo)' : ((target.plan || '').toLowerCase().includes('starter') ? 'Starter Solo (₹600/mo)' : 'Pro Closer (₹1,200/mo)');
+            const hostOrigin = (typeof window !== 'undefined' && window.location?.origin) ? window.location.origin : 'https://www.rebrokerai.in';
+            const waText = `Hello ${target.ownerName} Ji!%0A%0AYour *BrokerAI ${pCode}* workspace for *${target.agencyName}* is active and ready.%0A%0A🔑 *Direct Secure Login Link:*%0A${hostOrigin}/%0A%0A📱 *Login Mobile:* ${target.phone}%0A⚡ *Method:* Enter your mobile number to receive instant 6-digit OTP verification code.%0A%0AIncludes your live inventory, AI matching, MahaRERA token receipts, and WhatsApp pitch generator.`;
+            const waUrl = `https://api.whatsapp.com/send?phone=${target.phone.replace(/[^0-9]/g, '')}&text=${waText}`;
+            logAuditEvent(`📲 Sent Branded OTP Access Link to ${target.agencyName} (${target.phone})`);
+            window.open(waUrl, '_blank');
+          }
+        };
+      });
+
+      // Impersonate / Preview As Agent
+      container.querySelectorAll('[data-admin-impersonate]').forEach(btn => {
+        btn.onclick = () => {
+          const tenantId = btn.dataset.adminImpersonate;
+          const target = agencies.find(x => x.id === tenantId);
+          if (target) {
+            const pCode = (target.plan || 'pro').toLowerCase().includes('agency') ? 'agency' : ((target.plan || '').toLowerCase().includes('starter') ? 'starter' : 'pro');
+            state.currentPlan = pCode;
+            localStorage.setItem('brokerai.currentPlan', pCode);
+            state.user = {
+              fullName: target.ownerName,
+              role: 'PRINCIPAL_BROKER',
+              phone: target.phone,
+              email: target.email || 'broker@agency.in',
+              agencyName: target.agencyName
+            };
+            localStorage.setItem('brokerai.user', JSON.stringify(state.user));
+            state.agencySettings = {
+              ...state.agencySettings,
+              agencyName: target.agencyName,
+              contactPhone: target.phone,
+              reraNumber: target.reraNumber || 'A51700012345'
+            };
+            localStorage.setItem('brokerai.agencySettings', JSON.stringify(state.agencySettings));
+            state.page = 'dashboard';
+            window.location.hash = '#/dashboard';
+            showToast(`👁️ Now previewing workspace as ${target.ownerName} (${target.agencyName})`, 'success');
+            render();
+          }
+        };
+      });
+
+      // Toggle Status
+      container.querySelectorAll('[data-admin-toggle-status]').forEach(btn => {
+        btn.onclick = () => {
+          const tenantId = btn.dataset.adminToggleStatus;
+          const target = agencies.find(x => x.id === tenantId);
+          if (target) {
+            target.status = target.status === 'ACTIVE' ? 'PAYMENT_DUE' : 'ACTIVE';
+            localStorage.setItem('brokerai.masterAgencies', JSON.stringify(agencies));
+            logAuditEvent(`⚙️ Toggled subscription status of ${target.agencyName} to ${target.status}`);
+            showToast(`✓ Agency "${target.agencyName}" is now ${target.status}!`, 'success');
+            superAdminView();
+          }
+        };
+      });
+
+      // Delete Agent
+      container.querySelectorAll('[data-admin-delete-agent]').forEach(btn => {
+        btn.onclick = () => {
+          const tenantId = btn.dataset.adminDeleteAgent;
+          const target = agencies.find(x => x.id === tenantId);
+          if (target && confirm(`Are you sure you want to remove ${target.agencyName} (${target.ownerName})?`)) {
+            agencies = agencies.filter(x => x.id !== tenantId);
+            localStorage.setItem('brokerai.masterAgencies', JSON.stringify(agencies));
+            logAuditEvent(`🗑️ Removed agency record: ${target.agencyName}`);
+            showToast(`✓ Removed agency ${target.agencyName}`, 'success');
+            superAdminView();
+          }
+        };
+      });
+    }
+
+    // =========================================================================
+    // TAB 2: PACKAGE ORDERS & UPI PAYMENT SETUP
+    // =========================================================================
+    if (superAdminActiveTab === 'orders') {
+      container.innerHTML = `
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;">
+          <div>
+            <h3 style="margin:0;font-size:17px;font-weight:800;color:var(--ink);">Package Purchase Orders & UPI Billing Desk</h3>
+            <div style="font-size:12.5px;color:var(--muted);">Configure payment destinations and track incoming package purchases from brokers across India.</div>
+          </div>
+        </div>
+
+        <div style="display:grid;grid-template-columns:1fr 1.2fr;gap:20px;">
+          <!-- OWNER PAYMENT DESTINATION CARD -->
+          <div style="background:#f8fafc;border:1.5px solid #e2e8f0;border-radius:14px;padding:18px;">
+            <h4 style="margin:0 0 12px;font-size:15px;color:#0f172a;font-weight:800;display:flex;align-items:center;gap:8px;">
+              <span>👑</span> Owner Direct UPI & Banking Details
+            </h4>
+            <div style="display:flex;flex-direction:column;gap:10px;font-size:13px;color:#334155;">
+              <div style="background:#ffffff;padding:10px 12px;border-radius:8px;border:1px solid #cbd5e1;display:flex;justify-content:space-between;align-items:center;">
+                <div>
+                  <div style="font-size:11px;color:#64748b;font-weight:700;">PRIMARY UPI ID</div>
+                  <strong style="color:#0f172a;font-size:14px;">mohakvaswani@upi</strong>
+                </div>
+                <button class="button secondary" onclick="navigator.clipboard.writeText('mohakvaswani@upi');showToast('✓ UPI ID Copied!','success');" style="padding:4px 8px;font-size:11px;">Copy</button>
+              </div>
+
+              <div style="background:#ffffff;padding:10px 12px;border-radius:8px;border:1px solid #cbd5e1;display:flex;justify-content:space-between;align-items:center;">
+                <div>
+                  <div style="font-size:11px;color:#64748b;font-weight:700;">WHATSAPP ORDER DESK</div>
+                  <strong style="color:#0f172a;font-size:14px;">+91 91370 00000</strong>
+                </div>
+                <button class="button secondary" onclick="navigator.clipboard.writeText('+919137000000');showToast('✓ Phone Copied!','success');" style="padding:4px 8px;font-size:11px;">Copy</button>
+              </div>
+
+              <div style="background:#ffffff;padding:10px 12px;border-radius:8px;border:1px solid #cbd5e1;">
+                <div style="font-size:11px;color:#64748b;font-weight:700;">BANK ACCOUNT (NEFT / IMPS)</div>
+                <div style="font-weight:750;color:#0f172a;margin-top:2px;">Mohak Vaswani · HDFC Bank</div>
+                <div style="font-size:12px;color:#475569;">A/C: 50100234987123 · IFSC: HDFC0000123</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- PRICING PACKAGES SUMMARY CARD -->
+          <div style="background:#f8fafc;border:1.5px solid #e2e8f0;border-radius:14px;padding:18px;">
+            <h4 style="margin:0 0 12px;font-size:15px;color:#0f172a;font-weight:800;">
+              Active Package Price Matrix
+            </h4>
+            <div style="display:flex;flex-direction:column;gap:10px;">
+              <div style="background:#ffffff;padding:12px;border-radius:10px;border:1.5px solid #e2e8f0;display:flex;justify-content:space-between;align-items:center;">
+                <div>
+                  <div style="font-weight:800;color:#475569;">✦ Starter Solo</div>
+                  <div style="font-size:11.5px;color:#64748b;">1 Seat · 50 Properties · 75 Leads · 1 Local Area</div>
+                </div>
+                <div style="text-align:right;">
+                  <div style="font-size:16px;font-weight:850;color:#0f172a;">₹600 / mo</div>
+                  <div style="font-size:11px;color:#059669;font-weight:700;">₹5,760/yr (20% OFF)</div>
+                </div>
+              </div>
+
+              <div style="background:#eff6ff;padding:12px;border-radius:10px;border:1.5px solid #bfdbfe;display:flex;justify-content:space-between;align-items:center;">
+                <div>
+                  <div style="font-weight:800;color:#1d4ed8;">⚡ Pro Closer (Recommended)</div>
+                  <div style="font-size:11.5px;color:#475569;">3 Seats · Unlimited Listings · AI Matching · Token Receipts</div>
+                </div>
+                <div style="text-align:right;">
+                  <div style="font-size:16px;font-weight:850;color:#1d4ed8;">₹1,200 / mo</div>
+                  <div style="font-size:11px;color:#059669;font-weight:700;">₹11,520/yr (20% OFF)</div>
+                </div>
+              </div>
+
+              <div style="background:#fdf4ff;padding:12px;border-radius:10px;border:1.5px solid #f0abfc;display:flex;justify-content:space-between;align-items:center;">
+                <div>
+                  <div style="font-weight:800;color:#9333ea;">💎 Agency Elite</div>
+                  <div style="font-size:11.5px;color:#64748b;">20 Seats · Multi-Branch · Letterhead · GST Invoicing</div>
+                </div>
+                <div style="text-align:right;">
+                  <div style="font-size:16px;font-weight:850;color:#9333ea;">₹3,000 / mo</div>
+                  <div style="font-size:11px;color:#059669;font-weight:700;">₹28,800/yr (20% OFF)</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    // =========================================================================
+    // TAB 3: LIVE TELEMETRY & AUDIT TRAIL
+    // =========================================================================
+    if (superAdminActiveTab === 'sessions') {
+      container.innerHTML = `
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:10px;">
           <div>
             <h3 style="margin:0;font-size:16px;font-weight:800;color:var(--ink);">Real-Time Visitor & Broker Audit Trail</h3>
             <div style="font-size:12.5px;color:var(--muted);">Tracks everyone accessing your app, their device, exact login time, logout timestamp, and action history.</div>
           </div>
           <div style="display:flex;gap:8px;">
-            <button class="button primary" id="sync-cloud-btn" style="padding:6px 12px;font-size:12px;background:#059669;">☁️ Pull Cloud Sync</button>
-   <button class="button secondary" id="refresh-sessions-btn" style="padding:6px 12px;font-size:12px;">🔄 Refresh</button>
+            <button class="button secondary" id="refresh-sessions-btn" style="padding:6px 12px;font-size:12px;">🔄 Refresh</button>
             <button class="button secondary" id="clear-sessions-btn" style="padding:6px 12px;font-size:12px;color:#dc2626;">🧹 Clear History</button>
           </div>
         </div>
@@ -14242,164 +14758,34 @@ Best regards,
         </div>
       `;
 
-      const syncBtn = document.querySelector('#sync-cloud-btn');
-   if (syncBtn) {
-     syncBtn.onclick = async () => {
-       syncBtn.textContent = '⏳ Syncing Cloud...';
-       await fetchCloudSessions();
-       showToast('✓ Cloud Database synced! Live visitors updated across India.', 'success');
-       superAdminView();
-     };
-   }
-   if (document.querySelector('#refresh-sessions-btn')) document.querySelector('#refresh-sessions-btn').onclick = () => superAdminView();
-      if (document.querySelector('#clear-sessions-btn')) document.querySelector('#clear-sessions-btn').onclick = () => {
-        if (confirm('Are you sure you want to reset session logs?')) {
-          localStorage.removeItem('brokerai.masterSessions');
-          superAdminView();
-        }
-      };
+      const refreshBtn = document.querySelector('#refresh-sessions-btn');
+      if (refreshBtn) refreshBtn.onclick = () => superAdminView();
+
+      const clearBtn = document.querySelector('#clear-sessions-btn');
+      if (clearBtn) {
+        clearBtn.onclick = () => {
+          if (confirm('Clear all stored telemetry and session logs?')) {
+            localStorage.setItem('brokerai.masterSessions', JSON.stringify([]));
+            showToast('✓ Session history cleared!', 'success');
+            superAdminView();
+          }
+        };
+      }
 
       container.querySelectorAll('[data-view-audit]').forEach(btn => {
         btn.onclick = () => {
           const sid = btn.dataset.viewAudit;
-          const target = sessions.find(x => x.id === sid);
-          if (target) auditEventsModal(target);
-        };
-      });
-
-    } else {
-      // TAB 1: AGENCIES DIRECTORY
-      if (exportBtn) {
-        exportBtn.onclick = () => {
-          let csv = 'Agency Name,Owner Name,Phone,Email,MahaRERA,City,Plan,Monthly Fee,Status,Joined Date,Expires At,Total Leads\n';
-          agencies.forEach(a => {
-            csv += `"${a.agencyName}","${a.ownerName}","${a.phone}","${a.email}","${a.reraNumber}","${a.city}","${a.plan}",${a.monthlyFee},"${a.status}","${a.joinedDate}","${a.expiresAt}",${a.totalLeads}\n`;
-          });
-          const blob = new Blob([csv], { type: 'text/csv' });
-          const url = URL.createObjectURL(blob);
-          const a = document.createElement('a');
-          a.href = url;
-          a.download = `BrokerAI_Master_Agencies_${new Date().toISOString().slice(0, 10)}.csv`;
-          a.click();
-          showToast('✓ Master agencies CSV report exported!', 'success');
-        };
-      }
-
-      container.innerHTML = `
-        <div class="table-wrap">
-          <table class="table">
-            <thead>
-              <tr>
-                <th>Agency & MahaRERA</th>
-                <th>Owner & Contact</th>
-                <th>Subscription Plan</th>
-                <th>Tenant Stats</th>
-                <th>Status</th>
-                <th>Owner Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              ${agencies.map(a => `
-                <tr>
-                  <td>
-                    <strong style="font-size:14px;color:var(--ink);">${esc(a.agencyName)}</strong>
-                    <div style="font-size:12px;color:var(--muted);font-weight:600;">${esc(a.city)} · RERA: ${esc(a.reraNumber)}</div>
-                  </td>
-                  <td>
-                    <div style="font-weight:650;color:var(--ink);">${esc(a.ownerName)}</div>
-                    <div style="font-size:12.5px;color:#165dff;">${esc(a.phone)}</div>
-                  </td>
-                  <td>
-                    <span class="stage">${a.plan === 'AGENCY_PRO' ? '🏛️ Agency Elite' : a.plan === 'PRO_CLOSER' ? '⚡ Pro Closer' : '👤 Starter Solo'}</span>
-                    <div style="font-size:12px;color:#15803d;font-weight:700;margin-top:2px;">₹${(a.monthlyFee || (a.plan === 'AGENCY_PRO' ? 3000 : a.plan === 'PRO_CLOSER' ? 1200 : 600)).toLocaleString('en-IN')}/mo</div>
-                  </td>
-                  <td>
-                    <div style="font-size:12.5px;color:var(--ink);">👥 <strong>${a.totalLeads}</strong> Leads · 🏡 <strong>${a.totalProperties}</strong> Listings</div>
-                    <div style="font-size:11.5px;color:var(--muted);">Pipeline: ₹${((a.totalDealsValue || 0) / 10000000).toFixed(2)} Cr</div>
-                  </td>
-                  <td>
-                    <span class="badge ${a.status === 'ACTIVE' ? 'hot' : a.status === 'PAYMENT_DUE' ? 'warm' : 'cold'}">
-                      ${a.status === 'ACTIVE' ? '✓ ACTIVE' : a.status === 'PAYMENT_DUE' ? '⚠️ DUE' : '⏸️ PAUSED'}
-                    </span>
-                    <div style="font-size:11px;color:var(--muted);margin-top:3px;">Exp: ${a.expiresAt}</div>
-                  </td>
-                  <td>
-                    <div style="display:flex;gap:6px;flex-wrap:wrap;">
-                      <button class="button primary" data-admin-inspect="${a.id}" style="padding:4px 8px;font-size:11px;">👁️ Inspect</button>
-                      <button class="button secondary" data-admin-share-link="${a.id}" style="padding:4px 8px;font-size:11px;color:#15803d;">📲 Send Link</button>
-                      <button class="button secondary" data-admin-toggle-status="${a.id}" style="padding:4px 8px;font-size:11px;">${a.status === 'ACTIVE' ? 'Pause' : 'Activate'}</button>
-                    </div>
-                  </td>
-                </tr>
-              `).join('')}
-            </tbody>
-          </table>
-        </div>
-      `;
-
-      // Event handlers
-      container.querySelectorAll('[data-admin-inspect]').forEach(btn => {
-        btn.onclick = () => {
-          const tenantId = btn.dataset.adminInspect;
-          const target = agencies.find(x => x.id === tenantId);
-          if (target) {
-            state.agencySettings = {
-              agencyName: target.agencyName,
-              reraNumber: target.reraNumber,
-              officeAddress: `${target.city}, Maharashtra`,
-              stampDutyPercent: 7.0,
-              gstPercent: 5.0,
-              legalFee: 15000,
-              brokerageBuySide: 2.0,
-              brokerageSellSide: 2.0,
-              brokerageRental: 1.0,
-              ownerName: target.ownerName,
-              ownerPhone: target.phone,
-              ownerEmail: target.email
-            };
-            localStorage.setItem('brokerai.agencySettings', JSON.stringify(state.agencySettings));
-            logAuditEvent(`👑 Super-Admin inspected cockpit of ${target.agencyName}`);
-            showToast(`✓ Switched into ${target.agencyName} Cockpit! Ready to pitch.`, 'info');
-            location.hash = '#/dashboard';
-            render();
-          }
-        };
-      });
-
-      container.querySelectorAll('[data-admin-share-link]').forEach(btn => {
-        btn.onclick = () => {
-          const tenantId = btn.dataset.adminShareLink;
-          const target = agencies.find(x => x.id === tenantId);
-          if (target) {
-            const hostOrigin = (typeof window !== 'undefined' && window.location?.origin) ? window.location.origin : 'https://www.rebrokerai.in';
-            const pCode = (target.plan || 'pro').toLowerCase().includes('agency') ? 'agency' : ((target.plan || '').toLowerCase().includes('starter') ? 'starter' : 'pro');
-            const url = `${hostOrigin}/#/demo-access?client=${encodeURIComponent(target.ownerName)}&agency=${encodeURIComponent(target.agencyName)}&phone=${encodeURIComponent(target.phone)}&rera=${encodeURIComponent(target.reraNumber || 'A51700012345')}&city=${encodeURIComponent(target.city || 'Thane West')}&plan=${pCode}&pass=demo`;
-            const waText = `Hello ${target.ownerName} Ji!%0A%0AYour *BrokerAI Institutional Workspace* for *${target.agencyName}* is active and ready.%0A%0A🔑 *Direct Secure Login Link:*%0A${url}%0A%0AIncludes your live inventory, MahaRERA token receipts, and 1-click WhatsApp pitch generator.`;
-            const waUrl = `https://api.whatsapp.com/send?phone=${target.phone.replace(/[^0-9]/g, '')}&text=${waText}`;
-            logAuditEvent(`📲 Sent Branded Login Link to ${target.agencyName} (${target.phone})`);
-            window.open(waUrl, '_blank');
-          }
-        };
-      });
-
-      container.querySelectorAll('[data-admin-toggle-status]').forEach(btn => {
-        btn.onclick = () => {
-          const tenantId = btn.dataset.adminToggleStatus;
-          const target = agencies.find(x => x.id === tenantId);
-          if (target) {
-            target.status = target.status === 'ACTIVE' ? 'PAUSED' : 'ACTIVE';
-            localStorage.setItem('brokerai.masterAgencies', JSON.stringify(agencies));
-            logAuditEvent(`⚙️ Toggled subscription status of ${target.agencyName} to ${target.status}`);
-            showToast(`✓ Agency "${target.agencyName}" is now ${target.status}!`, 'success');
-            superAdminView();
+          const target = sessions.find(s => s.id === sid);
+          if (target && typeof auditEventsModal === 'function') {
+            auditEventsModal(target);
           }
         };
       });
     }
   }
 
-
-  function provisionAgencyModal() {
+  // --- GRANT PACKAGE MODAL (OWNER SUPERPOWER) ---
+  function promptGrantPackageModal() {
     document.querySelectorAll('.modal-backdrop, .drawer-backdrop, .spotlight-backdrop').forEach(b => b.remove());
     const backdrop = document.createElement('div');
     backdrop.className = 'drawer-backdrop';
@@ -14408,58 +14794,85 @@ Best regards,
     drawer.innerHTML = `
       <div class="drawer-head">
         <div>
-          <span class="badge" style="background:#dcfce7;color:#15803d;margin-bottom:4px;font-weight:800;">PROVISION TENANT</span>
-          <h2 class="panel-title">Add New Paying Broker Agency</h2>
-          <div class="subtle">Create a dedicated branded workspace for an onboarding real estate broker.</div>
+          <span class="owner-badge-gold" style="margin-bottom:4px;">👑 OWNER DESK</span>
+          <h2 class="panel-title" style="margin:4px 0 0;">Grant Package to Agent / Broker</h2>
+          <div class="subtle">Assign a subscription tier according to agent choice and generate WhatsApp credentials.</div>
         </div>
         <button class="close">×</button>
       </div>
-      <form class="form" id="provision-form">
-        <div id="provision-notice"></div>
+      <form class="form" id="grant-package-form">
+        <div id="grant-notice"></div>
         <div class="form-section">
-          <h3>Agency Identity & Owner</h3>
+          <h3>Agent & Agency Information</h3>
           <div class="form-grid">
             <div class="field full">
               <label>Agency / Firm Name *</label>
               <input class="input" name="agencyName" required placeholder="e.g. Skyline Realty Advisors" />
             </div>
             <div class="field">
-              <label>Owner / Principal Broker Name *</label>
+              <label>Agent / Principal Broker Name *</label>
               <input class="input" name="ownerName" required placeholder="e.g. Ramesh Kulkarni" />
             </div>
             <div class="field">
-              <label>Owner WhatsApp Mobile *</label>
+              <label>WhatsApp Mobile Number *</label>
               <input class="input" name="phone" required placeholder="+91 98200 54321" />
+            </div>
+            <div class="field">
+              <label>City / Micro-Market</label>
+              <input class="input" name="city" placeholder="e.g. Thane West / Pokhran" value="Thane West" />
             </div>
             <div class="field">
               <label>Agency MahaRERA Number</label>
               <input class="input" name="reraNumber" placeholder="e.g. A51700088990" value="A517000" />
             </div>
-            <div class="field">
-              <label>City / Prime Operating Hub</label>
-              <input class="input" name="city" placeholder="e.g. Thane West / Pokhran" value="Thane West" />
-            </div>
-            <div class="field">
-              <label>Subscription Tier *</label>
-              <select class="select" name="plan">
-                <option value="agency">💎 Agency Elite (₹3,000/mo · 20 Seats)</option>
-                <option value="pro" selected>⚡ Pro Closer (₹1,200/mo · 3 Seats)</option>
-                <option value="starter">✦ Starter Solo (₹600/mo · 1 Seat)</option>
+          </div>
+        </div>
+
+        <div class="form-section">
+          <h3>Subscription Package & Licensing</h3>
+          <div class="form-grid">
+            <div class="field full">
+              <label>Package to Grant (Agent's Choice) *</label>
+              <select class="select" name="plan" style="font-weight:750;">
+                <option value="pro" selected>⚡ Pro Closer (₹1,200/mo · 3 Seats · AI Matchmaker)</option>
+                <option value="agency">💎 Agency Elite (₹3,000/mo · 20 Seats · Multi-Branch)</option>
+                <option value="starter">✦ Starter Solo (₹600/mo · 1 Seat · Local Micro-Market)</option>
               </select>
             </div>
             <div class="field">
-              <label>Initial Billing Status</label>
+              <label>License Validity Duration</label>
+              <select class="select" name="tenure">
+                <option value="1">1 Month (Standard)</option>
+                <option value="3">3 Months (Quarterly)</option>
+                <option value="6">6 Months (Half-Yearly)</option>
+                <option value="12" selected>12 Months (Annual VIP)</option>
+                <option value="999">Lifetime VIP Access</option>
+              </select>
+            </div>
+            <div class="field">
+              <label>Payment Mode / Settlement</label>
+              <select class="select" name="paymentMode">
+                <option value="UPI">UPI / GPay / PhonePe (Paid)</option>
+                <option value="NEFT">Bank Transfer / NEFT</option>
+                <option value="CASH">Cash / Offline Mandate</option>
+                <option value="TRIAL">Complimentary / VIP Trial</option>
+              </select>
+            </div>
+            <div class="field">
+              <label>Subscription Status</label>
               <select class="select" name="status">
-                <option value="ACTIVE">Active (Paid via UPI)</option>
-                <option value="PAYMENT_DUE">Trial / Payment Pending</option>
+                <option value="ACTIVE" selected>Active (Immediate Access)</option>
+                <option value="PAYMENT_DUE">Payment Pending / Due</option>
               </select>
             </div>
           </div>
         </div>
       </form>
       <div class="form-actions">
-        <button class="button secondary" id="cancel-provision">Cancel</button>
-        <button class="button primary" id="save-provision" style="background:#15803d;">🚀 Provision & Generate Access Link</button>
+        <button class="button secondary" id="cancel-grant">Cancel</button>
+        <button class="button primary" id="save-grant" style="background:#15803d;font-weight:750;">
+          🚀 Grant Package & Send WhatsApp Pass
+        </button>
       </div>
     `;
 
@@ -14467,20 +14880,21 @@ Best regards,
     const close = () => { backdrop.remove(); drawer.remove(); };
     backdrop.onclick = close;
     if (drawer.querySelector('.close')) drawer.querySelector('.close').onclick = close;
-    if (drawer.querySelector('#cancel-provision')) drawer.querySelector('#cancel-provision').onclick = close;
+    if (drawer.querySelector('#cancel-grant')) drawer.querySelector('#cancel-grant').onclick = close;
 
-    if (drawer.querySelector('#save-provision')) drawer.querySelector('#save-provision').onclick = () => {
-      const form = new FormData(drawer.querySelector('#provision-form'));
+    if (drawer.querySelector('#save-grant')) drawer.querySelector('#save-grant').onclick = () => {
+      const form = new FormData(drawer.querySelector('#grant-package-form'));
       const agencyName = form.get('agencyName')?.trim();
       const ownerName = form.get('ownerName')?.trim();
       const phone = form.get('phone')?.trim();
       const reraNumber = form.get('reraNumber')?.trim() || 'A51700099887';
       const city = form.get('city')?.trim() || 'Thane';
       const plan = form.get('plan');
+      const tenure = Number(form.get('tenure')) || 12;
       const status = form.get('status');
 
       if (!agencyName || !ownerName || !phone) {
-        drawer.querySelector('#provision-notice').innerHTML = '<div class="notice error">Please fill in Agency Name, Owner Name, and WhatsApp Phone.</div>';
+        drawer.querySelector('#grant-notice').innerHTML = '<div class="notice error">Please fill in Agency Name, Agent Name, and WhatsApp Phone.</div>';
         return;
       }
 
@@ -14494,10 +14908,10 @@ Best regards,
         reraNumber,
         city,
         plan,
-        monthlyFee: plan === 'agency' ? 3000 : plan === 'pro' ? 1200 : 600,
+        monthlyFee: plan === 'agency' ? 3000 : (plan === 'pro' ? 1200 : 600),
         status,
         joinedDate: new Date().toISOString().slice(0, 10),
-        expiresAt: new Date(Date.now() + 365 * 86400000).toISOString().slice(0, 10),
+        expiresAt: new Date(Date.now() + (tenure === 999 ? 3650 : tenure * 30) * 86400000).toISOString().slice(0, 10),
         totalLeads: 0,
         totalProperties: 0,
         totalDealsValue: 0
@@ -14507,20 +14921,21 @@ Best regards,
       localStorage.setItem('brokerai.masterAgencies', JSON.stringify(agencies));
       
       const hostOrigin = (typeof window !== 'undefined' && window.location?.origin) ? window.location.origin : 'https://www.rebrokerai.in';
-      const accessUrl = `${hostOrigin}/#/demo-access?client=${encodeURIComponent(ownerName)}&agency=${encodeURIComponent(agencyName)}&phone=${encodeURIComponent(phone)}&rera=${encodeURIComponent(reraNumber)}&city=${encodeURIComponent(city)}&plan=${encodeURIComponent(plan)}&pass=demo`;
-      const waText = `Hello ${ownerName} Ji!%0A%0AYour *BrokerAI Dedicated Workspace* for *${agencyName}* (MahaRERA: ${reraNumber}) is active.%0A%0A🔑 *Your Direct Login Link:*%0A${accessUrl}%0A%0A⚡ All your pitches, receipts, and listings will automatically carry your firm's name and MahaRERA number.`;
+      const planTitle = plan === 'agency' ? 'Agency Elite (₹3,000/mo)' : (plan === 'pro' ? 'Pro Closer (₹1,200/mo)' : 'Starter Solo (₹600/mo)');
+      const waText = `Hello ${ownerName} Ji!%0A%0AYour *BrokerAI ${planTitle}* package for *${agencyName}* (MahaRERA: ${reraNumber}) has been granted by the Platform Owner.%0A%0A🔑 *Direct Secure Login Link:*%0A${hostOrigin}/%0A%0A📱 *Login Mobile:* ${phone}%0A⚡ *Access Method:* Enter your 10-digit number to receive your OTP verification code.`;
       const waUrl = `https://api.whatsapp.com/send?phone=${phone.replace(/[^0-9]/g, '')}&text=${waText}`;
       
-      logAuditEvent(`🚀 Provisioned new agency: ${agencyName} for ${ownerName} (${phone})`);
-      showToast(`✓ Agency "${agencyName}" provisioned! Opening WhatsApp link...`, 'success');
+      logAuditEvent(`👑 Granted package ${planTitle} to ${agencyName} for ${ownerName} (${phone})`);
+      showToast(`✓ Granted package "${planTitle}" to ${agencyName}! Opening WhatsApp...`, 'success');
       close();
       window.open(waUrl, '_blank');
       superAdminView();
     };
   }
 
-
-    
+  function provisionAgencyModal() {
+    promptGrantPackageModal();
+  }
 
   let isRendering = false;
   async function render() {
@@ -14564,16 +14979,13 @@ Best regards,
         }
       }
 
-      if (!state.token && hash !== '#/admin' && !hash.startsWith('#/admin') && !hash.startsWith('#admin')) {
-        if (hash.startsWith('#/auth/register') || hash.startsWith('#register')) {
-          app.innerHTML = authView('register');
-        } else {
-          app.innerHTML = authView('login');
-        }
+      let route = hash.replace(/^#\/?/, '').split('?')[0];
+
+      if (route === 'login' || route === 'auth/login' || route === 'auth' || (!state.token && hash !== '#/admin' && !hash.startsWith('#/admin') && !hash.startsWith('#admin'))) {
+        state.page = 'login';
+        authView('login');
         return;
       }
-
-      let route = hash.replace(/^#\/?/, '').split('?')[0];
       if (!route) route = state.page || 'dashboard';
       state.page = route;
 
@@ -14705,11 +15117,13 @@ Best regards,
   window.planActivationModal = planActivationModal;
   window.auditEventsModal = auditEventsModal;
   window.provisionAgencyModal = provisionAgencyModal;
+  window.promptGrantPackageModal = promptGrantPackageModal;
   window.sendTestWhatsAppPitch = sendTestWhatsAppPitch;
   window.exportTeamDirectoryCSV = exportTeamDirectoryCSV;
   window.render = render;
   window.dashboard = dashboard;
   window.pricingView = pricingView;
+  window.authView = authView;
   window.superAdminView = superAdminView;
   window.leadsView = leadsView;
   window.propertiesView = propertiesView;
