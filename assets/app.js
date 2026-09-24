@@ -992,7 +992,7 @@ const demoDocuments = [
 
     const modal = document.createElement('div');
     modal.className = 'modal';
-    modal.style.cssText = 'max-width:620px;width:94vw;max-height:92vh;overflow-y:auto;padding:26px;background:#ffffff;border-radius:24px;box-shadow:0 24px 60px rgba(0,0,0,0.3);position:relative;box-sizing:border-box;';
+    modal.style.cssText = 'max-width:580px;width:94vw;max-height:90vh;overflow-y:auto;padding:24px;background:#ffffff;border-radius:20px;box-shadow:0 20px 50px rgba(0,0,0,0.15);position:relative;box-sizing:border-box;';
 
     const current = getPlanCapabilities();
     const currentId = current.planId;
@@ -1002,102 +1002,98 @@ const demoDocuments = [
         id: 'starter',
         name: 'Starter Solo',
         badge: '✦ Starter Solo',
-        price: '₹600 / month',
-        tagline: '1 Agent Seat · Solo Real Estate Desk',
+        price: '₹600',
+        period: '/ month',
+        scope: '📍 1 Primary Micro-Market · 1 Seat',
         color: '#475569',
-        borderActive: '#64748b',
+        borderActive: '#2563eb',
         bgActive: '#f8fafc',
         features: [
-          'Max 50 Active Listings & 75 Leads CRM',
+          '50 Properties & 75 Leads CRM in 1 local area',
           'Daily Overview & Deals Pipeline',
-          'Maharashtra Stamp Duty & EMI Calculator',
-          'Direct 1-Click WhatsApp Pitch Launcher',
-          'Token Advance Receipts Vault'
+          'Stamp Duty, Registration & EMI Calculator',
+          '1-Click WhatsApp Pitch Generator'
         ]
       },
       {
         id: 'pro',
         name: 'Pro Closer',
         badge: '⚡ Pro Closer',
-        price: '₹1,200 / month',
-        tagline: 'High-Velocity Closer (Most Popular)',
+        price: '₹1,200',
+        period: '/ month',
         popular: true,
+        scope: '🌐 All Suburbs & Metros · 3 Seats',
         color: '#2563eb',
         borderActive: '#2563eb',
         bgActive: '#eff6ff',
         features: [
-          '⚡ AI Smart 2-Way Buyer ↔ Property Matchmaking',
-          '⚡ Magic WhatsApp Raw Chat & Broadcast AI Parser',
-          '⚡ Commission Splits & Milestone Tracking Ledger',
-          '⚡ Closer Performance Leaderboard & Analytics',
-          '⚡ Client Presentation Privacy Mode (Hides Margins)',
-          '⚡ UNLIMITED Listings, Leads & 3 Team Seats'
+          'UNLIMITED Leads & Inventory across all localities',
+          '⚡ AI 2-Way Buyer ↔ Property Matchmaking',
+          '⚡ WhatsApp Magic Parser (Extracts group chats)',
+          '⚡ Digital Token Advance Receipts & Client Mode'
         ]
       },
       {
         id: 'agency',
         name: 'Agency Elite',
         badge: '💎 Agency Elite',
-        price: '₹2,500 / month',
-        tagline: 'Full Brokerage & Multi-Branch Enterprise',
+        price: '₹3,000',
+        period: '/ month',
+        scope: '🏢 Multi-Branch Territory Desks · 20 Seats',
         color: '#059669',
         borderActive: '#059669',
         bgActive: '#ecfdf5',
         features: [
-          '💎 20 Active Closer Seats & Team Roster Directory',
-          '💎 4 Regional Branch Territory Desks & Lead Routing',
-          '💎 100% White-Label MahaRERA Letterhead & Brand Seal',
-          '💎 70/30 & Builder Milestone Tranches Commission Splits',
-          '💎 Statutory 18% GST Invoice & Form 16A TDS Certificates',
-          '💎 Multi-Branch Regional Brokerage Operations'
+          '20 Agent Seats with Territory Desk Routing',
+          '💎 MahaRERA White-Label Letterhead & Brand Seal',
+          '💎 Commission Splits Ledger & Builder Milestones',
+          '💎 Statutory 18% GST Invoice & TDS Accounting'
         ]
       }
     ];
 
     modal.innerHTML = `
-      <div style="display:flex;justify-content:space-between;align-items:flex-start;border-bottom:1px solid #f1f5f9;padding-bottom:14px;margin-bottom:18px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #edf2f7;padding-bottom:14px;margin-bottom:16px;">
         <div>
-          <div style="display:inline-flex;align-items:center;gap:6px;background:rgba(37,99,235,0.1);color:#2563eb;padding:4px 10px;border-radius:12px;font-size:11px;font-weight:800;letter-spacing:0.04em;text-transform:uppercase;margin-bottom:6px;">
-            💎 Dynamic Plan Switcher
-          </div>
-          <h2 style="font-size:22px;font-weight:850;color:#0f172a;margin:0;">Switch Active Package</h2>
-          <p style="font-size:13px;color:#64748b;margin:4px 0 0;">Select any package to instantly preview its dedicated menus and features.</p>
+          <h2 style="font-size:18px;font-weight:800;color:#0f172a;margin:0 0 2px;">Switch Subscription Plan</h2>
+          <p style="font-size:12.5px;color:#64748b;margin:0;">Select a plan to adapt features to your locality and team scale.</p>
         </div>
-        <button class="close" id="close-plan-sim-btn" style="font-size:22px;border:0;background:none;cursor:pointer;color:#94a3b8;">✕</button>
+        <button class="close" id="close-plan-sim-btn" style="font-size:20px;border:0;background:none;cursor:pointer;color:#94a3b8;padding:4px;">✕</button>
       </div>
 
-      <div style="display:grid;gap:14px;margin-bottom:20px;">
+      <div style="display:grid;gap:12px;margin-bottom:18px;">
         ${plans.map(p => {
           const isAct = currentId === p.id;
           return `
-            <div style="border:2px solid ${isAct ? p.borderActive : '#e2e8f0'};background:${isAct ? p.bgActive : '#ffffff'};border-radius:16px;padding:16px 18px;transition:all 0.2s ease;">
-              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
-                <div>
-                  <span style="font-size:16px;font-weight:850;color:#0f172a;">${p.badge}</span>
-                  <span style="font-size:13px;color:#64748b;margin-left:8px;font-weight:600;">${p.price}</span>
+            <div style="border:1.5px solid ${isAct ? p.borderActive : '#edf2f7'};background:${isAct ? p.bgActive : '#ffffff'};border-radius:14px;padding:14px 16px;transition:all 0.15s ease;">
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+                <div style="display:flex;align-items:center;gap:8px;">
+                  <strong style="font-size:15px;color:#0f172a;">${p.badge}</strong>
+                  ${p.popular ? '<span class="apple-badge warm" style="font-size:10px;padding:1px 6px;">POPULAR</span>' : ''}
                 </div>
-                ${isAct ? `
-                  <span style="background:${p.color};color:#ffffff;font-size:11px;font-weight:800;padding:3px 10px;border-radius:20px;text-transform:uppercase;">
-                    ✓ Current Plan
-                  </span>
-                ` : `
-                  <button class="plan-select-btn button primary" data-plan-id="${p.id}" style="background:${p.color};color:#ffffff;font-size:12px;font-weight:750;padding:6px 14px;border-radius:10px;border:0;cursor:pointer;">
-                    Activate ${p.name}
-                  </button>
-                `}
+                <div style="text-align:right;">
+                  <span style="font-size:16px;font-weight:800;color:#0f172a;">${p.price}</span>
+                  <span style="font-size:11.5px;color:#64748b;">${p.period}</span>
+                </div>
               </div>
-              <div style="font-size:12.5px;color:#475569;margin-bottom:10px;">${p.tagline}</div>
-              <div style="display:grid;gap:4px;font-size:12px;color:#334155;">
-                ${p.features.map(f => `<div>• ${f}</div>`).join('')}
+              <div style="font-size:12px;font-weight:600;color:${isAct ? '#2563eb' : '#64748b'};margin-bottom:8px;">${p.scope}</div>
+              <div style="display:grid;gap:3px;font-size:12px;color:#334155;margin-bottom:10px;">
+                ${p.features.map(f => `<div style="display:flex;gap:6px;align-items:center;"><span>✓</span><span>${f}</span></div>`).join('')}
+              </div>
+              <div>
+                ${isAct ? `
+                  <button disabled style="width:100%;padding:6px;background:#edf2f7;color:#64748b;font-size:12px;font-weight:700;border:none;border-radius:8px;">✓ Current Active Plan</button>
+                ` : `
+                  <button class="plan-select-btn" data-plan-id="${p.id}" style="width:100%;padding:7px;background:${p.color};color:#ffffff;font-size:12px;font-weight:700;border:none;border-radius:8px;cursor:pointer;transition:opacity 0.15s;">Switch to ${p.name}</button>
+                `}
               </div>
             </div>
           `;
         }).join('')}
       </div>
 
-      <div style="display:flex;justify-content:space-between;align-items:center;border-top:1px solid #f1f5f9;padding-top:14px;">
-        <span style="font-size:12px;color:#64748b;">Role: <strong>${esc(state.user?.fullName || 'Agent')}</strong> (${esc(current.name)})</span>
-        <button class="button secondary" id="close-sim-footer-btn" style="padding:8px 16px;font-size:13px;border-radius:10px;">Done</button>
+      <div style="display:flex;justify-content:flex-end;">
+        <button class="button secondary" id="close-sim-footer-btn" style="padding:6px 14px;font-size:12px;border-radius:8px;">Close</button>
       </div>
     `;
 
@@ -1118,15 +1114,13 @@ const demoDocuments = [
         localStorage.setItem('brokerai.currentPlan', state.currentPlan);
         close();
         const cap = getPlanCapabilities(state.currentPlan);
-        toast(`Switched to ${cap.name}! Sidebar menu and permissions updated.`, 'success');
+        showToast(`✓ Switched to ${cap.name}! Capabilities and menus updated.`, 'success');
         render();
       };
     });
   }
 
-
-
-const request = async (path, options = {}) => {
+  const request = async (path, options = {}) => {
     if (!apiBase) {
       // Standalone Cloud PWA Mode (No local backend required)
       return { content: [] };
@@ -13047,157 +13041,135 @@ Best regards,
 
   function pricingView() {
     const tenureMonths = Number(selectedTenureMonths) || 12;
-    const tenure = tenureDiscounts[tenureMonths] || tenureDiscounts[12] || { label: '12 Months (Annual)', discount: 0.20, discountPercent: 20 };
+
+    const plans = [
+      {
+        id: 'starter',
+        name: 'Starter Solo',
+        badge: '✦ Starter Solo',
+        baseMonthly: 600,
+        popular: false,
+        scope: '📍 1 Primary Micro-Market · 1 Seat',
+        features: [
+          '50 Listings & 75 Leads CRM in 1 local area',
+          'Daily Overview & Deals Pipeline',
+          'Stamp Duty, Registration & EMI Calculator',
+          '1-Click WhatsApp Pitch Generator'
+        ]
+      },
+      {
+        id: 'pro',
+        name: 'Pro Closer',
+        badge: '⚡ Pro Closer',
+        baseMonthly: 1200,
+        popular: true,
+        scope: '🌐 All Suburbs & Metros · 3 Seats',
+        features: [
+          'UNLIMITED Leads & Inventory across all localities',
+          '⚡ AI 2-Way Buyer ↔ Property Matchmaking',
+          '⚡ WhatsApp Magic Parser (Extracts group chats)',
+          '⚡ Digital Token Advance Receipts & Client Mode'
+        ]
+      },
+      {
+        id: 'agency',
+        name: 'Agency Elite',
+        badge: '💎 Agency Elite',
+        baseMonthly: 3000,
+        popular: false,
+        scope: '🏢 Multi-Branch Territory Desks · 20 Seats',
+        features: [
+          '20 Agent Seats with Territory Desk Routing',
+          '💎 MahaRERA White-Label Letterhead & Brand Seal',
+          '💎 Commission Splits Ledger & Builder Milestones',
+          '💎 Statutory 18% GST Invoice & TDS Accounting'
+        ]
+      }
+    ];
 
     app.innerHTML = layout(`
       <!-- HEADER -->
-      <section class="pricing-header-box">
-        <div class="pricing-kicker">Transparent Brokerage SaaS</div>
-        <h1 class="pricing-title">Simple Plans That Pay for Themselves in 1 Deal</h1>
-        <p class="pricing-subtitle">
-          Closing just one 2 BHK in Thane pays you ₹1.87 Lakhs in brokerage. 
-          BrokerAI costs less than 1% of a single deal and saves 2+ hours every day.
-        </p>
-      </section>
-
-      <!-- MULTI-TENURE DISCOUNT TABS -->
-      <div class="tenure-picker-container">
-        <div class="tenure-picker">
-          ${Object.entries(tenureDiscounts).map(([months, opt]) => `
-            <button class="tenure-btn ${Number(months) === tenureMonths ? 'active' : ''}" data-months="${months}">
-              <span>${opt.label}</span>
-              ${opt.saveTag ? `<span class="tenure-save-tag">${opt.saveTag}</span>` : ''}
-            </button>
-          `).join('')}
+      <div class="page-head" style="margin-bottom:20px;">
+        <div>
+          <h1 class="page-title" style="font-size:24px;font-weight:800;letter-spacing:-0.025em;color:#0f172a;margin:0 0 4px;">Subscription Plans</h1>
+          <p class="page-sub" style="font-size:13.5px;color:#64748b;margin:0;">Simple, transparent plans tailored to your micro-market reach and team scale.</p>
         </div>
       </div>
 
-      <!-- 3 PRICING CARDS -->
-      <div class="pricing-grid">
-        ${pricingTiers.map(tier => {
-          const baseMonthly = Number(tier.baseMonthly) || (tier.id === 'agency' ? 3000 : (tier.id === 'pro' ? 1200 : 600));
-          const discount = (typeof tenure.discount === 'number' ? tenure.discount : (typeof tenure.discountPercent === 'number' ? tenure.discountPercent / 100 : 0.20));
-          const discountFactor = Math.max(0, 1 - discount);
-          const discountedMonthly = Math.round(baseMonthly * discountFactor);
+      <!-- MULTI-TENURE SWITCHER PILLS -->
+      <div style="display:flex;justify-content:center;margin-bottom:24px;">
+        <div class="apple-tabs" id="tenure-tabs">
+          <button class="apple-tab-btn ${tenureMonths === 1 ? 'active' : ''}" data-months="1">1 Month</button>
+          <button class="apple-tab-btn ${tenureMonths === 3 ? 'active' : ''}" data-months="3">3 Months (10% OFF)</button>
+          <button class="apple-tab-btn ${tenureMonths === 6 ? 'active' : ''}" data-months="6">6 Months (15% OFF)</button>
+          <button class="apple-tab-btn ${tenureMonths === 12 ? 'active' : ''}" data-months="12">12 Months (20% OFF)</button>
+        </div>
+      </div>
+
+      <!-- 3 MINIMAL PRICING CARDS -->
+      <div class="apple-dash-grid" style="grid-template-columns:repeat(3, 1fr);gap:18px;margin-bottom:24px;">
+        ${plans.map(p => {
+          const discount = tenureMonths === 12 ? 0.20 : (tenureMonths === 6 ? 0.15 : (tenureMonths === 3 ? 0.10 : 0));
+          const discountedMonthly = Math.round(p.baseMonthly * (1 - discount));
           const totalBilled = discountedMonthly * tenureMonths;
-          const originalTotal = baseMonthly * tenureMonths;
-          const totalSaved = originalTotal - totalBilled;
+          const isCurrent = (getPlanCapabilities().planId === p.id);
 
           return `
-            <div class="plan-card ${tier.popular ? 'popular' : ''}">
-              ${tier.badge ? `<div class="plan-popular-badge">${tier.badge}</div>` : ''}
-              <div class="plan-head">
-                <h3 class="plan-name">${tier.name}</h3>
-                <p class="plan-tagline">${tier.tagline}</p>
-                <div class="plan-price-wrap">
-                  <span class="plan-price-cur">₹</span>
-                  <span class="plan-price-num tnum">${discountedMonthly.toLocaleString('en-IN')}</span>
-                  <span class="plan-price-period">/ month</span>
-                  ${discount > 0 ? `<span class="plan-price-strike tnum">₹${baseMonthly.toLocaleString('en-IN')}</span>` : ''}
+            <div class="apple-card" style="border:${p.popular ? '2px solid #2563eb' : '1px solid #edf2f7'};display:flex;flex-direction:column;justify-content:space-between;position:relative;">
+              ${p.popular ? '<span class="apple-badge active" style="position:absolute;top:14px;right:14px;font-size:10px;">MOST POPULAR</span>' : ''}
+              <div>
+                <h3 style="font-size:16px;font-weight:800;color:#0f172a;margin:0 0 6px;">${p.badge}</h3>
+                <div style="font-size:12px;font-weight:600;color:#2563eb;margin-bottom:12px;">${p.scope}</div>
+                
+                <div style="display:flex;align-items:baseline;gap:4px;margin-bottom:4px;">
+                  <span style="font-size:24px;font-weight:850;color:#0f172a;">₹${discountedMonthly.toLocaleString('en-IN')}</span>
+                  <span style="font-size:12px;color:#64748b;">/ month</span>
+                  ${discount > 0 ? `<span style="font-size:12px;color:#94a3b8;text-decoration:line-through;margin-left:4px;">₹${p.baseMonthly.toLocaleString('en-IN')}</span>` : ''}
                 </div>
-                ${tenureMonths > 1 ? `
-                  <div class="plan-billed-note">
-                    ✓ Billed ₹${totalBilled.toLocaleString('en-IN')} for ${tenureMonths} months
-                    ${totalSaved > 0 ? `<span style="color:#059669;font-weight:800;"> (Save ₹${totalSaved.toLocaleString('en-IN')})</span>` : ''}
-                  </div>
-                ` : `<div class="plan-billed-note" style="color:var(--muted);">Billed monthly · Cancel anytime</div>`}
+                <div style="font-size:11.5px;color:#64748b;margin-bottom:16px;">
+                  ${tenureMonths > 1 ? `Billed ₹${totalBilled.toLocaleString('en-IN')} for ${tenureMonths} months` : 'Billed monthly · Cancel anytime'}
+                </div>
+
+                <div style="display:grid;gap:6px;font-size:12.5px;color:#334155;margin-bottom:20px;">
+                  ${p.features.map(f => `<div style="display:flex;gap:6px;align-items:center;"><span>✓</span><span>${f}</span></div>`).join('')}
+                </div>
               </div>
 
-              <div style="font-size:11.5px;font-weight:750;color:#0f172a;margin-bottom:12px;display:flex;align-items:center;gap:6px;">
-                <span>👥</span> <span>${tier.seats}</span>
+              <div>
+                ${isCurrent ? `
+                  <button disabled style="width:100%;padding:9px;background:#edf2f7;color:#64748b;font-size:12.5px;font-weight:700;border:none;border-radius:9px;">✓ Current Active Plan</button>
+                ` : `
+                  <button class="pricing-cta-btn button ${p.popular ? 'primary' : 'secondary'}" data-plan-id="${p.id}" style="width:100%;padding:9px;font-size:12.5px;font-weight:700;border-radius:9px;${p.popular ? 'background:#2563eb;' : ''}">
+                    Switch to ${p.name}
+                  </button>
+                `}
               </div>
-
-              <div class="plan-features-list">
-                ${tier.features.map(f => `
-                  <div class="plan-feature-item">
-                    <span class="plan-feature-icon">✓</span>
-                    <span>${f}</span>
-                  </div>
-                `).join('')}
-                ${(tier.excluded || []).map(ex => `
-                  <div class="plan-feature-item excluded">
-                    <span class="plan-feature-icon" style="background:#f1f5f9;color:#94a3b8;">✕</span>
-                    <span>${ex}</span>
-                  </div>
-                `).join('')}
-              </div>
-
-              <button class="plan-cta-btn ${tier.popular ? 'primary' : 'secondary'}" data-plan-id="${tier.id}" data-tenure-months="${selectedTenureMonths}">
-                <span>${tier.popular ? '⚡ Activate Pro Closer' : 'Choose ' + tier.name}</span>
-              </button>
             </div>
           `;
         }).join('')}
       </div>
-
-      <!-- ENTERPRISE MANDATE BANNER -->
-      <div class="enterprise-custom-banner">
-        <div>
-          <div style="font-size:11px;font-weight:800;color:#38bdf8;text-transform:uppercase;letter-spacing:0.1em;margin-bottom:4px;">🏢 High-Volume Desk</div>
-          <h3 style="margin:0 0 6px;font-size:20px;font-weight:800;">Developer Mandates & Large Channel Partners</h3>
-          <p style="font-size:13px;color:#94a3b8;margin:0;max-width:600px;">
-            Need 10+ agent seats, custom sub-broker WhatsApp lead webhooks, or multi-branch compliance governance?
-          </p>
-        </div>
-        <button class="button primary" id="enterprise-contact-btn" style="background:linear-gradient(135deg,#38bdf8,#2563eb);color:#0f172a;font-weight:800;padding:10px 20px;font-size:13px;">
-          💬 Talk to Mandate Specialist
-        </button>
-      </div>
-
-      <!-- FAQ ACCORDION -->
-      <section class="pricing-faq-section">
-        <h2 class="pricing-faq-title">Frequently Asked Questions</h2>
-        <div class="faq-grid">
-          <div class="faq-card">
-            <div class="faq-q">Can I switch plans or billing tenures later?</div>
-            <div class="faq-a">Yes, absolutely! You can upgrade from Starter to Pro or switch to a discounted 12-month tenure anytime with prorated credit.</div>
-          </div>
-          <div class="faq-card">
-            <div class="faq-q">Is the Magic WhatsApp Parser unlimited?</div>
-            <div class="faq-a">On the Pro Closer and Agency Elite plans, WhatsApp message parsing is 100% unlimited. Paste as many property group texts as you want.</div>
-          </div>
-          <div class="faq-card">
-            <div class="faq-q">How does Client Presentation Mode protect me?</div>
-            <div class="faq-a">With 1-tap, all owner phone numbers, internal brokerage margins, and lockbox PINs are masked into verified mandate seals so clients cannot bypass you.</div>
-          </div>
-          <div class="faq-card">
-            <div class="faq-q">Are Tripartite Token Receipts legally structured?</div>
-            <div class="faq-a">Yes, receipts are generated in standard tripartite format with legal non-refundable forfeiture clauses, witness signatures, and instant PDF creation.</div>
-          </div>
-        </div>
-      </section>
     `);
-
     bindShell();
 
-    // Bind tenure tabs
-    document.querySelectorAll('.tenure-btn').forEach(btn => {
+    document.querySelectorAll('#tenure-tabs .apple-tab-btn').forEach(btn => {
       btn.onclick = () => {
         selectedTenureMonths = Number(btn.dataset.months);
         pricingView();
       };
     });
 
-    // Bind plan activation CTAs
-    document.querySelectorAll('.plan-cta-btn').forEach(btn => {
+    document.querySelectorAll('.pricing-cta-btn').forEach(btn => {
       btn.onclick = () => {
-        const planId = btn.dataset.planId;
-        const months = Number(btn.dataset.tenureMonths);
-        planActivationModal(planId, months);
+        const plan = btn.dataset.planId;
+        state.currentPlan = (plan === 'agency' || plan === 'elite') ? 'agency' : (plan === 'starter' || plan === 'solo' ? 'starter' : 'pro');
+        localStorage.setItem('brokerai.currentPlan', state.currentPlan);
+        const cap = getPlanCapabilities(state.currentPlan);
+        showToast(`✓ Switched to ${cap.name}! Capabilities and menus updated.`, 'success');
+        pricingView();
       };
     });
-
-    const entBtn = document.querySelector('#enterprise-contact-btn');
-    if (entBtn) {
-      entBtn.onclick = () => {
-        const text = encodeURIComponent('Hi BrokerAI Team, I manage a Channel Partner / Mandate Agency in Mumbai MMR and want to discuss Enterprise multi-agent seats.');
-        window.open(`https://wa.me/919820000000?text=${text}`, '_blank');
-      };
-    }
   }
 
-  
-  // --- MULTI-AGENT TEAM SEATS & QUOTAS VIEW ---
   
   const demoBranchDesks = [
     { id: 'desk-1', name: 'Hiranandani Estate Desk', tag: 'Primary Hub', address: 'Arcade 4, Hiranandani Estate, Thane (W)', head: 'Aarav Mehta', phone: '+91 98200 12345', closers: 4, volumeCr: 7.40, border: '#10b981', badgeBg: '#ecfdf5', badgeColor: '#047857' },
