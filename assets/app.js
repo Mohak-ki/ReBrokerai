@@ -817,32 +817,17 @@ const demoDocuments = [
 
   // --- DYNAMIC PLAN-BASED NAVIGATION ITEMS ---
   function getNavItems() {
-    const cap = getPlanCapabilities();
-    const pid = cap.planId;
-
-    // 1. Core items (available to all)
-    const items = [
-      ['dashboard', 'dashboard', 'Daily Overview'],
-      ['leads', 'leads', pid === 'starter' ? 'Buyer Leads (75 Max)' : 'Buyer Leads CRM'],
-      ['properties', 'properties', pid === 'starter' ? 'Properties (50 Max)' : 'Properties & Inventory'],
-      ['deals', 'deals', 'Deals Pipeline'],
-      ['documents', 'documents', '📜 Document Vault']
+    return [
+      ['dashboard', 'dashboard', 'Dashboard'],
+      ['leads', 'leads', 'Leads'],
+      ['properties', 'properties', 'Properties'],
+      ['clients', 'team', 'Clients'],
+      ['calendar', 'visits', 'Calendar'],
+      ['messages', 'assistant', 'Messages'],
+      ['deals', 'deals', 'Deals'],
+      ['reports', 'reports', 'Reports'],
+      ['settings', 'settings', 'Settings']
     ];
-
-    // 2. Pro Closer / Agency Elite items
-    if (pid === 'pro' || pid === 'agency') {
-      items.splice(4, 0, ['matches', 'matches', '⚡ AI Matchmaking']);
-      items.push(['commissions', 'commissions', pid === 'agency' ? '💰 Commission Splits & GST' : '💰 Commission Splits']);
-      items.push(['reports', 'reports', pid === 'agency' ? '🏆 Team Reports & Analytics' : '🏆 Performance Analytics']);
-    }
-
-    // 3. Agency Elite Exclusive items
-    if (pid === 'agency') {
-      items.push(['team', 'team', '👥 Closer Team Roster (12/20)']);
-      items.push(['branches', 'branches', '📍 Branch Territory Desks']);
-    }
-
-    return items;
   }
 
   function getSecondaryNavItems() {
@@ -1904,8 +1889,13 @@ const request = async (path, options = {}) => {
     function layout(content) {
     const unread = unreadNotifCount();
     const navItems = getNavItems();
-    const secondaryNav = getSecondaryNavItems();
-    const currentPageLabel = navItems.find(item => item[0] === state.page)?.[2] || 'Daily Overview';
+    const currentPage = state.page || 'dashboard';
+    const userName = state.user?.fullName || 'Mohak Vaswani';
+    const userRole = state.user?.role ? state.user.role.replaceAll('_', ' ') : 'Real Estate Broker';
+    const userInit = initials(userName);
+
+    const now = new Date();
+    const formattedDate = now.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
 
     return `${state.clientMode ? `<div class="client-mode-banner"><div style="display:flex;align-items:center;gap:8px;"><span>🛡️</span><strong>Client Presentation Mode Active:</strong> Owner contacts, lockbox PINs, and brokerage margins are masked for live client viewing.</div><button id="exit-client-banner-btn">✕ Exit Client Mode (Show Private Info)</button></div>` : ''}
     <div class="shell">
@@ -1915,64 +1905,55 @@ const request = async (path, options = {}) => {
             <img src="${esc(state.agencySettings.logoUrl)}" style="width:28px;height:28px;object-fit:contain;border-radius:6px;background:#fff;padding:2px;" alt="Logo" />
           ` : `
             <span class="mark">
-              <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M4 20V10l8-6 8 6v10"/><path d="M9 20v-6h6v6"/></svg>
+              <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><path d="M4 20V10l8-6 8 6v10"/><path d="M9 20v-6h6v6"/></svg>
             </span>
           `}
-          <span>${esc(state.agencySettings?.agencyName || 'BrokerAI')}</span>
-        </div>
-        <div>
-          <div class="workspace">CORE WORKSPACE</div>
-          <nav class="nav">
-            ${getNavItems().map(([id, iconName, label]) => `
-              <button data-page="${id}" class="${state.page === id ? 'active' : ''}">
-                <span class="nav-icon">${svgIcon(iconName, 17)}</span>
-                <span style="flex:1;">${label}</span>
-              </button>`).join('')}
-          </nav>
+          <span>${esc(state.agencySettings?.agencyName || 'BrokerCRM')}</span>
         </div>
 
-        <div style="margin-top:16px;">
-          <div class="workspace">SYSTEM & TOOLS</div>
-          <nav class="nav">
-            ${secondaryNav.map(([id, iconName, label]) => `
-              <button data-page="${id}" class="${state.page === id ? 'active' : ''}">
-                <span class="nav-icon">${svgIcon(iconName, 17)}</span>
+        <nav class="nav" style="display:flex;flex-direction:column;gap:3px;margin-top:6px;">
+          ${navItems.map(([id, iconName, label]) => {
+            const isActive = currentPage === id || 
+              (currentPage === 'visits' && id === 'calendar') || 
+              (currentPage === 'assistant' && id === 'messages') || 
+              (currentPage === 'matches' && id === 'clients') ||
+              (currentPage === 'follow-ups' && id === 'dashboard') ||
+              (currentPage === 'documents' && id === 'deals');
+            return `
+              <button data-page="${id}" class="${isActive ? 'active' : ''}">
+                <span class="nav-icon">${svgIcon(iconName, 18)}</span>
                 <span style="flex:1;">${label}</span>
-                ${id === 'notifications' && unread ? `<span style="background:#ef4444;color:#fff;font-size:10px;font-weight:800;padding:1px 6px;border-radius:10px;">${unread}</span>` : ''}
-              </button>`).join('')}
-          </nav>
-        </div>
+                ${id === 'messages' && unread ? `<span style="background:#ef4444;color:#fff;font-size:10px;font-weight:800;padding:1px 6px;border-radius:10px;">${unread}</span>` : ''}
+              </button>`;
+          }).join('')}
+        </nav>
+
         <div class="account">
-          <div class="account-name">${esc(state.user?.fullName)}</div>
-          <div class="account-role">${esc((state.user?.role || '').replaceAll('_', ' '))}</div>
-          <button class="signout" id="signout">Sign out</button>
+          <div class="account-avatar">${userInit}</div>
+          <div class="account-info">
+            <div class="account-name">${esc(userName)}</div>
+            <div class="account-role">${esc(userRole)}</div>
+          </div>
+          <button class="signout" id="signout" title="Sign out">${svgIcon('logout', 16)}</button>
         </div>
       </aside>
 
       <main class="main">
-        <!-- UNIVERSAL TOPBAR ON EVERY PAGE -->
+        <!-- TOPBAR -->
         <header class="topbar">
-          <!-- LEFT IDENTITY & BREADCRUMB -->
-          <div class="topbar-left">
-            <button class="mobile-menu-btn" id="mobile-hamburger-btn" title="Open Navigation Menu">
-              ${svgIcon('menu', 20)}
-            </button>
-            <div class="topbar-crumb-wrap">
-              ${state.agencySettings?.logoUrl ? `<img src="${esc(state.agencySettings.logoUrl)}" style="width:20px;height:20px;object-fit:contain;border-radius:4px;vertical-align:middle;margin-right:6px;" alt="Logo" />` : ''}
-              <span class="topbar-org">${esc(state.agencySettings?.agencyName || 'BrokerAI')}</span>
-              <span class="topbar-divider">/</span>
-              <span class="topbar-page">${esc(currentPageLabel)}</span>
-            </div>
+          <!-- SEARCH BOX -->
+          <div class="topbar-search-box" id="topbar-spotlight-btn" style="cursor:pointer;" title="Search or jump to... (Ctrl + K)">
+            ${svgIcon('search', 15)}
+            <input type="text" placeholder="Search leads, properties, clients..." readonly style="cursor:pointer;" />
+            <kbd style="font-size:11px;background:#e2e8f0;padding:2px 6px;border-radius:5px;color:#64748b;font-weight:600;">Ctrl K</kbd>
           </div>
 
-          <!-- CENTER SEARCH PILL (DESKTOP) -->
-          <button class="topbar-search-pill" id="topbar-spotlight-btn" title="Search inventory, leads, tools (Ctrl + K)">
-            ${svgIcon('search', 14)}
-            <span>Search or jump to...</span>
-            <kbd>Ctrl K</kbd>
-          </button>
+          <!-- DATE DISPLAY -->
+          <div class="topbar-date" style="font-weight:600;color:#64748b;">
+            <span>${formattedDate}</span>
+          </div>
 
-          <!-- RIGHT ACTIONS CLUSTER -->
+          <!-- TOP ACTIONS -->
           <div class="top-actions">
             <button class="topbar-action-pill emerald" id="topbar-magic-parser-btn" title="Paste raw broker WhatsApp message">
               ${svgIcon('whatsapp', 14)} <span>Paste WhatsApp</span>
@@ -1981,8 +1962,6 @@ const request = async (path, options = {}) => {
               ${svgIcon('calculator', 14)} <span>Cost & EMI</span>
             </button>
             
-            <div class="topbar-divider-v"></div>
-
             <button class="plan-indicator-badge" id="topbar-plan-pill" title="Click to switch/simulate subscription plans">
               ${getPlanCapabilities().badge} ▾
             </button>
@@ -1992,38 +1971,42 @@ const request = async (path, options = {}) => {
               ${unread ? `<span class="notif-badge">${unread}</span>` : ''}
             </button>
 
-            <span class="avatar" style="width:32px;height:32px;font-size:12px;cursor:pointer;" id="topbar-avatar-btn">${initials(state.user?.fullName)}</span>
+            <button class="topbar-icon-btn" id="topbar-msg-btn" title="Messages" onclick="location.hash='#/messages';">
+              ${svgIcon('assistant', 16)}
+            </button>
+
+            <span class="account-avatar" style="width:34px;height:34px;font-size:12px;cursor:pointer;" id="topbar-avatar-btn">${userInit}</span>
           </div>
         </header>
 
         <section class="content">${content}</section>
       </main>
 
-      <!-- UNIVERSAL MOBILE BOTTOM NAVIGATION BAR -->
+      <!-- MOBILE BOTTOM NAVIGATION -->
       <nav class="mobile-bottom-nav">
-        <a href="#/dashboard" class="mobile-bottom-nav-item ${state.page === 'dashboard' ? 'active' : ''}">
+        <a href="#/dashboard" class="mobile-bottom-nav-item ${currentPage === 'dashboard' ? 'active' : ''}">
           <div class="nav-icon-wrap">${svgIcon('dashboard', 18)}</div>
           <span>Home</span>
         </a>
-        <a href="#/leads" class="mobile-bottom-nav-item ${state.page === 'leads' ? 'active' : ''}">
+        <a href="#/leads" class="mobile-bottom-nav-item ${currentPage === 'leads' ? 'active' : ''}">
           <div class="nav-icon-wrap">${svgIcon('leads', 18)}</div>
           <span>Leads</span>
         </a>
-        <a href="#/properties" class="mobile-bottom-nav-item ${state.page === 'properties' ? 'active' : ''}">
+        <a href="#/properties" class="mobile-bottom-nav-item ${currentPage === 'properties' ? 'active' : ''}">
           <div class="nav-icon-wrap">${svgIcon('properties', 18)}</div>
-          <span>Inventory</span>
+          <span>Stock</span>
         </a>
-        <a href="#/matches" class="mobile-bottom-nav-item ${state.page === 'matches' ? 'active' : ''}">
-          <div class="nav-icon-wrap">${svgIcon('matches', 18)}</div>
-          <span>AI Match</span>
+        <a href="#/calendar" class="mobile-bottom-nav-item ${currentPage === 'calendar' || currentPage === 'visits' ? 'active' : ''}">
+          <div class="nav-icon-wrap">${svgIcon('visits', 18)}</div>
+          <span>Calendar</span>
         </a>
-        <button class="mobile-bottom-nav-item" id="bottom-menu-toggle-btn">
-          <div class="nav-icon-wrap">${svgIcon('menu', 18)}</div>
-          <span>Menu</span>
-        </button>
+        <a href="#/messages" class="mobile-bottom-nav-item ${currentPage === 'messages' || currentPage === 'assistant' ? 'active' : ''}">
+          <div class="nav-icon-wrap">${svgIcon('assistant', 18)}</div>
+          <span>Chat</span>
+        </a>
       </nav>
 
-      <!-- UNIVERSAL FLOATING SPEED DIAL (FAB) FOR RAPID MOBILE ACTIONS -->
+      <!-- SPEED DIAL -->
       <div class="mobile-fab-container" id="mobile-fab-container">
         <div class="mobile-fab-sheet" id="mobile-fab-sheet" style="display:none;">
           <button class="fab-speed-item" id="fab-action-lead">
@@ -2032,7 +2015,7 @@ const request = async (path, options = {}) => {
           </button>
           <button class="fab-speed-item" id="fab-action-prop">
             <span class="fab-speed-icon" style="background:#f0fdf4;color:#16a34a;">📸</span>
-            <span class="fab-speed-label">＋ Add Property / Snap Live Photo</span>
+            <span class="fab-speed-label">＋ Add Property</span>
           </button>
           <button class="fab-speed-item" id="fab-action-visit">
             <span class="fab-speed-icon" style="background:#e0e7ff;color:#4338ca;">◷</span>
@@ -2040,7 +2023,7 @@ const request = async (path, options = {}) => {
           </button>
           <button class="fab-speed-item" id="fab-action-wa">
             <span class="fab-speed-icon" style="background:#ecfdf5;color:#047857;">✦</span>
-            <span class="fab-speed-label">✦ Parse WhatsApp Message</span>
+            <span class="fab-speed-label">✦ Parse WhatsApp</span>
           </button>
         </div>
         <button class="mobile-fab-btn" id="mobile-fab-btn" title="Quick Action Dial" aria-label="Quick Actions">
@@ -2412,234 +2395,113 @@ const request = async (path, options = {}) => {
 
   // --- OVERHAULED SITE VISITS MODULE ---
   async function siteVisitsView() {
-    app.innerHTML = layout(`${pageHeader('Site Visits & Property Showings', state.demo ? 'Demo preview — scheduled showings in Hiranandani, Majiwada & Pokhran Rd.' : 'Schedule site visits, open 1-click Google Maps driving routes, and note buyer feedback.', `
-      <div style="display:flex;gap:10px;align-items:center;">
-        <div class="view-switcher">
-          <button class="view-btn ${state.visitsViewMode === 'agenda' ? 'active' : ''}" id="view-visit-agenda-btn">◷ Showing Agenda</button>
-          <button class="view-btn ${state.visitsViewMode === 'table' ? 'active' : ''}" id="view-visit-table-btn">☰ Table</button>
+    let list = (state.visits && Array.isArray(state.visits) && state.visits.length) ? state.visits : getStoredVisits();
+    state.visits = list;
+
+    const monthNames = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+    const curDate = new Date();
+    const curMonth = monthNames[curDate.getMonth()] + ' ' + curDate.getFullYear();
+
+    app.innerHTML = layout(`
+      <!-- HEADER -->
+      <div class="page-head" style="margin-bottom:20px;">
+        <div>
+          <h1 class="page-title" style="font-size:24px;font-weight:800;letter-spacing:-0.025em;color:#0f172a;margin:0 0 4px;">Calendar</h1>
+          <p class="page-sub" style="font-size:13.5px;color:#64748b;margin:0;">Schedule and manage property site visits, client meetings, and appointments.</p>
         </div>
-        <button class="button primary" id="new-visit">＋ Schedule Visit</button>
-      </div>`)}
-
-      <!-- SHOWING VELOCITY & CONVERSION KPIS -->
-      <div class="cards" style="margin-bottom:20px;">
-        <article class="metric"><div class="metric-label">Showings Today</div><div class="metric-value" id="sv-stat-today">—</div><div class="metric-note">Scheduled buyer tours</div></article>
-        <article class="metric"><div class="metric-label">Showing Conversion Rate</div><div class="metric-value" id="sv-stat-conv" style="color:#165dff;">66.7%</div><div class="metric-note">Advanced to token / offer</div></article>
-        <article class="metric"><div class="metric-label">High Buyer Intent</div><div class="metric-value" id="sv-stat-hot" style="color:#b42332;">—</div><div class="metric-note">Very interested clients</div></article>
-        <article class="metric"><div class="metric-label">Completed Showings</div><div class="metric-value" id="sv-stat-done" style="color:#047857;">—</div><div class="metric-note">Completed buyer visits</div></article>
+        <div style="display:flex;gap:10px;align-items:center;">
+          <button class="button primary" id="new-visit" style="background:#2563eb;font-weight:600;padding:8px 16px;border-radius:9px;">＋ Schedule Visit</button>
+        </div>
       </div>
 
-      <div class="filters">
-        <input class="input search" id="visit-search" placeholder="Search buyer, property, locality, notes…" />
-        <select class="select" id="visit-status-filter">
-          <option value="">All Statuses</option>
-          <option value="SCHEDULED">Scheduled</option>
-          <option value="CONFIRMED">Confirmed</option>
-          <option value="COMPLETED">Completed</option>
-          <option value="CANCELLED">Cancelled</option>
-        </select>
-        <select class="select" id="visit-interest-filter">
-          <option value="">All Buyer Interest Levels</option>
-          <option value="VERY_INTERESTED">🔥 Very Interested (Token Ready)</option>
-          <option value="INTERESTED">👍 Interested</option>
-          <option value="MAYBE">🤔 Maybe</option>
-          <option value="NOT_INTERESTED">❌ Not Interested</option>
-        </select>
+      <!-- CALENDAR MONTH NAVIGATION -->
+      <div class="apple-cal-header">
+        <div style="display:flex;align-items:center;gap:12px;">
+          <h2 class="apple-cal-month" style="margin:0;">${curMonth}</h2>
+          <button class="button secondary" style="font-size:12px;padding:4px 10px;" id="cal-today-btn">Today</button>
+        </div>
+        <div style="display:flex;gap:6px;">
+          <button class="button secondary" style="font-size:13px;padding:5px 12px;">‹</button>
+          <button class="button secondary" style="font-size:13px;padding:5px 12px;">›</button>
+        </div>
       </div>
-      <div id="visit-results" class="loading">Loading showing schedule…</div>`);
+
+      <!-- 7-COLUMN MONTHLY CALENDAR GRID -->
+      <div class="apple-cal-grid" style="margin-bottom:24px;">
+        <div class="apple-cal-dayhead">SUN</div>
+        <div class="apple-cal-dayhead">MON</div>
+        <div class="apple-cal-dayhead">TUE</div>
+        <div class="apple-cal-dayhead">WED</div>
+        <div class="apple-cal-dayhead">THU</div>
+        <div class="apple-cal-dayhead">FRI</div>
+        <div class="apple-cal-dayhead">SAT</div>
+
+        ${Array.from({ length: 35 }, (_, i) => {
+          const dayNum = i - 2;
+          const isCurrentMonth = dayNum >= 1 && dayNum <= 31;
+          const isToday = dayNum === curDate.getDate();
+
+          let eventsHtml = '';
+          if (dayNum === 23 || (isToday && isCurrentMonth)) {
+            eventsHtml = `
+              <div class="cal-event-pill" title="Site Visit at 10:30 AM" onclick="siteVisitDrawer(101, 201)">10:30 AM · Rohit / Oberoi</div>
+              <div class="cal-event-pill" style="background:#f3e8ff;color:#7e22ce;border-color:#e9d5ff;" title="Site Visit at 3:00 PM" onclick="siteVisitDrawer(102, 202)">3:00 PM · Priya / 3BHK</div>
+            `;
+          } else if (dayNum === 15) {
+            eventsHtml = `<div class="cal-event-pill" onclick="siteVisitDrawer(103, 203)">4:00 PM · Amit / Lodha</div>`;
+          } else if (dayNum === 28) {
+            eventsHtml = `<div class="cal-event-pill" onclick="siteVisitDrawer(104, 204)">11:30 AM · Sneha / Villa</div>`;
+          }
+
+          return `
+            <div class="apple-cal-cell ${isToday ? 'today' : ''}" style="${isCurrentMonth ? '' : 'background:#fafbfc;color:#cbd5e1;'}">
+              <div class="cal-date-num">${isCurrentMonth ? dayNum : (dayNum <= 0 ? 30 + dayNum : dayNum - 31)}</div>
+              ${eventsHtml}
+            </div>
+          `;
+        }).join('')}
+      </div>
+
+      <!-- TODAY'S SCHEDULE HIGHLIGHT -->
+      <div class="apple-card">
+        <div class="apple-card-head">
+          <h2 class="apple-card-title">Today's Showing Schedule</h2>
+          <button class="apple-card-link" id="view-all-showings-btn">View All Showings →</button>
+        </div>
+        <div class="deal-opp-list">
+          <div class="deal-opp-item">
+            <div class="deal-opp-left">
+              <div class="deal-opp-avatar" style="background:#eff6ff;color:#2563eb;">◷</div>
+              <div class="deal-opp-info">
+                <div class="deal-opp-name">10:30 AM · Rohit Sharma (Oberoi Sky City, 3 BHK)</div>
+                <div class="deal-opp-prop">Key arranged with Society Security Gate 2 · Client driving from Powai</div>
+              </div>
+            </div>
+            <div class="deal-opp-right">
+              <button class="btn-apple-call" onclick="window.open('https://maps.google.com/?q=Oberoi+Sky+City+Borivali', '_blank')" title="Driving Route">📍 Maps Route</button>
+              <button class="btn-apple-chat" onclick="whatsAppDispatcherModal((state.properties||demoProperties)[0], (state.leads||demoLeads)[0])" title="Confirm Showing">💬 WhatsApp</button>
+            </div>
+          </div>
+
+          <div class="deal-opp-item">
+            <div class="deal-opp-left">
+              <div class="deal-opp-avatar" style="background:#f3e8ff;color:#8b5cf6;">◷</div>
+              <div class="deal-opp-info">
+                <div class="deal-opp-name">3:00 PM · Priya Desai (Hiranandani Meadows, 4 BHK)</div>
+                <div class="deal-opp-prop">Owner Mr. Kapoor will be present at the flat · Family visit</div>
+              </div>
+            </div>
+            <div class="deal-opp-right">
+              <button class="btn-apple-call" onclick="window.open('https://maps.google.com/?q=Hiranandani+Meadows+Thane', '_blank')" title="Driving Route">📍 Maps Route</button>
+              <button class="btn-apple-chat" onclick="whatsAppDispatcherModal((state.properties||demoProperties)[1], (state.leads||demoLeads)[1])" title="Confirm Showing">💬 WhatsApp</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    `);
     bindShell();
 
     if (document.querySelector('#new-visit')) document.querySelector('#new-visit').onclick = () => siteVisitDrawer();
-    if (document.querySelector('#view-visit-agenda-btn')) document.querySelector('#view-visit-agenda-btn').onclick = () => {
-      state.visitsViewMode = 'agenda';
-      localStorage.setItem('brokerai.visitsViewMode', 'agenda');
-      siteVisitsView();
-    };
-    if (document.querySelector('#view-visit-table-btn')) document.querySelector('#view-visit-table-btn').onclick = () => {
-      state.visitsViewMode = 'table';
-      localStorage.setItem('brokerai.visitsViewMode', 'table');
-      siteVisitsView();
-    };
-
-    const load = async () => {
-      const search = (document.querySelector('#visit-search')?.value || '').toLowerCase().trim();
-      const status = document.querySelector('#visit-status-filter')?.value;
-      const interest = document.querySelector('#visit-interest-filter')?.value;
-
-      try {
-        let list = (state.visits && Array.isArray(state.visits) && state.visits.length)
-          ? state.visits
-          : getStoredVisits();
-        state.visits = list;
-
-        const now = new Date();
-        const todayCount = list.filter(v => (v.status === 'SCHEDULED' || v.status === 'CONFIRMED') && new Date(v.scheduledAt).toDateString() === now.toDateString()).length;
-        const hotCount = list.filter(v => v.interestLevel === 'VERY_INTERESTED').length;
-        const doneCount = list.filter(v => v.status === 'COMPLETED').length;
-
-        document.querySelector('#sv-stat-today').textContent = `${todayCount} Visits Today`;
-        document.querySelector('#sv-stat-hot').textContent = `${hotCount} Hot Buyers`;
-        document.querySelector('#sv-stat-done').textContent = `${doneCount} Completed`;
-
-        const filtered = list.filter(v => {
-          if (search && !`${v.leadName} ${v.leadPhone || ''} ${v.propertyTitle} ${v.propertyLocation || ''} ${v.notes || ''} ${v.feedback || ''}`.toLowerCase().includes(search)) return false;
-          if (status && v.status !== status) return false;
-          if (interest && v.interestLevel !== interest) return false;
-          return true;
-        });
-
-        const container = document.querySelector('#visit-results');
-
-        if (state.visitsViewMode === 'agenda') {
-          // SHOWING AGENDA VIEW
-          const todayVisits = filtered.filter(v => (v.status === 'SCHEDULED' || v.status === 'CONFIRMED') && new Date(v.scheduledAt).toDateString() === now.toDateString());
-          const upcomingVisits = filtered.filter(v => (v.status === 'SCHEDULED' || v.status === 'CONFIRMED') && new Date(v.scheduledAt).toDateString() !== now.toDateString() && new Date(v.scheduledAt) > now);
-          const completedVisits = filtered.filter(v => v.status === 'COMPLETED');
-
-          const renderCard = (v, isToday = false) => {
-            const interestBadge = v.interestLevel ? (
-              v.interestLevel === 'VERY_INTERESTED' ? '<span class="badge hot" style="font-size:10px;">🔥 VERY INTERESTED</span>' :
-              v.interestLevel === 'INTERESTED' ? '<span class="badge cold" style="font-size:10px;">👍 INTERESTED</span>' :
-              `<span class="badge warm" style="font-size:10px;">${esc(v.interestLevel)}</span>`
-            ) : '';
-
-            return `
-              <div class="visit-card ${isToday ? 'today' : ''} ${v.status === 'COMPLETED' ? 'completed' : ''}">
-                <div style="display:flex;gap:14px;align-items:center;flex:1;">
-                  <div class="action-avatar ${v.interestLevel === 'VERY_INTERESTED' ? 'token' : 'visit'}" style="width:44px;height:44px;font-size:18px;">
-                    ${v.status === 'COMPLETED' ? '✓' : '◷'}
-                  </div>
-                  <div>
-                    <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
-                      <strong>${esc(v.propertyTitle)}</strong>
-                      <span class="badge ${v.status === 'CONFIRMED' ? 'cold' : v.status === 'COMPLETED' ? 'warm' : 'cold'}" style="font-size:10px;">${esc(v.status)}</span>
-                      ${interestBadge}
-                    </div>
-                    <div style="font-size:13px;color:var(--ink);margin-top:3px;">
-                      📍 <strong>${esc(v.propertyLocation || 'Thane')}</strong> · <span class="stage">${formatPrice(v.propertyPrice, 'SALE')}</span>
-                    </div>
-                    <div style="font-size:12.5px;color:#334155;margin-top:3px;">
-                      👤 Buyer: <strong>${esc(privacyName(v.leadName))}</strong> (${esc(privacyPhone(v.leadPhone))})
-                    </div>
-                    ${v.notes ? `<div class="subtle" style="font-size:11.5px;margin-top:2px;">🔑 Pass/Key: <em>${esc(v.notes)}</em></div>` : ''}
-                    ${v.feedback ? `<div style="font-size:12px;color:#15803d;background:#f0fdf4;padding:4px 8px;border-radius:6px;margin-top:4px;border:1px solid #bbf7d0;">💬 Feedback: ${esc(v.feedback)}</div>` : ''}
-                  </div>
-                </div>
-
-                <div style="display:flex;flex-direction:column;align-items:flex-end;gap:8px;">
-                  <span class="visit-time-chip ${isToday ? 'urgent' : ''}">
-                    ◷ ${formatDateTime(v.scheduledAt)}
-                  </span>
-                  <div style="display:flex;gap:5px;flex-wrap:wrap;">
-                    <button class="btn-act wa" data-visit-wa-id="${v.id}" title="Send WhatsApp showing location pin">💬 WhatsApp Pin</button>
-                    <button class="btn-act" data-visit-call-id="${v.id}" title="Call buyer">📞 Call</button>
-                    <button class="btn-act primary" data-visit-feedback-id="${v.id}">📝 Feedback</button>
-                    ${v.interestLevel === 'VERY_INTERESTED' ? `<button class="btn-act" data-visit-token-id="${v.id}" style="background:#ecfdf5;color:#047857;border-color:#a7f3d0;">🧾 Token</button>` : ''}
-                  </div>
-                </div>
-              </div>
-            `;
-          };
-
-          container.innerHTML = `
-            <div class="agenda-list">
-              ${todayVisits.length ? `
-                <div class="agenda-group">
-                  <div class="agenda-group-title" style="color:#1d4ed8;">📅 Today's Showings (${todayVisits.length})</div>
-                  ${todayVisits.map(v => renderCard(v, true)).join('')}
-                </div>` : ''}
-
-              ${upcomingVisits.length ? `
-                <div class="agenda-group">
-                  <div class="agenda-group-title">🗓️ Upcoming Showings (${upcomingVisits.length})</div>
-                  ${upcomingVisits.map(v => renderCard(v, false)).join('')}
-                </div>` : ''}
-
-              ${completedVisits.length ? `
-                <div class="agenda-group">
-                  <div class="agenda-group-title" style="color:#047857;">✅ Completed Showings & Outcomes (${completedVisits.length})</div>
-                  ${completedVisits.map(v => renderCard(v, false)).join('')}
-                </div>` : ''}
-
-              ${!filtered.length ? '<div class="empty"><strong>No site visits match your filters.</strong>Schedule a new property showing to accelerate deals.</div>' : ''}
-            </div>
-          `;
-        } else {
-          // DENSE TABLE VIEW
-          container.innerHTML = filtered.length ? `
-            <div class="table-wrap"><table class="table">
-              <thead><tr><th>Showing Time</th><th>Buyer Profile</th><th>Property Listing</th><th>Status</th><th>Interest / Outcome</th><th>Quick Actions</th></tr></thead>
-              <tbody>${filtered.map(v => {
-                const sClass = v.status === 'CONFIRMED' ? 'cold' : v.status === 'COMPLETED' ? 'warm' : 'cold';
-                const interestBadge = v.interestLevel ? (
-                  v.interestLevel === 'VERY_INTERESTED' ? '<span class="badge hot">VERY INTERESTED</span>' :
-                  v.interestLevel === 'INTERESTED' ? '<span class="badge cold">INTERESTED</span>' :
-                  `<span class="badge warm">${esc(v.interestLevel)}</span>`
-                ) : '<span class="stage">Pending feedback</span>';
-
-                return `<tr>
-                  <td><strong>${formatDateTime(v.scheduledAt)}</strong></td>
-                  <td>
-                    <div class="lead-name">${esc(privacyName(v.leadName))}</div>
-                    <div class="lead-contact">${esc(v.leadPhone || '')}</div>
-                  </td>
-                  <td>
-                    <div class="lead-name">${esc(v.propertyTitle)}</div>
-                    <div class="lead-contact">${esc(v.propertyLocation || '')} · ${formatPrice(v.propertyPrice, 'SALE')}</div>
-                  </td>
-                  <td><span class="badge ${sClass}">${esc(v.status)}</span></td>
-                  <td>
-                    ${interestBadge}
-                    ${v.feedback ? `<div class="subtle">${esc(v.feedback)}</div>` : ''}
-                  </td>
-                  <td>
-                    <div style="display:flex;gap:5px;flex-wrap:wrap;">
-                      <button class="button secondary" data-visit-wa-id="${v.id}" style="padding:4px 8px;font-size:11px;color:#15803d;">💬 WhatsApp</button>
-                      <button class="button primary" data-visit-feedback-id="${v.id}" style="padding:4px 8px;font-size:11px;">📝 Feedback</button>
-                    </div>
-                  </td>
-                </tr>`;
-              }).join('')}</tbody>
-            </table></div>` : `<div class="empty"><strong>No site visits scheduled.</strong>Coordinate showings between buyers and owners to drive conversions.</div>`;
-        }
-
-        // BIND EVENT LISTENERS
-        document.querySelectorAll('[data-visit-wa-id]').forEach(btn => btn.onclick = () => {
-          const id = Number(btn.dataset.visitWaId);
-          const v = (state.demo ? demoVisits : list).find(x => x.id === id);
-          if (v) copyVisitWhatsAppShare(v);
-        });
-
-        document.querySelectorAll('[data-visit-call-id]').forEach(btn => btn.onclick = () => {
-          const id = Number(btn.dataset.visitCallId);
-          const v = (state.demo ? demoVisits : list).find(x => x.id === id);
-          if (v) showToast(`📞 Dialing ${v.leadName} (${v.leadPhone || 'No number'})...`, 'info');
-        });
-
-        document.querySelectorAll('[data-visit-feedback-id]').forEach(btn => btn.onclick = () => {
-          const id = Number(btn.dataset.visitFeedbackId);
-          const v = (state.demo ? demoVisits : list).find(x => x.id === id);
-          if (v) visitFeedbackDrawer(v);
-        });
-
-        document.querySelectorAll('[data-visit-token-id]').forEach(btn => btn.onclick = () => {
-          tokenReceiptModal();
-        });
-
-      } catch (err) {
-        const el = document.querySelector('#visit-results');
-        if (el) el.innerHTML = `<div class="empty"><strong>Couldn’t load visits.</strong>${esc(err.message)}</div>`;
-      }
-    };
-
-    const debounce = (fn, ms) => { let timer; return (...args) => { clearTimeout(timer); timer = setTimeout(() => fn(...args), ms); }; };
-    const visSearchEl = document.querySelector('#visit-search');
-    if (visSearchEl) visSearchEl.oninput = debounce(load, 300);
-    const visStatusEl = document.querySelector('#visit-status-filter');
-    if (visStatusEl) visStatusEl.onchange = load;
-    const visInterestEl = document.querySelector('#visit-interest-filter');
-    if (visInterestEl) visInterestEl.onchange = load;
-    load();
   }
 
   function copyVisitWhatsAppShare(v) {
@@ -3029,239 +2891,368 @@ _Feel free to reach our team at ${state.user?.fullName ? `${state.user.fullName}
 
   // --- EXECUTIVE DASHBOARD ---
   function dashboard() {
-    const userName = state.user?.fullName || 'Broker';
-    const orgName = state.user?.organizationSlug ? `${state.user.organizationSlug.toUpperCase()}` : 'PRIME REALTY';
+    const userName = (state.user?.fullName || 'Mohak').split(' ')[0];
+    const leadsList = (state.leads && state.leads.length) ? state.leads : demoLeads;
+    const propsList = (state.properties && state.properties.length) ? state.properties : demoProperties;
+    const visitsList = (state.visits && state.visits.length) ? state.visits : demoVisits;
+    const dealsList = (state.deals && state.deals.length) ? state.deals : demoDeals;
+
+    const totalLeads = leadsList.length || 24;
+    const activeClients = 18;
+    const propsListed = propsList.length || 12;
+    const dealsInPipeline = dealsList.length || 5;
 
     app.innerHTML = layout(`
-      <!-- EXECUTIVE HERO HEADER -->
-      <section class="dashboard-hero-box">
-        <div>
-          <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
-            <span class="dashboard-hero-tag">🏢 Institutional Real Estate Desk</span>
-            <span style="font-size:12px;color:var(--muted);font-weight:600;">📍 Thane & Mumbai Operations</span>
-          </div>
-          <h1 class="dashboard-hero-title">
-            Daily Overview
-            <span style="font-size:14px;font-weight:500;color:var(--muted);">· Welcome, ${esc(userName)}</span>
-          </h1>
-          <p class="dashboard-hero-sub">Portfolio deal flow, scheduled client showings, and live Thane MMR micro-market benchmarks.</p>
-        </div>
-        <div class="dashboard-hero-actions">
-          <button class="button hero-btn" id="hero-quick-lead" style="font-size:12px;padding:7px 12px;">${svgIcon('plus', 13)} New Lead</button>
-          <button class="button hero-btn" id="hero-quick-showing" style="font-size:12px;padding:7px 12px;">${svgIcon('visits', 13)} Schedule Visit</button>
-          <button class="button hero-btn" id="hero-quick-wa-pitch" style="background:#ecfdf5;color:#047857;border-color:#a7f3d0;font-weight:700;font-size:12px;padding:7px 12px;">${svgIcon('whatsapp', 13)} Pitch WhatsApp</button>
-          <button class="button hero-btn" id="hero-quick-token" style="font-size:12px;padding:7px 12px;">${svgIcon('documents', 13)} Token Receipt</button>
-          <button class="button primary" id="hero-ask-ai" style="background:#0f172a;font-size:12px;padding:7px 13px;">${svgIcon('rocket', 13)} VIP Pitch</button>
-        </div>
-      </section>
-
-
-
-      
-      <!-- 4 FINANCIAL & VELOCITY KPI CARDS -->
-      <div class="cards">
-        <article class="metric">
-          <div class="metric-header">
-            <div class="metric-label">Pipeline Deal Value</div>
-            <span class="trend-pill up">+18% Active</span>
-          </div>
-          <div class="metric-value">₹1.25 Cr</div>
-          <div class="metric-note">Across 2 active negotiations</div>
-        </article>
-
-        <article class="metric">
-          <div class="metric-header">
-            <div class="metric-label">Expected Total Brokerage Amount</div>
-            <span class="trend-pill info">1.5% Split</span>
-          </div>
-          <div class="metric-value">₹1,87,500</div>
-          <div class="metric-note">Estimated on closing pipeline</div>
-        </article>
-
-        <article class="metric">
-          <div class="metric-header">
-            <div class="metric-label">Today’s Action Queue</div>
-            <span class="trend-pill urgent">1 Overdue</span>
-          </div>
-          <div class="metric-value">3 Due Today</div>
-          <div class="metric-note">High-intent buyer calls & visits</div>
-        </article>
-
-        <article class="metric">
-          <div class="metric-header">
-            <div class="metric-label">Showing Conversion Rate</div>
-            <span class="trend-pill up">High Intent</span>
-          </div>
-          <div class="metric-value">66.7%</div>
-          <div class="metric-note">Visits advanced to token / offer</div>
-        </article>
+      <!-- GREETING HEADER -->
+      <div style="margin-bottom:24px;">
+        <h1 style="font-size:24px;font-weight:800;letter-spacing:-0.025em;color:#0f172a;margin:0 0 4px;">Good morning, ${esc(userName)}</h1>
+        <p style="font-size:13.5px;color:#64748b;margin:0;">Here's what's happening with your properties today.</p>
       </div>
 
-      <!-- MAIN DASHBOARD SPLIT -->
-      <div class="dashboard-grid">
-        <!-- LEFT: DAILY ACTION COCKPIT -->
-        <article class="panel">
-          <div class="panel-head">
-            <h2 class="panel-title">⚡ Today’s Priority Action Cockpit</h2>
-            <button class="link-button" id="dash-view-followups">View full queue →</button>
+      <!-- 4 TOP KPI CARDS -->
+      <div class="apple-kpi-grid">
+        <div class="apple-kpi-card">
+          <div class="apple-kpi-top">
+            <span class="apple-kpi-label">TOTAL LEADS</span>
+            <div class="apple-kpi-icon blue">${svgIcon('leads', 16)}</div>
           </div>
-          <div class="action-cockpit">
-            <!-- Row 1 -->
-            <div class="action-row">
-              <div class="action-main">
-                <div class="action-avatar hot">🔥</div>
-                <div class="action-info">
-                  <strong>Call Rahul Sharma <span class="badge hot" style="font-size:10px;padding:2px 6px;">Hot Buyer</span></strong>
-                  <div class="sub">Spacious 2 BHK · Rodas Enclave (₹1.25 Cr) · ⚠️ Overdue Call</div>
-                </div>
-              </div>
-              <div class="action-btns">
-                <button class="btn-act wa" id="dash-wa-rahul" title="Send WhatsApp">💬 WhatsApp</button>
-                <button class="btn-act" id="dash-call-rahul" title="Call Client">📞 Call</button>
-                <button class="btn-act primary" id="dash-done-rahul">✔ Done</button>
-              </div>
-            </div>
+          <div>
+            <div class="apple-kpi-val">${totalLeads}</div>
+            <div class="apple-kpi-trend up">↗ +12% from last month</div>
+          </div>
+        </div>
 
-            <!-- Row 2 -->
-            <div class="action-row">
-              <div class="action-main">
-                <div class="action-avatar visit">◷</div>
-                <div class="action-info">
-                  <strong>Site Visit @ 4:00 PM · Amit Kulkarni</strong>
-                  <div class="sub">3 BHK in Vasant Vihar · Key with Society Office</div>
-                </div>
-              </div>
-              <div class="action-btns">
-                <button class="btn-act wa" id="dash-wa-visit" title="Confirm via WhatsApp">💬 Confirm</button>
-                <button class="btn-act primary" id="dash-view-visit-details">◷ Details</button>
-              </div>
-            </div>
+        <div class="apple-kpi-card">
+          <div class="apple-kpi-top">
+            <span class="apple-kpi-label">ACTIVE CLIENTS</span>
+            <div class="apple-kpi-icon purple">${svgIcon('team', 16)}</div>
+          </div>
+          <div>
+            <div class="apple-kpi-val">${activeClients}</div>
+            <div class="apple-kpi-trend up">↗ +8% from last month</div>
+          </div>
+        </div>
 
-            <!-- Row 3 -->
-            <div class="action-row">
-              <div class="action-main">
-                <div class="action-avatar token">🧾</div>
-                <div class="action-info">
-                  <strong>Token Received · Neha Desai</strong>
-                  <div class="sub">2 BHK Rustomjee Urbania (₹48k/mo) · TR-8A2F10 Verified</div>
+        <div class="apple-kpi-card">
+          <div class="apple-kpi-top">
+            <span class="apple-kpi-label">PROPERTIES LISTED</span>
+            <div class="apple-kpi-icon green">${svgIcon('properties', 16)}</div>
+          </div>
+          <div>
+            <div class="apple-kpi-val">${propsListed}</div>
+            <div class="apple-kpi-trend up">↗ +4 new this week</div>
+          </div>
+        </div>
+
+        <div class="apple-kpi-card">
+          <div class="apple-kpi-top">
+            <span class="apple-kpi-label">DEALS IN PIPELINE</span>
+            <div class="apple-kpi-icon orange">${svgIcon('deals', 16)}</div>
+          </div>
+          <div>
+            <div class="apple-kpi-val">${dealsInPipeline}</div>
+            <div class="apple-kpi-trend neutral">₹3.2 Cr pipeline value</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 2-COLUMN MAIN DASHBOARD GRID -->
+      <div class="apple-dash-grid">
+        <!-- LEFT COLUMN: DEAL OPPORTUNITIES & RECENT ACTIVITY -->
+        <div>
+          <!-- DEAL OPPORTUNITIES CARD -->
+          <div class="apple-card">
+            <div class="apple-card-head">
+              <h2 class="apple-card-title">Deal Opportunities</h2>
+              <button class="apple-card-link" onclick="location.hash='#/leads';">View all</button>
+            </div>
+            <div class="deal-opp-list">
+              <!-- Lead 1: Rohit Sharma -->
+              <div class="deal-opp-item">
+                <div class="deal-opp-left">
+                  <div class="deal-opp-avatar">RS</div>
+                  <div class="deal-opp-info">
+                    <div class="deal-opp-name">
+                      Rohit Sharma
+                      <span class="apple-badge hot" style="font-size:10.5px;padding:1px 6px;">Hot</span>
+                    </div>
+                    <div class="deal-opp-prop">Oberoi Sky City, 3 BHK</div>
+                  </div>
+                </div>
+                <div class="deal-opp-right">
+                  <span class="deal-opp-match">95% Match</span>
+                  <span class="deal-opp-budget">₹2.80 Cr</span>
+                  <div class="deal-opp-actions">
+                    <button class="btn-apple-call" id="dash-call-1" title="Call Rohit">📞 Call</button>
+                    <button class="btn-apple-chat" id="dash-chat-1" title="WhatsApp Rohit">💬 Chat</button>
+                  </div>
                 </div>
               </div>
-              <div class="action-btns">
-                <button class="btn-act" id="dash-open-docs">📄 View Vault</button>
-                <button class="btn-act primary" id="dash-gen-receipt">🧾 Receipt</button>
+
+              <!-- Lead 2: Priya Desai -->
+              <div class="deal-opp-item">
+                <div class="deal-opp-left">
+                  <div class="deal-opp-avatar" style="background:#f3e8ff;color:#8b5cf6;">PD</div>
+                  <div class="deal-opp-info">
+                    <div class="deal-opp-name">
+                      Priya Desai
+                      <span class="apple-badge hot" style="font-size:10.5px;padding:1px 6px;">Hot</span>
+                    </div>
+                    <div class="deal-opp-prop">Hiranandani Meadows, 4 BHK</div>
+                  </div>
+                </div>
+                <div class="deal-opp-right">
+                  <span class="deal-opp-match">92% Match</span>
+                  <span class="deal-opp-budget">₹4.20 Cr</span>
+                  <div class="deal-opp-actions">
+                    <button class="btn-apple-call" id="dash-call-2" title="Call Priya">📞 Call</button>
+                    <button class="btn-apple-chat" id="dash-chat-2" title="WhatsApp Priya">💬 Chat</button>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Lead 3: Amit Kulkarni -->
+              <div class="deal-opp-item">
+                <div class="deal-opp-left">
+                  <div class="deal-opp-avatar" style="background:#fef3c7;color:#d97706;">AK</div>
+                  <div class="deal-opp-info">
+                    <div class="deal-opp-name">
+                      Amit Kulkarni
+                      <span class="apple-badge warm" style="font-size:10.5px;padding:1px 6px;">Warm</span>
+                    </div>
+                    <div class="deal-opp-prop">Lodha Amara, 2 BHK</div>
+                  </div>
+                </div>
+                <div class="deal-opp-right">
+                  <span class="deal-opp-match">88% Match</span>
+                  <span class="deal-opp-budget">₹1.15 Cr</span>
+                  <div class="deal-opp-actions">
+                    <button class="btn-apple-call" id="dash-call-3" title="Call Amit">📞 Call</button>
+                    <button class="btn-apple-chat" id="dash-chat-3" title="WhatsApp Amit">💬 Chat</button>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
-        </article>
 
-        <!-- RIGHT: LIVE DEAL VELOCITY RADAR -->
-        <article class="panel">
-          <div class="panel-head">
-            <h2 class="panel-title">🏢 Live Deal Velocity Radar</h2>
-            <button class="link-button" id="dash-view-deals">View pipeline →</button>
-          </div>
-          <div class="deal-radar-list">
-            <!-- Deal 1 -->
-            <div class="deal-card">
-              <div class="deal-head">
-                <div>
-                  <strong>Rahul Sharma × P201</strong>
-                  <div class="subtle" style="font-size:12px;">Rodas Enclave, Thane · <strong>₹1.25 Cr Sale</strong></div>
-                </div>
-                <span class="badge warm">NEGOTIATION</span>
-              </div>
-              <div class="deal-track">
-                <div class="track-step done">1. Lead ✔</div>
-                <div class="track-step done">2. Visit ✔</div>
-                <div class="track-step active">3. Offer 🔥</div>
-                <div class="track-step pending">4. Token</div>
-                <div class="track-step pending">5. Reg.</div>
-              </div>
+          <!-- RECENT ACTIVITY CARD -->
+          <div class="apple-card">
+            <div class="apple-card-head">
+              <h2 class="apple-card-title">Recent Activity</h2>
             </div>
-
-            <!-- Deal 2 -->
-            <div class="deal-card">
-              <div class="deal-head">
-                <div>
-                  <strong>Neha Desai × P203</strong>
-                  <div class="subtle" style="font-size:12px;">Rustomjee Urbania · <strong>₹48,000/mo Rent</strong></div>
+            <div class="recent-activity-list">
+              <div class="activity-item">
+                <div class="activity-dot blue">👤</div>
+                <div class="activity-content">
+                  <div class="activity-title">New lead added — Rohit Sharma registered interest for Oberoi Sky City</div>
+                  <div class="activity-time">2 hours ago</div>
                 </div>
-                <span class="badge cold">TOKEN READY</span>
               </div>
-              <div class="deal-track">
-                <div class="track-step done">1. Lead ✔</div>
-                <div class="track-step done">2. Visit ✔</div>
-                <div class="track-step done">3. Rent ✔</div>
-                <div class="track-step active">4. Token 🎉</div>
-                <div class="track-step pending">5. Agree.</div>
+
+              <div class="activity-item">
+                <div class="activity-dot green">◷</div>
+                <div class="activity-content">
+                  <div class="activity-title">Site visit scheduled — Priya Desai for Hiranandani Meadows (Today 4:00 PM)</div>
+                  <div class="activity-time">4 hours ago</div>
+                </div>
+              </div>
+
+              <div class="activity-item">
+                <div class="activity-dot orange">🧾</div>
+                <div class="activity-content">
+                  <div class="activity-title">Deal advanced to Token Received — Neha Desai for Rustomjee Urbania</div>
+                  <div class="activity-time">Yesterday</div>
+                </div>
+              </div>
+
+              <div class="activity-item">
+                <div class="activity-dot purple">🏠</div>
+                <div class="activity-content">
+                  <div class="activity-title">New property listed — 3 BHK Luxury Flat in Vasant Vihar (₹1.85 Cr)</div>
+                  <div class="activity-time">2 days ago</div>
+                </div>
               </div>
             </div>
           </div>
-        </article>
+        </div>
+
+        <!-- RIGHT COLUMN: UPCOMING TASKS & QUICK ACTIONS -->
+        <div>
+          <!-- UPCOMING TASKS CARD -->
+          <div class="apple-card">
+            <div class="apple-card-head">
+              <h2 class="apple-card-title">Upcoming Tasks</h2>
+              <button class="apple-card-link" id="dash-add-task-btn">＋ Add Task</button>
+            </div>
+            <div class="task-checklist" id="dash-tasks-container">
+              <div class="task-item" id="task-row-1">
+                <div class="task-left">
+                  <input type="checkbox" class="task-checkbox" id="task-cb-1" />
+                  <div class="task-info">
+                    <div class="task-text">Follow up with Rohit Sharma regarding site visit</div>
+                    <div class="task-time">Today, 2:00 PM</div>
+                  </div>
+                </div>
+                <span class="task-tag call">Call</span>
+              </div>
+
+              <div class="task-item" id="task-row-2">
+                <div class="task-left">
+                  <input type="checkbox" class="task-checkbox" id="task-cb-2" />
+                  <div class="task-info">
+                    <div class="task-text">Send agreement draft for Lodha Amara deal</div>
+                    <div class="task-time">Today, 4:30 PM</div>
+                  </div>
+                </div>
+                <span class="task-tag legal">Legal</span>
+              </div>
+
+              <div class="task-item" id="task-row-3">
+                <div class="task-left">
+                  <input type="checkbox" class="task-checkbox" id="task-cb-3" />
+                  <div class="task-info">
+                    <div class="task-text">Schedule photoshoot for Bandra Penthouse</div>
+                    <div class="task-time">Tomorrow, 11:00 AM</div>
+                  </div>
+                </div>
+                <span class="task-tag property">Property</span>
+              </div>
+
+              <div class="task-item completed" id="task-row-4">
+                <div class="task-left">
+                  <input type="checkbox" class="task-checkbox" id="task-cb-4" checked />
+                  <div class="task-info">
+                    <div class="task-text">Confirm token payment receipt with Neha</div>
+                    <div class="task-time">Completed</div>
+                  </div>
+                </div>
+                <span class="task-tag finance">Finance</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- QUICK ACTIONS CARD -->
+          <div class="apple-card">
+            <div class="apple-card-head">
+              <h2 class="apple-card-title">Quick Actions</h2>
+            </div>
+            <div class="quick-actions-grid">
+              <button class="quick-action-btn" id="qa-add-lead">
+                <div class="quick-action-icon">👤</div>
+                <span>+ Add New Lead</span>
+              </button>
+
+              <button class="quick-action-btn" id="qa-add-property">
+                <div class="quick-action-icon" style="background:#dcfce7;color:#16a34a;">🏠</div>
+                <span>+ Add Property</span>
+              </button>
+
+              <button class="quick-action-btn" id="qa-add-client">
+                <div class="quick-action-icon" style="background:#f3e8ff;color:#8b5cf6;">👥</div>
+                <span>+ Add Client</span>
+              </button>
+
+              <button class="quick-action-btn" id="qa-create-deal">
+                <div class="quick-action-icon" style="background:#fef3c7;color:#d97706;">🏷️</div>
+                <span>+ Create Deal</span>
+              </button>
+            </div>
+          </div>
+        </div>
       </div>
     `);
 
     bindShell();
 
+    // Wire up Quick Action buttons
+    const qaLead = document.querySelector('#qa-add-lead');
+    if (qaLead) qaLead.onclick = () => leadDrawer();
 
-    const quickLead = document.querySelector('#hero-quick-lead');
-    if (quickLead) quickLead.onclick = () => leadDrawer();
+    const qaProp = document.querySelector('#qa-add-property');
+    if (qaProp) qaProp.onclick = () => propertyDrawer();
 
-    const quickShowing = document.querySelector('#hero-quick-showing');
-    if (quickShowing) quickShowing.onclick = () => siteVisitDrawer();
+    const qaClient = document.querySelector('#qa-add-client');
+    if (qaClient) qaClient.onclick = () => leadDrawer();
 
-    const quickToken = document.querySelector('#hero-quick-token');
-    if (quickToken) quickToken.onclick = () => tokenReceiptModal();
+    const qaDeal = document.querySelector('#qa-create-deal');
+    if (qaDeal) qaDeal.onclick = () => dealDrawer();
 
-    const quickWaPitch = document.querySelector('#hero-quick-wa-pitch');
-    if (quickWaPitch) quickWaPitch.onclick = () => {
-      const prop = (state.properties && state.properties.length ? state.properties : demoProperties)[0];
-      const lead = (state.leads && state.leads.length ? state.leads : demoLeads)[0];
+    // Wire up Task Checkboxes
+    [1, 2, 3, 4].forEach(id => {
+      const cb = document.querySelector('#task-cb-' + id);
+      const row = document.querySelector('#task-row-' + id);
+      if (cb && row) {
+        cb.onchange = () => {
+          if (cb.checked) {
+            row.classList.add('completed');
+            showToast('✓ Task marked as completed!', 'success');
+          } else {
+            row.classList.remove('completed');
+          }
+        };
+      }
+    });
+
+    const addTaskBtn = document.querySelector('#dash-add-task-btn');
+    if (addTaskBtn) {
+      addTaskBtn.onclick = () => {
+        const text = prompt('Enter new task description:');
+        if (text && text.trim()) {
+          const container = document.querySelector('#dash-tasks-container');
+          const newId = Date.now();
+          const taskHtml = `
+            <div class="task-item" id="task-row-${newId}">
+              <div class="task-left">
+                <input type="checkbox" class="task-checkbox" id="task-cb-${newId}" />
+                <div class="task-info">
+                  <div class="task-text">${esc(text.trim())}</div>
+                  <div class="task-time">Today</div>
+                </div>
+              </div>
+              <span class="task-tag call">Task</span>
+            </div>
+          `;
+          container.insertAdjacentHTML('afterbegin', taskHtml);
+          const newCb = document.querySelector('#task-cb-' + newId);
+          const newRow = document.querySelector('#task-row-' + newId);
+          if (newCb && newRow) {
+            newCb.onchange = () => {
+              if (newCb.checked) newRow.classList.add('completed');
+              else newRow.classList.remove('completed');
+            };
+          }
+          showToast('✓ New task added to your checklist!', 'success');
+        }
+      };
+    }
+
+    // Wire up Call & Chat buttons
+    const call1 = document.querySelector('#dash-call-1');
+    if (call1) call1.onclick = () => window.open('tel:+919876543210', '_self');
+    const chat1 = document.querySelector('#dash-chat-1');
+    if (chat1) chat1.onclick = () => {
+      const lead = leadsList[0] || demoLeads[0];
+      const prop = propsList[0] || demoProperties[0];
       whatsAppDispatcherModal(prop, lead);
     };
 
-    const dashViewFollowups = document.querySelector('#dash-view-followups');
-    if (dashViewFollowups) dashViewFollowups.onclick = () => { location.hash = '#/follow-ups'; render(); };
-
-    const dashWaRahul = document.querySelector('#dash-wa-rahul');
-    if (dashWaRahul) dashWaRahul.onclick = () => {
-      const rahulLead = (state.leads || demoLeads).find(l => l.id === 101) || demoLeads[0];
-      const prop = (state.properties || demoProperties).find(p => p.id === 201) || demoProperties[0];
-      whatsAppDispatcherModal(prop, rahulLead);
+    const call2 = document.querySelector('#dash-call-2');
+    if (call2) call2.onclick = () => window.open('tel:+919820123456', '_self');
+    const chat2 = document.querySelector('#dash-chat-2');
+    if (chat2) chat2.onclick = () => {
+      const lead = leadsList[1] || demoLeads[1] || demoLeads[0];
+      const prop = propsList[1] || demoProperties[1] || demoProperties[0];
+      whatsAppDispatcherModal(prop, lead);
     };
 
-    const dashCallRahul = document.querySelector('#dash-call-rahul');
-    if (dashCallRahul) dashCallRahul.onclick = () => {
-      window.open('tel:+919876543210', '_self');
+    const call3 = document.querySelector('#dash-call-3');
+    if (call3) call3.onclick = () => window.open('tel:+919811223344', '_self');
+    const chat3 = document.querySelector('#dash-chat-3');
+    if (chat3) chat3.onclick = () => {
+      const lead = leadsList[2] || demoLeads[2] || demoLeads[0];
+      const prop = propsList[2] || demoProperties[2] || demoProperties[0];
+      whatsAppDispatcherModal(prop, lead);
     };
-
-    const dashDoneRahul = document.querySelector('#dash-done-rahul');
-    if (dashDoneRahul) dashDoneRahul.onclick = () => {
-      dashDoneRahul.textContent = '✓ Completed';
-      dashDoneRahul.style.background = '#059669';
-      showToast('✓ Priority follow-up task marked completed!', 'success');
-    };
-
-    const dashWaVisit = document.querySelector('#dash-wa-visit');
-    if (dashWaVisit) dashWaVisit.onclick = () => {
-      const s = state.agencySettings || defaultAgencySettings;
-      const text = `*📍 Site Visit Confirmation — ${s.agencyName}*\n\nNamaste Amit ji,\nConfirming our site visit today at 4:00 PM for the *Garden-facing 3 BHK in Vasant Vihar (Lok Puram)*.\nKey is arranged with the society office.\n\nLooking forward to meeting you!`;
-      window.open(`https://api.whatsapp.com/send?phone=919820123456&text=${encodeURIComponent(text)}`, '_blank');
-    };
-
-    const dashViewVisit = document.querySelector('#dash-view-visit-details');
-    if (dashViewVisit) dashViewVisit.onclick = () => {
-      siteVisitDrawer(102, 202);
-    };
-
-    const dashOpenDocs = document.querySelector('#dash-open-docs');
-    if (dashOpenDocs) dashOpenDocs.onclick = () => { location.hash = '#/documents'; render(); };
-
-    const dashGenReceipt = document.querySelector('#dash-gen-receipt');
-    if (dashGenReceipt) dashGenReceipt.onclick = () => { tokenReceiptModal(); };
-
-    const dashViewDeals = document.querySelector('#dash-view-deals');
-    if (dashViewDeals) dashViewDeals.onclick = () => { location.hash = '#/deals'; render(); };
   }
 
   // --- UNIVERSAL REAL ESTATE CSV PARSER, IMPORTER & EXPORTER ---
@@ -3780,260 +3771,153 @@ _Feel free to reach our team at ${state.user?.fullName ? `${state.user.fullName}
 
   // --- OVERHAULED BUYER LEADS MODULE ---
   async function leadsView() {
-    app.innerHTML = layout(`${pageHeader('Buyer Inquiries & Leads (Grahak)', state.demo ? 'Demo preview — loaded with realistic Thane buyer inquiries.' : 'Track all your buyers, budgets, preferred locations, and 1-tap WhatsApp pitches in one place.', `
-      <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
-        <div class="view-switcher">
-          <button class="view-btn ${state.leadsViewMode === 'table' ? 'active' : ''}" id="view-table-btn">☰ Table</button>
-          <button class="view-btn ${state.leadsViewMode === 'kanban' ? 'active' : ''}" id="view-kanban-btn">⊞ Pipeline Board</button>
+    let list = (state.leads && state.leads.length) ? state.leads : getStoredLeads();
+    state.leads = list;
+
+    const totalCount = list.length || 24;
+    const hotCount = list.filter(l => l.temperature === 'HOT').length || 8;
+    const warmCount = list.filter(l => l.temperature === 'WARM').length || 6;
+    const coldCount = list.filter(l => l.temperature === 'COLD').length || 10;
+
+    app.innerHTML = layout(`
+      <!-- HEADER -->
+      <div class="page-head" style="margin-bottom:20px;">
+        <div>
+          <h1 class="page-title" style="font-size:24px;font-weight:800;letter-spacing:-0.025em;color:#0f172a;margin:0 0 4px;">Leads</h1>
+          <p class="page-sub" style="font-size:13.5px;color:#64748b;margin:0;">Manage and track your potential clients and property inquiries.</p>
         </div>
-        <button class="button secondary" id="import-leads-csv-btn" title="Import from 99acres, MagicBricks, Housing.com or Excel CSV">📥 Import CSV</button>
-        <button class="button secondary" id="export-leads-csv-btn" title="Export Leads to CSV / Excel">📤 Export CSV</button>
-        <button class="button primary" id="new-lead">＋ Add Lead</button>
-      </div>`)}
-      
-      <!-- BUYER DEMAND METRICS BAR -->
-      <div class="cards" style="margin-bottom:20px;">
-        <article class="metric"><div class="metric-label">Active Buyers</div><div class="metric-value" id="lead-stat-total">—</div><div class="metric-note">Qualified client inquiries</div></article>
-        <article class="metric"><div class="metric-label">Hot Buyers</div><div class="metric-value" id="lead-stat-hot" style="color:#b42332;">—</div><div class="metric-note">Ready to finalize token</div></article>
-        <article class="metric"><div class="metric-label">Total Buyer Purchasing Demand</div><div class="metric-value" id="lead-stat-budget">—</div><div class="metric-note">Aggregated buyer budgets</div></article>
-        <article class="metric"><div class="metric-label">Pending Outreach</div><div class="metric-value" id="lead-stat-tasks">—</div><div class="metric-note">Follow-up tasks due</div></article>
+        <div style="display:flex;gap:10px;align-items:center;">
+          <button class="button secondary" id="import-leads-csv-btn" style="font-size:12.5px;">📥 Import CSV</button>
+          <button class="button secondary" id="export-leads-csv-btn" style="font-size:12.5px;">📤 Export CSV</button>
+          <button class="button primary" id="new-lead" style="background:#2563eb;font-weight:600;padding:8px 16px;border-radius:9px;">＋ Add Lead</button>
+        </div>
       </div>
 
-      <div class="filters">
-        <input class="input search" id="lead-search" placeholder="Search name, phone, locality or BHK…" />
-        <select class="select" id="lead-type-filter">
-          <option value="">All Intent (Buy & Rent)</option>
-          <option value="BUY">Buy</option>
-          <option value="RENT">Rent</option>
-        </select>
-        <select class="select" id="lead-temp-filter">
-          <option value="">All Temperatures</option>
-          <option value="HOT">🔥 Hot Leads</option>
-          <option value="WARM">🟡 Warm Leads</option>
-          <option value="COLD">❄️ Cold Leads</option>
-        </select>
-        <select class="select" id="stage-filter">
-          <option value="">All Stages</option>
-          ${['NEW','CONTACTED','REQUIREMENT_UNDERSTOOD','PROPERTIES_SHARED','SITE_VISIT_SCHEDULED','SITE_VISITED','NEGOTIATION','CONVERTED','LOST'].map(x => `<option value="${x}">${x.replaceAll('_',' ')}</option>`).join('')}
-        </select>
+      <!-- FILTER TABS & SEARCH BAR -->
+      <div class="apple-filter-bar">
+        <div class="apple-tabs" id="lead-filter-tabs">
+          <button class="apple-tab-btn active" data-tab="ALL">All (${totalCount})</button>
+          <button class="apple-tab-btn" data-tab="HOT">Hot (${hotCount})</button>
+          <button class="apple-tab-btn" data-tab="WARM">Warm (${warmCount})</button>
+          <button class="apple-tab-btn" data-tab="COLD">Cold (${coldCount})</button>
+        </div>
+        <div class="topbar-search-box" style="width:300px;">
+          ${svgIcon('search', 14)}
+          <input type="text" id="lead-search" placeholder="Search leads by name, phone, property..." />
+        </div>
       </div>
-      <div id="lead-results" class="loading">Loading buyer leads…</div>`);
+
+      <!-- APPLE LEADS TABLE -->
+      <div class="apple-table-container">
+        <table class="apple-table" id="leads-table">
+          <thead>
+            <tr>
+              <th>LEAD</th>
+              <th>PROPERTY INTEREST</th>
+              <th>BUDGET</th>
+              <th>STATUS</th>
+              <th>LAST CONTACT</th>
+              <th style="text-align:right;">ACTIONS</th>
+            </tr>
+          </thead>
+          <tbody id="leads-tbody">
+            <!-- Rendered via renderLeads -->
+          </tbody>
+        </table>
+      </div>
+    `);
     bindShell();
 
     if (document.querySelector('#new-lead')) document.querySelector('#new-lead').onclick = () => leadDrawer();
-    const importBtn = document.querySelector('#import-leads-csv-btn');
-    if (importBtn) importBtn.onclick = () => csvImportModal('leads');
-    const exportBtn = document.querySelector('#export-leads-csv-btn');
-    if (exportBtn) exportBtn.onclick = () => exportLeadsCsv();
+    if (document.querySelector('#import-leads-csv-btn')) document.querySelector('#import-leads-csv-btn').onclick = () => csvImportModal('leads');
+    if (document.querySelector('#export-leads-csv-btn')) document.querySelector('#export-leads-csv-btn').onclick = () => exportLeadsCsv();
 
-    if (document.querySelector('#view-table-btn')) document.querySelector('#view-table-btn').onclick = () => {
-      state.leadsViewMode = 'table';
-      localStorage.setItem('brokerai.leadsViewMode', 'table');
-      leadsView();
-    };
-    if (document.querySelector('#view-kanban-btn')) document.querySelector('#view-kanban-btn').onclick = () => {
-      state.leadsViewMode = 'kanban';
-      localStorage.setItem('brokerai.leadsViewMode', 'kanban');
-      leadsView();
-    };
+    let activeTab = 'ALL';
+    const searchInput = document.querySelector('#lead-search');
+    const tbody = document.querySelector('#leads-tbody');
 
-    const load = async () => {
-      const search = (document.querySelector('#lead-search')?.value || '').toLowerCase().trim();
-      const type = document.querySelector('#lead-type-filter')?.value;
-      const temp = document.querySelector('#lead-temp-filter')?.value;
-      const stage = document.querySelector('#stage-filter')?.value;
-
-      try {
-        let list = (state.leads && state.leads.length) ? state.leads : getStoredLeads();
-        state.leads = list;
-
-        const total = list.length;
-        const hotCount = list.filter(l => l.temperature === 'HOT').length;
-        const totalBudget = list.reduce((acc, l) => acc + (l.requirement?.maxBudget || 0), 0);
-
-        document.querySelector('#lead-stat-total').textContent = total;
-        document.querySelector('#lead-stat-hot').textContent = hotCount;
-        document.querySelector('#lead-stat-budget').textContent = formatPrice(totalBudget, 'SALE');
-        document.querySelector('#lead-stat-tasks').textContent = state.demo ? '3 Actions' : `${total} Clients`;
-
-        const filtered = list.filter(l => {
+    const renderLeads = () => {
+      const q = (searchInput?.value || '').toLowerCase().trim();
+      let filtered = list.filter(l => {
+        if (activeTab !== 'ALL' && l.temperature !== activeTab) return false;
+        if (q) {
           const req = l.requirement || {};
           const locStr = (req.preferredLocations || []).join(' ').toLowerCase();
-          if (search && !`${l.name} ${l.phone} ${l.email || ''} ${locStr} ${req.bhk || ''}`.toLowerCase().includes(search)) return false;
-          if (type && req.transactionType !== type) return false;
-          if (temp && l.temperature !== temp) return false;
-          if (stage && l.stage !== stage) return false;
-          return true;
-        });
-
-        const container = document.querySelector('#lead-results');
-
-        if (state.leadsViewMode === 'kanban') {
-          // KANBAN PIPELINE BOARD VIEW
-          const stages = [
-            { key: 'NEW_OR_CONTACTED', label: '1. New & Contacted', filter: l => l.stage === 'NEW' || l.stage === 'CONTACTED' },
-            { key: 'REQUIREMENT', label: '2. Requirement Qualified', filter: l => l.stage === 'REQUIREMENT_UNDERSTOOD' || l.stage === 'PROPERTIES_SHARED' },
-            { key: 'SHOWING', label: '3. Site Visit & Showings', filter: l => l.stage === 'SITE_VISIT_SCHEDULED' || l.stage === 'SITE_VISITED' },
-            { key: 'NEGOTIATION', label: '4. Negotiation & Token', filter: l => l.stage === 'NEGOTIATION' },
-            { key: 'CLOSED', label: '5. Converted & Closed', filter: l => l.stage === 'CONVERTED' }
-          ];
-
-          container.innerHTML = `
-            <div class="kanban-board">
-              ${stages.map(st => {
-                const leadsInStage = filtered.filter(st.filter);
-                return `
-                  <div class="kanban-col">
-                    <div class="kanban-header">
-                      <span>${st.label}</span>
-                      <span class="kanban-count">${leadsInStage.length}</span>
-                    </div>
-                    <div style="display:grid;gap:10px;">
-                      ${leadsInStage.map(lead => {
-                        const req = lead.requirement || {};
-                        const tBadge = lead.temperature === 'HOT' ? 'hot' : lead.temperature === 'WARM' ? 'warm' : 'cold';
-                        return `
-                          <div class="kanban-card">
-                            <div class="kanban-card-title">
-                              <strong>${esc(lead.name)}</strong>
-                              <span class="badge ${tBadge}">${esc(lead.temperature)}</span>
-                            </div>
-                            <div class="kanban-card-body">
-                              <div style="font-weight:700;color:#101828;margin-bottom:2px;">
-                                ${formatPrice(req.minBudget, req.transactionType)} - ${formatPrice(req.maxBudget, req.transactionType)}
-                              </div>
-                              <div>${req.bhk ? `${req.bhk} BHK · ` : ''}${esc((req.preferredLocations || []).join(', ') || 'Thane')}</div>
-                              <div class="stage" style="margin-top:4px;">👤 ${esc(lead.assignedAgentName || 'Unassigned')}</div>
-                            </div>
-                            <div class="kanban-card-footer">
-                              <button class="lead-match-pill" data-match-lead-id="${lead.id}" title="Scan matching properties in inventory">🔥 Matches</button>
-                              <div style="display:flex;gap:4px;">
-                                <button class="btn-act wa" data-lead-wa-id="${lead.id}" style="padding:4px 8px;font-size:11px;" title="WhatsApp Greeting">💬</button>
-                                <button class="btn-act" data-lead-visit-id="${lead.id}" style="padding:4px 8px;font-size:11px;" title="Schedule Visit">◷</button>
-                                <button class="btn-act" data-edit-lead-id="${lead.id}" style="padding:4px 8px;font-size:11px;" title="Edit Lead">✎</button>
-                              </div>
-                            </div>
-                          </div>`;
-                      }).join('')}
-                      ${!leadsInStage.length ? '<div style="font-size:12px;color:var(--muted);text-align:center;padding:20px 0;">No leads</div>' : ''}
-                    </div>
-                  </div>`;
-              }).join('')}
-            </div>
-          `;
-        } else {
-          // DENSE TABLE VIEW
-          container.innerHTML = filtered.length ? `
-            <div class="table-wrap"><table class="table">
-              <thead>
-                <tr>
-                  <th>Buyer Profile & Source</th>
-                  <th>Intent & Temp</th>
-                  <th>Requirement & Budget</th>
-                  <th>Preferred Localities</th>
-                  <th>Assigned Agent</th>
-                  <th>1-Click Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                ${filtered.map(lead => {
-                  const req = lead.requirement || {};
-                  const tBadge = lead.temperature === 'HOT' ? 'hot' : lead.temperature === 'WARM' ? 'warm' : 'cold';
-                  const srcBadge = lead.source === 'WhatsApp' ? '💬 WhatsApp' : lead.source ? `🌐 ${esc(lead.source)}` : 'Direct Inquiry';
-                  return `<tr>
-                    <td>
-                      <div class="lead-name">${esc(privacyName(lead.name))}</div>
-                      <div class="lead-contact">${esc(privacyPhone(lead.phone))}${(!state.clientMode && lead.email) ? ` · ${esc(lead.email)}` : ''}</div>
-                      <span style="display:inline-block;margin-top:3px;font-size:10px;font-weight:700;color:#475569;background:#f1f5f9;padding:2px 6px;border-radius:4px;">${srcBadge}</span>
-                    </td>
-                    <td>
-                      <div><span class="badge ${tBadge}">${esc(lead.temperature)}</span></div>
-                      <div class="stage" style="margin-top:4px;"><strong>${esc(req.transactionType || 'BUY')}</strong> · ${esc((lead.stage || 'NEW').replaceAll('_',' '))}</div>
-                    </td>
-                    <td>
-                      <div style="font-weight:750;font-size:14px;color:#101828;">
-                        ${formatPrice(req.minBudget, req.transactionType)} - ${formatPrice(req.maxBudget, req.transactionType)}
-                      </div>
-                      <div class="stage">${req.bhk ? `<strong>${req.bhk} BHK</strong> · ` : ''}${esc(req.propertyCategory || 'Residential')}</div>
-                    </td>
-                    <td>
-                      <div>${esc((req.preferredLocations || []).join(', ') || 'Anywhere in Thane')}</div>
-                    </td>
-                    <td>
-                      <div>${esc(lead.assignedAgentName || 'Unassigned')}</div>
-                    </td>
-                    <td>
-                      <div style="display:flex;gap:5px;align-items:center;flex-wrap:wrap;">
-                        <button class="lead-match-pill" data-match-lead-id="${lead.id}" title="Scan matching inventory">🔥 Matches</button>
-                        <button class="button secondary" data-lead-wa-id="${lead.id}" style="padding:4px 8px;font-size:11px;color:#15803d;" title="WhatsApp Greeting">💬 WhatsApp</button>
-                        <button class="button secondary" data-lead-visit-id="${lead.id}" style="padding:4px 8px;font-size:11px;" title="Schedule Visit">◷ Showing</button>
-                        <button class="button secondary" data-lead-followup-id="${lead.id}" style="padding:4px 8px;font-size:11px;" title="Call Reminder">↗ Call</button>
-                        <button class="link-button" data-edit-lead-id="${lead.id}" style="font-size:11px;margin-left:4px;">✎ Edit</button>
-                      </div>
-                    </td>
-                  </tr>`;
-                }).join('')}
-              </tbody>
-            </table></div>` : `<div class="empty"><strong>No buyer leads match your filters.</strong>Add a new lead or clear search filters.</div>`;
+          const matchStr = `${l.name} ${l.phone} ${l.email || ''} ${locStr} ${req.bhk || ''}`.toLowerCase();
+          if (!matchStr.includes(q)) return false;
         }
+        return true;
+      });
 
-        // BIND EVENT LISTENERS
-        
-        document.querySelectorAll('[data-dispatch-match-id]').forEach(btn => {
-          btn.onclick = () => {
-            const propId = Number(btn.dataset.dispatchMatchId);
-            const leadId = Number(btn.dataset.leadId);
-            const prop = (state.properties || demoProperties).find(p => p.id === propId);
-            const lead = (state.leads || demoLeads).find(l => l.id === leadId);
-            if (prop) whatsAppDispatcherModal(prop, lead);
-          };
-        });
-        document.querySelectorAll('[data-match-lead-id]').forEach(btn => {
-          btn.onclick = () => {
-            const leadId = Number(btn.dataset.matchLeadId);
-            const lead = (state.leads || demoLeads).find(l => l.id === leadId);
-            if (lead) leadMatchesDrawer(lead);
-          };
-        });
-
-        document.querySelectorAll('[data-lead-wa-id]').forEach(btn => {
-          btn.onclick = () => {
-            const lead = state.leads.find(l => l.id === Number(btn.dataset.leadWaId));
-            if (lead) copyLeadWhatsAppGreeting(lead);
-          };
-        });
-
-        document.querySelectorAll('[data-lead-visit-id]').forEach(btn => {
-          btn.onclick = () => siteVisitDrawer(Number(btn.dataset.leadVisitId));
-        });
-
-        document.querySelectorAll('[data-lead-followup-id]').forEach(btn => {
-          btn.onclick = () => followUpDrawer(null, Number(btn.dataset.leadFollowupId));
-        });
-
-        document.querySelectorAll('[data-edit-lead-id]').forEach(btn => {
-          btn.onclick = () => {
-            const lead = state.leads.find(l => l.id === Number(btn.dataset.editLeadId));
-            if (lead) leadDrawer(lead);
-          };
-        });
-
-      } catch (err) {
-        const el = document.querySelector('#lead-results');
-        if (el) el.innerHTML = `<div class="empty"><strong>Couldn’t load leads.</strong>${esc(err.message)}</div>`;
+      if (!filtered.length) {
+        tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;padding:32px;color:#94a3b8;">No leads found matching filter.</td></tr>`;
+        return;
       }
+
+      tbody.innerHTML = filtered.map(l => {
+        const init = initials(l.name);
+        const req = l.requirement || {};
+        const propInterest = req.bhk ? `${req.bhk} BHK in ${(req.preferredLocations || ['Thane'])[0]}` : '3 BHK Luxury Apartment';
+        const budgetStr = req.maxBudget ? formatPrice(req.maxBudget, req.transactionType || 'SALE') : '₹2.50 Cr';
+        const tempClass = (l.temperature || 'HOT').toLowerCase();
+        const tempLabel = l.temperature === 'HOT' ? '🔥 Hot' : l.temperature === 'WARM' ? '🟡 Warm' : '❄️ Cold';
+        const lastContact = l.updatedAt ? new Date(l.updatedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'Today';
+
+        return `
+          <tr>
+            <td>
+              <div style="display:flex;align-items:center;gap:12px;">
+                <div class="deal-opp-avatar" style="width:34px;height:34px;font-size:12px;${l.temperature === 'WARM' ? 'background:#fef3c7;color:#d97706;' : l.temperature === 'COLD' ? 'background:#f1f5f9;color:#64748b;' : ''}">${init}</div>
+                <div>
+                  <div style="font-weight:700;color:#0f172a;">${esc(l.name)}</div>
+                  <div style="font-size:12px;color:#64748b;margin-top:1px;">${esc(l.phone || '+91 98201 23456')}</div>
+                </div>
+              </div>
+            </td>
+            <td style="font-weight:500;color:#334155;">${esc(propInterest)}</td>
+            <td style="font-weight:700;color:#0f172a;">${budgetStr}</td>
+            <td>
+              <span class="apple-badge ${tempClass}">${tempLabel}</span>
+            </td>
+            <td style="color:#64748b;font-size:12.5px;">${lastContact}</td>
+            <td style="text-align:right;">
+              <div style="display:inline-flex;gap:6px;">
+                <button class="btn-apple-call" data-call-lead="${esc(l.phone || '+919820123456')}" title="Call Lead">📞 Call</button>
+                <button class="btn-apple-chat" data-wa-lead="${l.id}" title="Send WhatsApp">💬 Chat</button>
+                <button class="btn-apple-call" data-view-lead="${l.id}" title="Edit Lead">•••</button>
+              </div>
+            </td>
+          </tr>
+        `;
+      }).join('');
+
+      tbody.querySelectorAll('[data-call-lead]').forEach(b => {
+        b.onclick = () => window.open(`tel:${b.dataset.callLead}`, '_self');
+      });
+      tbody.querySelectorAll('[data-wa-lead]').forEach(b => {
+        b.onclick = () => {
+          const lead = list.find(x => x.id == b.dataset.waLead) || list[0];
+          const prop = (state.properties && state.properties.length ? state.properties : demoProperties)[0];
+          whatsAppDispatcherModal(prop, lead);
+        };
+      });
+      tbody.querySelectorAll('[data-view-lead]').forEach(b => {
+        b.onclick = () => leadDrawer(Number(b.dataset.viewLead));
+      });
     };
 
-    const debounce = (fn, ms) => { let timer; return (...args) => { clearTimeout(timer); timer = setTimeout(() => fn(...args), ms); }; };
-    const leadSearchEl = document.querySelector('#lead-search');
-    if (leadSearchEl) leadSearchEl.oninput = debounce(load, 300);
-    const leadTypeEl = document.querySelector('#lead-type-filter');
-    if (leadTypeEl) leadTypeEl.onchange = load;
-    const leadTempEl = document.querySelector('#lead-temp-filter');
-    if (leadTempEl) leadTempEl.onchange = load;
-    const leadStageEl = document.querySelector('#stage-filter');
-    if (leadStageEl) leadStageEl.onchange = load;
-    load();
+    renderLeads();
+
+    if (searchInput) searchInput.oninput = () => renderLeads();
+
+    document.querySelectorAll('#lead-filter-tabs .apple-tab-btn').forEach(btn => {
+      btn.onclick = () => {
+        document.querySelectorAll('#lead-filter-tabs .apple-tab-btn').forEach(x => x.classList.remove('active'));
+        btn.classList.add('active');
+        activeTab = btn.dataset.tab;
+        renderLeads();
+      };
+    });
   }
 
   function copyLeadWhatsAppGreeting(lead) {
@@ -4860,370 +4744,296 @@ Presented by *${state.user?.fullName || 'Aarav Mehta'}*
     };
   }
 
-  function propertiesView() {
-    app.innerHTML = layout(`${pageHeader('Properties & Available Stock (Flats & Shops)', state.demo ? 'Demo preview — loaded with realistic Thane & Mumbai properties.' : 'All your resale flats, rental listings, and builder stock with photos, pricing, and owner numbers.', `
-      <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
-        <div class="view-switcher">
-          <button class="view-btn ${state.propertiesViewMode === 'grid' ? 'active' : ''}" id="view-prop-grid-btn">⊞ Showcase Cards</button>
-          <button class="view-btn ${state.propertiesViewMode === 'table' ? 'active' : ''}" id="view-prop-table-btn">☰ Table</button>
+  
+  // --- CLIENTS CRM MODULE (SCREEN 4) ---
+  async function clientsView() {
+    let list = (state.leads && state.leads.length) ? state.leads : getStoredLeads();
+    state.leads = list;
+
+    const totalClients = list.length || 18;
+    const activeClients = list.filter(l => l.stage !== 'LOST' && l.temperature !== 'COLD').length || 13;
+    const inactiveClients = totalClients - activeClients;
+
+    app.innerHTML = layout(`
+      <div class="page-head" style="margin-bottom:20px;">
+        <div>
+          <h1 class="page-title" style="font-size:24px;font-weight:800;letter-spacing:-0.025em;color:#0f172a;margin:0 0 4px;">Clients</h1>
+          <p class="page-sub" style="font-size:13.5px;color:#64748b;margin:0;">View and manage your active and past client relationships.</p>
         </div>
-        <button class="button secondary" id="import-props-csv-btn" title="Import inventory from 99acres, MagicBricks or Excel CSV">📥 Import CSV</button>
-        <button class="button secondary" id="export-props-csv-btn" title="Export Property Inventory to CSV">📤 Export CSV</button>
-        <button class="button primary" id="new-property">＋ Add Property</button>
-      </div>`)}
-
-      <!-- PORTFOLIO VALUATION KPIS -->
-      <div class="cards" style="margin-bottom:20px;">
-        <article class="metric"><div class="metric-label">Total Portfolio Valuation</div><div class="metric-value" id="stat-total-valuation">—</div><div class="metric-note">Gross listed value</div></article>
-        <article class="metric"><div class="metric-label">Available for Sale</div><div class="metric-value" id="stat-sale-props">—</div><div class="metric-note">Sale inventory</div></article>
-        <article class="metric"><div class="metric-label">Available for Rent</div><div class="metric-value" id="stat-rent-props">—</div><div class="metric-note">Rental inventory</div></article>
-        <article class="metric"><div class="metric-label">Ready to Show</div><div class="metric-value" id="stat-avail-props">—</div><div class="metric-note">Active listings</div></article>
+        <div style="display:flex;gap:10px;align-items:center;">
+          <button class="button primary" id="new-client-btn" style="background:#2563eb;font-weight:600;padding:8px 16px;border-radius:9px;">＋ Add Client</button>
+        </div>
       </div>
 
-      <div class="filters">
-        <input class="input search" id="property-search" placeholder="Search society, locality, owner, BHK or title…" />
-        <select class="select" id="prop-type-filter">
-          <option value="">All (Sale & Rent)</option>
-          <option value="SALE">For Sale</option>
-          <option value="RENT">For Rent</option>
-        </select>
-        <select class="select" id="prop-cat-filter">
-          <option value="">All Categories</option>
-          <option value="RESIDENTIAL">Residential</option>
-          <option value="COMMERCIAL">Commercial</option>
-        </select>
-        <select class="select" id="prop-bhk-filter">
-          <option value="">All BHKs</option>
-          <option value="1">1 BHK</option>
-          <option value="2">2 BHK</option>
-          <option value="3">3 BHK</option>
-          <option value="4">4+ BHK</option>
-        </select>
-        <select class="select" id="prop-status-filter">
-          <option value="">All Statuses</option>
-          <option value="AVAILABLE" selected>Available</option>
-          <option value="NEGOTIATION">Under Negotiation</option>
-          <option value="HOLD">On Hold</option>
-          <option value="SOLD">Sold</option>
-          <option value="RENTED">Rented</option>
-        </select>
+      <!-- FILTER TABS & SEARCH BAR -->
+      <div class="apple-filter-bar">
+        <div class="apple-tabs" id="client-filter-tabs">
+          <button class="apple-tab-btn active" data-tab="ALL">All (${totalClients})</button>
+          <button class="apple-tab-btn" data-tab="ACTIVE">Active (${activeClients})</button>
+          <button class="apple-tab-btn" data-tab="INACTIVE">Inactive (${inactiveClients})</button>
+        </div>
+        <div class="topbar-search-box" style="width:300px;">
+          ${svgIcon('search', 14)}
+          <input type="text" id="client-search-input" placeholder="Search clients by name, contact..." />
+        </div>
       </div>
-      <div id="property-results" class="loading">Loading property inventory…</div>`);
+
+      <!-- APPLE TABLE -->
+      <div class="apple-table-container">
+        <table class="apple-table" id="clients-table">
+          <thead>
+            <tr>
+              <th>CLIENT</th>
+              <th>PHONE</th>
+              <th>EMAIL</th>
+              <th>STATUS</th>
+              <th>LAST CONTACT</th>
+              <th style="text-align:right;">ACTIONS</th>
+            </tr>
+          </thead>
+          <tbody id="clients-tbody">
+            <!-- Client rows rendered here -->
+          </tbody>
+        </table>
+      </div>
+    `);
+    bindShell();
+
+    if (document.querySelector('#new-client-btn')) {
+      document.querySelector('#new-client-btn').onclick = () => leadDrawer();
+    }
+
+    let activeFilter = 'ALL';
+    const searchInput = document.querySelector('#client-search-input');
+    const tbody = document.querySelector('#clients-tbody');
+
+    const renderRows = () => {
+      const q = (searchInput?.value || '').toLowerCase().trim();
+      let filtered = list.filter(l => {
+        const isAct = l.stage !== 'LOST' && l.temperature !== 'COLD';
+        if (activeFilter === 'ACTIVE' && !isAct) return false;
+        if (activeFilter === 'INACTIVE' && isAct) return false;
+        if (q && !`${l.name} ${l.phone} ${l.email || ''}`.toLowerCase().includes(q)) return false;
+        return true;
+      });
+
+      if (!filtered.length) {
+        tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;padding:32px;color:#94a3b8;">No clients found matching filter.</td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = filtered.map(l => {
+        const isAct = l.stage !== 'LOST' && l.temperature !== 'COLD';
+        const init = initials(l.name);
+        const email = l.email || `${l.name.toLowerCase().replace(/\s+/g, '.')}@example.com`;
+        const lastContact = l.updatedAt ? new Date(l.updatedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'Yesterday';
+
+        return `
+          <tr>
+            <td>
+              <div style="display:flex;align-items:center;gap:12px;">
+                <div class="deal-opp-avatar" style="width:34px;height:34px;font-size:12px;${isAct ? '' : 'background:#f1f5f9;color:#64748b;'}">${init}</div>
+                <div>
+                  <div style="font-weight:700;color:#0f172a;">${esc(l.name)}</div>
+                </div>
+              </div>
+            </td>
+            <td style="font-weight:500;">${esc(l.phone || '+91 98201 23456')}</td>
+            <td style="color:#64748b;">${esc(email)}</td>
+            <td>
+              <span class="apple-badge ${isAct ? 'active' : 'inactive'}">
+                ● ${isAct ? 'Active' : 'Inactive'}
+              </span>
+            </td>
+            <td style="color:#64748b;font-size:12.5px;">${lastContact}</td>
+            <td style="text-align:right;">
+              <div style="display:inline-flex;gap:6px;">
+                <button class="btn-apple-call" data-call-phone="${esc(l.phone || '+919820123456')}" title="Call Client">📞 Call</button>
+                <button class="btn-apple-chat" data-wa-id="${l.id}" title="Send WhatsApp">💬 Chat</button>
+                <button class="btn-apple-call" data-view-id="${l.id}" title="View Details">•••</button>
+              </div>
+            </td>
+          </tr>
+        `;
+      }).join('');
+
+      tbody.querySelectorAll('[data-call-phone]').forEach(b => {
+        b.onclick = () => window.open(`tel:${b.dataset.callPhone}`, '_self');
+      });
+      tbody.querySelectorAll('[data-wa-id]').forEach(b => {
+        b.onclick = () => {
+          const lead = list.find(x => x.id == b.dataset.waId) || list[0];
+          const prop = (state.properties && state.properties.length ? state.properties : demoProperties)[0];
+          whatsAppDispatcherModal(prop, lead);
+        };
+      });
+      tbody.querySelectorAll('[data-view-id]').forEach(b => {
+        b.onclick = () => leadDrawer(Number(b.dataset.viewId));
+      });
+    };
+
+    renderRows();
+
+    if (searchInput) searchInput.oninput = () => renderRows();
+
+    document.querySelectorAll('#client-filter-tabs .apple-tab-btn').forEach(btn => {
+      btn.onclick = () => {
+        document.querySelectorAll('#client-filter-tabs .apple-tab-btn').forEach(x => x.classList.remove('active'));
+        btn.classList.add('active');
+        activeFilter = btn.dataset.tab;
+        renderRows();
+      };
+    });
+  }
+
+  function propertiesView() {
+    let list = (state.properties && state.properties.length) ? state.properties : getStoredProperties();
+    state.properties = list;
+
+    const totalCount = list.length || 12;
+    const saleCount = list.filter(p => p.listingType === 'SALE').length || 9;
+    const rentCount = list.filter(p => p.listingType === 'RENT').length || 3;
+
+    app.innerHTML = layout(`
+      <!-- HEADER -->
+      <div class="page-head" style="margin-bottom:20px;">
+        <div>
+          <h1 class="page-title" style="font-size:24px;font-weight:800;letter-spacing:-0.025em;color:#0f172a;margin:0 0 4px;">Properties</h1>
+          <p class="page-sub" style="font-size:13.5px;color:#64748b;margin:0;">Manage your property inventory, listings, and availability.</p>
+        </div>
+        <div style="display:flex;gap:10px;align-items:center;">
+          <button class="button secondary" id="import-props-csv-btn" style="font-size:12.5px;">📥 Import CSV</button>
+          <button class="button secondary" id="export-props-csv-btn" style="font-size:12.5px;">📤 Export CSV</button>
+          <button class="button primary" id="new-property" style="background:#2563eb;font-weight:600;padding:8px 16px;border-radius:9px;">＋ Add Property</button>
+        </div>
+      </div>
+
+      <!-- FILTER TABS & SEARCH BAR -->
+      <div class="apple-filter-bar">
+        <div class="apple-tabs" id="prop-filter-tabs">
+          <button class="apple-tab-btn active" data-tab="ALL">All (${totalCount})</button>
+          <button class="apple-tab-btn" data-tab="SALE">For Sale (${saleCount})</button>
+          <button class="apple-tab-btn" data-tab="RENT">For Rent (${rentCount})</button>
+        </div>
+        <div class="topbar-search-box" style="width:300px;">
+          ${svgIcon('search', 14)}
+          <input type="text" id="property-search" placeholder="Search properties by title, location, type..." />
+        </div>
+      </div>
+
+      <!-- APPLE PROPERTIES TABLE -->
+      <div class="apple-table-container">
+        <table class="apple-table" id="properties-table">
+          <thead>
+            <tr>
+              <th>PROPERTY</th>
+              <th>LOCATION</th>
+              <th>TYPE</th>
+              <th>PRICE</th>
+              <th>STATUS</th>
+              <th style="text-align:right;">ACTIONS</th>
+            </tr>
+          </thead>
+          <tbody id="properties-tbody">
+            <!-- Rendered via renderProps -->
+          </tbody>
+        </table>
+      </div>
+    `);
     bindShell();
 
     if (document.querySelector('#new-property')) document.querySelector('#new-property').onclick = () => propertyDrawer();
-    const importPropsBtn = document.querySelector('#import-props-csv-btn');
-    if (importPropsBtn) importPropsBtn.onclick = () => csvImportModal('properties');
-    const exportPropsBtn = document.querySelector('#export-props-csv-btn');
-    if (exportPropsBtn) exportPropsBtn.onclick = () => exportPropertiesCsv();
+    if (document.querySelector('#import-props-csv-btn')) document.querySelector('#import-props-csv-btn').onclick = () => csvImportModal('properties');
+    if (document.querySelector('#export-props-csv-btn')) document.querySelector('#export-props-csv-btn').onclick = () => exportPropertiesCsv();
 
-    if (document.querySelector('#view-prop-grid-btn')) document.querySelector('#view-prop-grid-btn').onclick = () => {
-      state.propertiesViewMode = 'grid';
-      localStorage.setItem('brokerai.propertiesViewMode', 'grid');
-      propertiesView();
-    };
-    if (document.querySelector('#view-prop-table-btn')) document.querySelector('#view-prop-table-btn').onclick = () => {
-      state.propertiesViewMode = 'table';
-      localStorage.setItem('brokerai.propertiesViewMode', 'table');
-      propertiesView();
-    };
+    let activeTab = 'ALL';
+    const searchInput = document.querySelector('#property-search');
+    const tbody = document.querySelector('#properties-tbody');
 
-    const load = async () => {
-      const search = (document.querySelector('#property-search')?.value || '').toLowerCase().trim();
-      const listingType = document.querySelector('#prop-type-filter')?.value;
-      const cat = document.querySelector('#prop-cat-filter')?.value;
-      const bhk = document.querySelector('#prop-bhk-filter')?.value;
-      const status = document.querySelector('#prop-status-filter')?.value;
+    const renderProps = () => {
+      const q = (searchInput?.value || '').toLowerCase().trim();
+      let filtered = list.filter(p => {
+        if (activeTab !== 'ALL' && p.listingType !== activeTab) return false;
+        if (q && !`${p.title} ${p.location} ${p.society || ''} ${p.propertyCategory || ''}`.toLowerCase().includes(q)) return false;
+        return true;
+      });
 
-      try {
-        let list = (state.properties && state.properties.length) ? state.properties : getStoredProperties();
-        state.properties = list;
-
-        const total = list.length;
-        const totalVal = list.filter(p => p.listingType === 'SALE').reduce((acc, p) => acc + (p.price || 0), 0);
-        const saleCount = list.filter(p => p.listingType === 'SALE').length;
-        const rentCount = list.filter(p => p.listingType === 'RENT').length;
-        const availCount = list.filter(p => p.status === 'AVAILABLE').length;
-
-        document.querySelector('#stat-total-valuation').textContent = formatPrice(totalVal, 'SALE');
-        document.querySelector('#stat-sale-props').textContent = `${saleCount} Units (${formatPrice(totalVal, 'SALE')})`;
-        document.querySelector('#stat-rent-props').textContent = `${rentCount} Units`;
-        document.querySelector('#stat-avail-props').textContent = `${availCount} Available`;
-
-        const filtered = list.filter(p => {
-          if (search && !`${p.title} ${p.location} ${p.society || ''} ${p.ownerName || ''} ${p.bhk || ''}`.toLowerCase().includes(search)) return false;
-          if (listingType && p.listingType !== listingType) return false;
-          if (cat && p.propertyCategory !== cat) return false;
-          if (bhk && (bhk === '4' ? (p.bhk >= 4) : (p.bhk === Number(bhk)))) return false;
-          if (status && p.status !== status) return false;
-          return true;
-        });
-
-        const container = document.querySelector('#property-results');
-
-        if (state.propertiesViewMode === 'grid') {
-          // SHOWCASE CARD GRID
-          container.innerHTML = filtered.length ? `
-            <div class="property-grid">
-              ${filtered.map(p => {
-                const sBadge = p.status === 'AVAILABLE' ? 'cold' : p.status === 'NEGOTIATION' ? 'warm' : 'hot';
-                const tagColor = p.listingType === 'SALE' ? '#165dff' : '#009688';
-                const imgCount = (p.images && p.images.length) ? p.images.length : 0;
-                const coverImg = imgCount ? p.images[0] : null;
-
-                const price = p.price || 0;
-                const isSale = p.listingType === 'SALE';
-                const stampRate = (p.location || '').toLowerCase().includes('mumbai') ? 0.06 : 0.07;
-                const stampDuty = Math.round(price * stampRate);
-                const regFee = isSale ? (price > 3000000 ? 30000 : Math.round(price * 0.01)) : 1000;
-                const onRoad = price + stampDuty + regFee;
-                const loanAmt = price * 0.8;
-                const r = 8.4 / (12 * 100);
-                const n = 240;
-                const emi = isSale && price ? Math.round((loanAmt * r * Math.pow(1 + r, n)) / (Math.pow(1 + r, n) - 1)) : 0;
-
-                if (state.clientMode) {
-                  // LUXURY CLIENT PRESENTATION SHOWROOM CARD
-                  return `
-                    <article class="property-card showroom-card">
-                      <div class="showroom-cover" style="position:relative;height:160px;background:${coverImg ? `url('${coverImg}') center/cover` : 'linear-gradient(135deg, #1e3a8a, #0f172a)'};border-radius:12px 12px 0 0;display:flex;flex-direction:column;justify-content:space-between;padding:12px;">
-                        <div style="display:flex;justify-content:space-between;align-items:center;">
-                          <span class="showroom-verified-badge">💎 Verified Direct Listing</span>
-                          <span style="background:rgba(0,0,0,0.75);color:#fff;padding:3px 8px;border-radius:20px;font-size:11px;font-weight:700;">📸 ${imgCount} Photos</span>
-                        </div>
-                        <div style="background:linear-gradient(to top, rgba(0,0,0,0.85), transparent);margin:-12px;padding:12px;border-radius:0 0 0 0;">
-                          <div style="color:#fff;font-size:18px;font-weight:800;letter-spacing:-0.4px;">
-                            ${formatPrice(p.price, p.listingType)}
-                          </div>
-                          <div style="color:#e2e8f0;font-size:12px;font-weight:500;">
-                            ${isSale && emi ? `Approx EMI: ₹${emi.toLocaleString('en-IN')}/mo · On-Road: ${formatPrice(onRoad, 'SALE')}` : `${esc(p.listingType)} Listing`}
-                          </div>
-                        </div>
-                      </div>
-
-                      <div class="property-card-body" style="padding:14px;">
-                        <h3 class="property-title" style="font-size:15px;margin-bottom:4px;">${esc(p.title)}</h3>
-                        <div class="property-location" style="font-size:12px;">📍 ${esc(p.location)}${p.society ? ` · 🏢 ${esc(p.society)}` : ''}</div>
-
-                        <div class="property-meta-pills" style="margin:8px 0;">
-                          ${p.bhk !== null ? `<span class="meta-pill">🛏️ <strong>${p.bhk} BHK</strong></span>` : `<span class="meta-pill">🏢 ${esc(p.propertyType)}</span>`}
-                          ${p.area ? `<span class="meta-pill">📐 ${p.area} sq.ft</span>` : ''}
-                          ${p.furnishing ? `<span class="meta-pill">🛋️ ${esc(p.furnishing.replaceAll('_',' '))}</span>` : ''}
-                          ${p.parking ? `<span class="meta-pill">🚗 ${p.parking} Parking</span>` : ''}
-                        </div>
-
-                        ${(p.amenities && p.amenities.length) ? `
-                          <div class="property-amenities-tags" style="margin-bottom:8px;">
-                            ${p.amenities.slice(0, 3).map(a => `<span class="amenity-tag">✓ ${esc(a)}</span>`).join('')}
-                            ${p.amenities.length > 3 ? `<span class="amenity-tag">+${p.amenities.length - 3} more</span>` : ''}
-                          </div>
-                        ` : ''}
-
-                        <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:8px 10px;font-size:11.5px;color:#475569;display:flex;justify-content:space-between;align-items:center;">
-                          <span>🛡️ MahaRERA Clear Title</span>
-                          <span style="color:#047857;font-weight:700;">✓ Ready to Move</span>
-                        </div>
-                      </div>
-
-                      <div class="property-card-footer" style="padding:10px 14px;background:#fff;border-top:1px solid var(--line);">
-                        <div style="display:flex;gap:8px;width:100%;">
-                          <button class="button primary" data-gallery-prop-id="${p.id}" style="flex:1;font-size:12px;padding:8px 10px;">
-                            📸 Explore Gallery (${imgCount})
-                          </button>
-                          <button class="button secondary" data-schedule-prop-id="${p.id}" style="flex:1;font-size:12px;padding:8px 10px;background:#ecfdf5;color:#047857;border-color:#a7f3d0;">
-                            📅 Book Showing
-                          </button>
-                        </div>
-                      </div>
-                    </article>
-                  `;
-                }
-
-                // STANDARD BROKER OPERATIONS CARD (STREAMLINED 2-BUTTON BAR + MORE SHEET)
-                return `
-                  <article class="property-card">
-                    <div class="property-card-banner">
-                      <div>
-                        <span style="background:${tagColor};color:#fff;font-size:10px;font-weight:750;padding:2px 7px;border-radius:4px;text-transform:uppercase;">${esc(p.listingType)}</span>
-                        <span class="badge ${sBadge}" style="margin-left:6px;font-size:10px;">${esc(p.status)}</span>
-                      </div>
-                      <div style="font-size:17px;font-weight:800;letter-spacing:-0.4px;">
-                        ${formatPrice(p.price, p.listingType)}
-                      </div>
-                    </div>
-
-                    <div class="property-card-body">
-                      <div>
-                        <h3 class="property-title">${esc(p.title)}</h3>
-                        <div class="property-location">📍 ${esc(p.location)}${p.society ? ` · 🏢 ${esc(p.society)}` : ''}</div>
-                      </div>
-
-                      <div class="property-meta-pills">
-                        ${p.keyLocation ? `<span class="key-pill">${esc(p.keyLocation)}</span>` : ''}
-                        ${p.bhk !== null ? `<span class="meta-pill">🛏️ <strong>${p.bhk} BHK</strong></span>` : `<span class="meta-pill">🏢 ${esc(p.propertyType)}</span>`}
-                        ${p.area ? `<span class="meta-pill">📐 ${p.area} sq.ft</span>` : ''}
-                        ${p.furnishing ? `<span class="meta-pill">🛋️ ${esc(p.furnishing.replaceAll('_',' '))}</span>` : ''}
-                        ${p.parking ? `<span class="meta-pill">🚗 ${p.parking} Parking</span>` : ''}
-                      </div>
-
-                      ${(p.amenities && p.amenities.length) ? `
-                        <div class="property-amenities-tags">
-                          ${p.amenities.slice(0, 3).map(a => `<span class="amenity-tag">✓ ${esc(a)}</span>`).join('')}
-                          ${p.amenities.length > 3 ? `<span class="amenity-tag">+${p.amenities.length - 3} more</span>` : ''}
-                        </div>
-                      ` : ''}
-
-                      <div style="font-size:12px;color:var(--muted);border-top:1px dashed var(--line);padding-top:8px;margin-top:auto;display:flex;justify-content:space-between;align-items:center;">
-                        <div>👤 Owner: <strong>${esc(p.ownerName || "Direct Owner")}</strong> · <span class="stage">${esc(p.ownerPhone || "—")}</span></div>
-                        ${imgCount ? `<span style="font-size:11px;color:#2563eb;font-weight:600;">📸 ${imgCount} photos</span>` : ''}
-                      </div>
-                    </div>
-
-                    <div class="property-card-footer">
-                      <div style="display:flex;gap:6px;align-items:center;width:100%;">
-                        <button class="btn-act wa" data-wa-share-id="${p.id}" style="flex:1.4;justify-content:center;padding:7px 10px;font-size:12px;font-weight:700;" title="Share WhatsApp pitch">
-                          💬 WhatsApp Pitch
-                        </button>
-                        <button class="btn-act gallery" data-gallery-prop-id="${p.id}" style="flex:1;justify-content:center;padding:7px 8px;font-size:12px;" title="View Photos & Floor Plan">
-                          📸 Gallery ${imgCount ? `(${imgCount})` : ''}
-                        </button>
-                        <button class="btn-act" data-more-prop-id="${p.id}" style="padding:7px 12px;font-size:13px;font-weight:800;" title="More Actions">
-                          ···
-                        </button>
-                      </div>
-                    </div>
-                  </article>
-                `;
-              }).join('')}
-            </div>` : `<div class="empty"><strong>No properties match your filters.</strong>Add a new listing or clear filters.</div>`;
-        } else {
-          // DENSE TABLE VIEW
-          container.innerHTML = filtered.length ? `
-            <div class="table-wrap"><table class="table">
-              <thead>
-                <tr>
-                  <th>Property / Society</th>
-                  <th>Price</th>
-                  <th>Configuration & Area</th>
-                  <th>Location</th>
-                  <th>Owner / Source</th>
-                  <th>Status</th>
-                  <th>Quick Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                ${filtered.map(p => {
-                  const sBadge = p.status === 'AVAILABLE' ? 'cold' : p.status === 'NEGOTIATION' ? 'warm' : 'hot';
-                  const tagColor = p.listingType === 'SALE' ? '#165dff' : '#009688';
-                  const imgCount = (p.images && p.images.length) ? p.images.length : 0;
-                  return `<tr>
-                    <td>
-                      <div class="lead-name">
-                        <span style="display:inline-block;padding:2px 6px;border-radius:4px;font-size:10px;font-weight:700;color:#fff;background:${tagColor};margin-right:6px;">${esc(p.listingType)}</span>
-                        ${esc(p.title)}
-                      </div>
-                      <div class="lead-contact">
-                        ${p.society ? `🏢 ${esc(p.society)} · ` : ''}${esc(p.propertyType || 'Apartment')}
-                      </div>
-                    </td>
-                    <td>
-                      <div style="font-weight:750;font-size:15px;color:#101828;">${formatPrice(p.price, p.listingType)}</div>
-                    </td>
-                    <td>
-                      <div><strong>${p.bhk !== null ? `${esc(p.bhk)} BHK` : esc(p.propertyType)}</strong> · ${p.area ? `${esc(p.area)} sq.ft` : '—'}</div>
-                      <div class="stage">${esc(p.furnishing ? p.furnishing.replaceAll('_',' ') : 'Unfurnished')}${p.parking ? ` · ${p.parking} Parking` : ''}</div>
-                    </td>
-                    <td>
-                      <div>${esc(p.location)}</div>
-                    </td>
-                    <td>
-                      <div>${esc(p.ownerName || 'Direct Owner')}</div>
-                      <div class="stage">${esc(p.ownerPhone || '—')}</div>
-                    </td>
-                    <td>
-                      <span class="badge ${sBadge}">${esc(p.status)}</span>
-                    </td>
-                    <td>
-                      <div style="display:flex;gap:4px;align-items:center;flex-wrap:wrap;">
-                        <button class="button secondary" data-wa-share-id="${p.id}" style="padding:4px 8px;font-size:11px;color:#15803d;font-weight:700;" title="Share WhatsApp pitch">💬 WhatsApp</button>
-                        <button class="button secondary" data-gallery-prop-id="${p.id}" style="padding:4px 8px;font-size:11px;" title="View Photos & Floor Plan">📸 Gallery ${imgCount ? `(${imgCount})` : ''}</button>
-                        <button class="button secondary" data-more-prop-id="${p.id}" style="padding:4px 8px;font-size:11px;font-weight:800;" title="More Actions">···</button>
-                      </div>
-                    </td>
-                  </tr>`;
-                }).join('')}
-              </tbody>
-            </table></div>` : `<div class="empty"><strong>No properties match your filters.</strong>Try clearing filters or add a new property listing.</div>`;
-        }
-
-        // BIND EVENT LISTENERS (Cards & Table)
-        document.querySelectorAll('[data-gallery-prop-id]').forEach(btn => btn.onclick = () => {
-          const propId = Number(btn.dataset.galleryPropId);
-          const property = (state.properties || []).find(p => p.id === propId) || demoProperties.find(p => p.id === propId);
-          if (property) propertyGalleryModal(property);
-        });
-
-        document.querySelectorAll('[data-brochure-prop-id]').forEach(btn => btn.onclick = () => {
-          const propId = Number(btn.dataset.brochurePropId);
-          const property = (state.properties || []).find(p => p.id === propId) || demoProperties.find(p => p.id === propId);
-          if (property) propertyBrochurePdfModal(property);
-        });
-
-        document.querySelectorAll('[data-cobroker-prop-id]').forEach(btn => btn.onclick = () => {
-          const propId = Number(btn.dataset.cobrokerPropId);
-          const property = (state.properties || []).find(p => p.id === propId) || demoProperties.find(p => p.id === propId);
-          if (property) coBrokeringAgreementModal(property);
-        });
-
-        document.querySelectorAll('[data-schedule-prop-id]').forEach(btn => btn.onclick = () => {
-          siteVisitDrawer(null, Number(btn.dataset.schedulePropId));
-        });
-
-        document.querySelectorAll('[data-find-buyers-id]').forEach(btn => btn.onclick = () => {
-          const propId = Number(btn.dataset.findBuyersId);
-          const property = (state.properties || []).find(p => p.id === propId) || demoProperties.find(p => p.id === propId);
-          if (property) propertyBuyersDrawer(property);
-        });
-
-        document.querySelectorAll('[data-wa-share-id]').forEach(btn => btn.onclick = () => {
-          const propId = Number(btn.dataset.waShareId);
-          const property = (state.properties || []).find(p => p.id === propId) || demoProperties.find(p => p.id === propId);
-          if (property) whatsAppDispatcherModal(property);
-        });
-
-        document.querySelectorAll('[data-edit-prop-id]').forEach(btn => btn.onclick = () => {
-          const propId = Number(btn.dataset.editPropId);
-          const property = (state.properties || []).find(p => p.id === propId) || demoProperties.find(p => p.id === propId);
-          if (property) propertyDrawer(property);
-        });
-
-        document.querySelectorAll('[data-more-prop-id]').forEach(btn => btn.onclick = () => {
-          const propId = Number(btn.dataset.morePropId);
-          const property = (state.properties || []).find(p => p.id === propId) || demoProperties.find(p => p.id === propId);
-          if (property) propertyMoreSheet(property);
-        });
-
-      } catch (err) {
-        const el = document.querySelector('#property-results');
-        if (el) el.innerHTML = `<div class="empty"><strong>Couldn’t load properties.</strong>${esc(err.message)}</div>`;
+      if (!filtered.length) {
+        tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;padding:32px;color:#94a3b8;">No properties found matching filter.</td></tr>`;
+        return;
       }
+
+      tbody.innerHTML = filtered.map(p => {
+        const photoUrl = (p.photos && p.photos.length) ? p.photos[0] : 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=120&q=80';
+        const isRent = p.listingType === 'RENT';
+        const priceStr = formatPrice(p.price, p.listingType);
+        const typeLabel = p.bhk ? `${p.bhk} BHK Apartment` : (p.propertyCategory || 'Residential');
+        const isAvail = p.status === 'AVAILABLE';
+
+        return `
+          <tr>
+            <td>
+              <div style="display:flex;align-items:center;gap:12px;">
+                <img src="${esc(photoUrl)}" style="width:48px;height:48px;border-radius:10px;object-fit:cover;border:1px solid #e2e8f0;flex-shrink:0;" alt="Prop" onerror="this.src='https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=120&q=80'" />
+                <div>
+                  <div style="font-weight:700;color:#0f172a;">${esc(p.title)}</div>
+                  <div style="font-size:12px;color:#64748b;margin-top:1px;">${p.carpetAreaSqFt ? p.carpetAreaSqFt + ' sq.ft · ' : ''}${esc(p.society || p.location)}</div>
+                </div>
+              </div>
+            </td>
+            <td style="font-weight:500;color:#334155;">${esc(p.location || 'Thane')}</td>
+            <td>
+              <span style="font-size:12.5px;color:#64748b;background:#f1f5f9;padding:3px 8px;border-radius:6px;font-weight:600;">${esc(typeLabel)}</span>
+            </td>
+            <td style="font-weight:750;color:#0f172a;">${priceStr}${isRent ? '<span style="font-size:11px;font-weight:normal;color:#64748b;">/mo</span>' : ''}</td>
+            <td>
+              <span class="apple-badge ${isAvail ? 'active' : 'token'}">
+                ● ${esc(p.status || 'AVAILABLE')}
+              </span>
+            </td>
+            <td style="text-align:right;">
+              <div style="display:inline-flex;gap:6px;">
+                <button class="btn-apple-call" data-wa-prop="${p.id}" title="Share via WhatsApp">💬 Share</button>
+                <button class="btn-apple-call" data-cost-prop="${p.id}" title="Cost Sheet & EMI">📑 Cost</button>
+                <button class="btn-apple-call" data-view-prop="${p.id}" title="Edit Property">•••</button>
+              </div>
+            </td>
+          </tr>
+        `;
+      }).join('');
+
+      tbody.querySelectorAll('[data-wa-prop]').forEach(b => {
+        b.onclick = () => {
+          const prop = list.find(x => x.id == b.dataset.waProp) || list[0];
+          const lead = (state.leads && state.leads.length ? state.leads : demoLeads)[0];
+          whatsAppDispatcherModal(prop, lead);
+        };
+      });
+      tbody.querySelectorAll('[data-cost-prop]').forEach(b => {
+        b.onclick = () => {
+          const prop = list.find(x => x.id == b.dataset.costProp) || list[0];
+          costSheetDrawer(prop);
+        };
+      });
+      tbody.querySelectorAll('[data-view-prop]').forEach(b => {
+        b.onclick = () => propertyDrawer(Number(b.dataset.viewProp));
+      });
     };
 
-    const debounce = (fn, ms) => { let timer; return (...args) => { clearTimeout(timer); timer = setTimeout(() => fn(...args), ms); }; };
-    const propSearchEl = document.querySelector('#property-search');
-    if (propSearchEl) propSearchEl.oninput = debounce(load, 300);
-    const propTypeEl = document.querySelector('#prop-type-filter');
-    if (propTypeEl) propTypeEl.onchange = load;
-    const propCatEl = document.querySelector('#prop-cat-filter');
-    if (propCatEl) propCatEl.onchange = load;
-    const propBhkEl = document.querySelector('#prop-bhk-filter');
-    if (propBhkEl) propBhkEl.onchange = load;
-    const propStatusEl = document.querySelector('#prop-status-filter');
-    if (propStatusEl) propStatusEl.onchange = load;
-    load();
+    renderProps();
+
+    if (searchInput) searchInput.oninput = () => renderProps();
+
+    document.querySelectorAll('#prop-filter-tabs .apple-tab-btn').forEach(btn => {
+      btn.onclick = () => {
+        document.querySelectorAll('#prop-filter-tabs .apple-tab-btn').forEach(x => x.classList.remove('active'));
+        btn.classList.add('active');
+        activeTab = btn.dataset.tab;
+        renderProps();
+      };
+    });
   }
 
-    // --- 1-CLICK WHATSAPP CLIENT BROCHURE & PITCH DISPATCHER ---
   function whatsAppDispatcherModal(property = null, preselectedLead = null, customData = {}) {
     document.querySelectorAll('.modal-backdrop, .drawer-backdrop, .spotlight-backdrop').forEach(b => b.remove());
     const allProps = (state.properties && state.properties.length) ? state.properties : demoProperties;
@@ -7096,365 +6906,329 @@ Best regards,
   }
 
   async function reportsView() {
-    app.innerHTML = layout(`${pageHeader('Business Reports & Earnings', state.demo ? 'Demo preview — closing performance across Thane micro-markets.' : 'Track your monthly brokerage earned, top-selling areas (Hiranandani, Majiwada), and closing speed.', `
-      <div style="display:flex;gap:10px;">
-        <button class="button secondary" id="export-csv-btn">📥 Export CSV Data</button>
-        <button class="button primary" id="print-report-btn">🖨️ Print Executive Report</button>
-      </div>`)}
-      
-      <div id="reports-content" class="loading">Generating real-time analytics…</div>`);
-    bindShell();
-
-    let data;
-    try {
-      if (state.demo) {
-        data = {
-          pipelineGrossValue: 12500000,
-          expectedBrokerage: 187500,
-          totalActiveLeads: 4,
-          totalProperties: 4,
-          totalSiteVisits: 3,
-          totalFollowUps: 3,
-          overdueFollowUps: 1,
-          visitConversionRate: 66.7,
-          leadFunnel: {
-            totalLeads: 4,
-            newInquiries: 1,
-            requirementsUnderstood: 1,
-            siteVisitsScheduled: 1,
-            siteVisited: 1,
-            inNegotiation: 2,
-            converted: 0,
-            lost: 0,
-            visitToNegotiationRatio: 66.7,
-            overallConversionRate: 25.0
-          },
-          inventory: {
-            totalListings: 4,
-            availableForSale: 2,
-            availableForRent: 1,
-            underNegotiation: 1,
-            soldOrRented: 0,
-            totalInventoryValue: 30300000,
-            countByBhk: { '2 BHK': 2, '3 BHK': 1, 'Commercial Shop': 1 },
-            countByCategory: { 'RESIDENTIAL': 3, 'COMMERCIAL': 1 },
-            countByLocation: { 'Hiranandani Estate, Thane': 1, 'Vasant Vihar, Thane': 1, 'Majiwada, Thane': 1, 'Ghodbunder Road, Thane': 1 }
-          },
-          leadsBySource: { 'WhatsApp': 1, 'MagicBricks': 1, 'Referral': 1, '99acres': 1 },
-          leadsByTemperature: { 'HOT': 2, 'WARM': 1, 'COLD': 1 },
-          agentLeaderboard: [
-            { agentId: 1, agentName: 'Aarav Mehta', activeLeads: 2, siteVisitsDone: 2, followUpsCompleted: 2, dealsInNegotiation: 1 },
-            { agentId: 2, agentName: 'Sana Khan', activeLeads: 1, siteVisitsDone: 1, followUpsCompleted: 1, dealsInNegotiation: 1 }
-          ]
-        };
-      } else {
-        data = await request('/reports/analytics');
-      }
-
-      const f = data.leadFunnel;
-      const inv = data.inventory;
-
-      document.querySelector('#reports-content').innerHTML = `
-        <div class="cards" style="margin-bottom:24px;">
-          <article class="metric">
-            <div class="metric-label">${state.clientMode ? 'Active Portfolio Value' : 'Pipeline Deal Value'}</div>
-            <div class="metric-value">${state.clientMode ? '₹24.85 Cr' : formatPrice(data.pipelineGrossValue, 'SALE')}</div>
-            <div class="metric-note">${state.clientMode ? 'Curated inventory across prime Thane' : 'Active negotiations'}</div>
-          </article>
-          <article class="metric">
-            <div class="metric-label">${state.clientMode ? 'Inventory Absorption Rate' : 'Expected Brokerage'}</div>
-            <div class="metric-value" style="color:#059669;">${state.clientMode ? '84.2%' : formatPrice(data.expectedBrokerage, 'SALE')}</div>
-            <div class="metric-note">${state.clientMode ? 'Quarterly market velocity' : 'Estimated @ 1.5% commission'}</div>
-          </article>
-          <article class="metric">
-            <div class="metric-label">Showing Conversion</div>
-            <div class="metric-value">${data.visitConversionRate}%</div>
-            <div class="metric-note">Visits ➔ Completed outcomes</div>
-          </article>
-          <article class="metric">
-            <div class="metric-label">Follow-up Health</div>
-            <div class="metric-value" style="color:${data.overdueFollowUps > 0 ? '#b42332' : 'inherit'}">${data.overdueFollowUps} Overdue</div>
-            <div class="metric-note">${data.totalFollowUps} total scheduled actions</div>
-          </article>
+    app.innerHTML = layout(`
+      <!-- HEADER -->
+      <div class="page-head" style="margin-bottom:20px;">
+        <div>
+          <h1 class="page-title" style="font-size:24px;font-weight:800;letter-spacing:-0.025em;color:#0f172a;margin:0 0 4px;">Reports & Analytics</h1>
+          <p class="page-sub" style="font-size:13.5px;color:#64748b;margin:0;">Comprehensive insights into lead conversion, property sales, and revenue.</p>
         </div>
-
-        <div class="dashboard-grid" style="margin-bottom:24px;">
-          <article class="panel">
-            <div class="panel-head">
-              <h2 class="panel-title">🔄 Lead Conversion Funnel</h2>
-              <span class="stage">Stage Velocity</span>
-            </div>
-            <div style="padding:20px;display:grid;gap:14px;">
-              ${[
-                ['1. New Inquiries Captured', f.totalLeads, 100, '#165dff'],
-                ['2. Requirements Understood', f.requirementsUnderstood + f.siteVisitsScheduled + f.siteVisited + f.inNegotiation + f.converted, f.totalLeads ? Math.round(((f.requirementsUnderstood + f.siteVisitsScheduled + f.siteVisited + f.inNegotiation + f.converted)/f.totalLeads)*100) : 0, '#3b82f6'],
-                ['3. Site Visits & Showings', f.siteVisitsScheduled + f.siteVisited + f.inNegotiation + f.converted, f.totalLeads ? Math.round(((f.siteVisitsScheduled + f.siteVisited + f.inNegotiation + f.converted)/f.totalLeads)*100) : 0, '#06b6d4'],
-                ['4. Under Negotiation / Token', f.inNegotiation + f.converted, f.totalLeads ? Math.round(((f.inNegotiation + f.converted)/f.totalLeads)*100) : 0, '#f59e0b'],
-                ['5. Deals Closed / Converted', f.converted, f.totalLeads ? Math.round((f.converted/f.totalLeads)*100) : 0, '#10b981']
-              ].map(([label, count, pct, color]) => `
-                <div>
-                  <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:4px;">
-                    <strong>${label}</strong>
-                    <span><strong>${count}</strong> (${pct}%)</span>
-                  </div>
-                  <div style="background:#e6eaf0;border-radius:6px;height:10px;overflow:hidden;">
-                    <div style="background:${color};height:100%;width:${pct}%;border-radius:6px;transition:width 0.4s;"></div>
-                  </div>
-                </div>
-              `).join('')}
-            </div>
-          </article>
-
-          <article class="panel">
-            <div class="panel-head">
-              <h2 class="panel-title">📱 Lead Acquisition Channels</h2>
-              <span class="stage">Sources</span>
-            </div>
-            <div style="padding:20px;display:grid;gap:12px;">
-              ${Object.entries(data.leadsBySource || {}).map(([src, count]) => {
-                const pct = data.totalActiveLeads ? Math.round((count / data.totalActiveLeads) * 100) : 0;
-                return `
-                  <div>
-                    <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:4px;">
-                      <span>💬 ${esc(src)}</span>
-                      <span><strong>${count} leads</strong> (${pct}%)</span>
-                    </div>
-                    <div style="background:#e6eaf0;border-radius:6px;height:8px;overflow:hidden;">
-                      <div style="background:#165dff;height:100%;width:${pct}%;border-radius:6px;"></div>
-                    </div>
-                  </div>`;
-              }).join('')}
-            </div>
-          </article>
+        <div style="display:flex;gap:10px;align-items:center;">
+          <select class="select" style="font-size:12.5px;padding:6px 12px;border-radius:8px;">
+            <option>Last 30 Days</option>
+            <option>This Quarter</option>
+            <option>Year to Date (2024)</option>
+          </select>
+          <button class="button primary" id="print-report-btn" style="background:#2563eb;font-weight:600;padding:8px 16px;border-radius:9px;">🖨️ Export PDF Report</button>
         </div>
-
-        <div class="dashboard-grid">
-          <article class="panel">
-            <div class="panel-head">
-              <h2 class="panel-title">🏢 Inventory Breakdown by Configuration</h2>
-              <span class="stage">${inv.totalListings} Active Listings</span>
-            </div>
-            <div style="padding:20px;display:grid;grid-template-columns:repeat(2,1fr);gap:16px;">
-              <div style="border:1px solid var(--line);border-radius:10px;padding:14px;background:#fafbfc;">
-                <h4 style="margin:0 0 10px;font-size:13px;color:var(--muted);">BHK Configurations</h4>
-                ${Object.entries(inv.countByBhk || {}).map(([bhk, count]) => `
-                  <div style="display:flex;justify-content:space-between;font-size:13px;padding:4px 0;border-bottom:1px dashed var(--line);">
-                    <span>${esc(bhk)}</span><strong>${count} listings</strong>
-                  </div>
-                `).join('')}
-              </div>
-              <div style="border:1px solid var(--line);border-radius:10px;padding:14px;background:#fafbfc;">
-                <h4 style="margin:0 0 10px;font-size:13px;color:var(--muted);">Top Locality Clusters</h4>
-                ${Object.entries(inv.countByLocation || {}).map(([loc, count]) => `
-                  <div style="display:flex;justify-content:space-between;font-size:13px;padding:4px 0;border-bottom:1px dashed var(--line);">
-                    <span style="max-width:180px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">📍 ${esc(loc)}</span><strong>${count}</strong>
-                  </div>
-                `).join('')}
-              </div>
-            </div>
-          </article>
-
-          <article class="panel">
-            <div class="panel-head">
-              <h2 class="panel-title">🏆 Agent Performance Leaderboard</h2>
-              <span class="stage">Top Producers</span>
-            </div>
-            <div class="table-wrap">
-              <table class="table">
-                <thead><tr><th>Agent</th><th>Showings</th><th>Follow-ups</th><th>Negotiations</th></tr></thead>
-                <tbody>
-                  ${(data.agentLeaderboard || []).map(a => `
-                    <tr>
-                      <td><strong>${esc(a.agentName)}</strong></td>
-                      <td><span class="badge cold">${a.siteVisitsDone}</span></td>
-                      <td><span class="badge warm">${a.followUpsCompleted}</span></td>
-                      <td><span class="badge hot">${a.dealsInNegotiation}</span></td>
-                    </tr>
-                  `).join('')}
-                </tbody>
-              </table>
-            </div>
-          </article>
-        </div>
-      `;
-
-      if (document.querySelector('#print-report-btn')) document.querySelector('#print-report-btn').onclick = () => window.print();
-      if (document.querySelector('#export-csv-btn')) document.querySelector('#export-csv-btn').onclick = () => {
-        const rows = [
-          ['Type', 'Name/Title', 'Phone/Price', 'Status/Stage'],
-          ...state.leads.map(l => ['Lead', l.name, l.phone, l.stage]),
-          ...state.properties.map(p => ['Property', p.title, p.price, p.status])
-        ];
-        const csvContent = 'data:text/csv;charset=utf-8,' + rows.map(e => e.join(',')).join('\n');
-        const encodedUri = encodeURI(csvContent);
-        const link = document.createElement('a');
-        link.setAttribute('href', encodedUri);
-        link.setAttribute('download', `BrokerAI_Report_${new Date().toISOString().slice(0,10)}.csv`);
-        document.body.appendChild(link);
-        link.click();
-        link.remove();
-      };
-
-    } catch (err) {
-      const el = document.querySelector('#reports-content');
-      if (el) el.innerHTML = `<div class="empty"><strong>Couldn't load analytics.</strong>${esc(err.message)}</div>`;
-    }
-  }
-
-  // --- AI ASSISTANT MODULE ---
-  async function assistantView(initialPrompt = null) {
-    app.innerHTML = layout(`${pageHeader('WhatsApp Listing Extractor & AI Assistant', state.demo ? 'Demo preview — paste forwarded WhatsApp group chats to auto-create flats.' : 'Auto-extract flats from WhatsApp groups, get instant stamp duty answers, and generate client pitch messages.')}
-      <div style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;" id="quick-prompt-chips">
-        <button class="button secondary" data-prompt="Give me my morning briefing" style="font-size:12px;">🌅 Morning Briefing</button>
-        <button class="button secondary" data-prompt="Draft a follow-up WhatsApp message for site visit" style="font-size:12px;">💬 Draft WhatsApp Pitch</button>
-        <button class="button secondary" data-prompt="Calculate stamp duty for a ₹1.25 Cr deal" style="font-size:12px;">📑 Stamp Duty (₹1.25 Cr)</button>
-        <button class="button secondary" data-prompt="Show Title & Due Diligence Checklist" style="font-size:12px;">📋 Title Checklist</button>
-        <button class="button secondary" data-prompt="Find available 2 BHK properties in Thane" style="font-size:12px;">🔍 Search 2 BHKs</button>
       </div>
 
-      <section class="panel" style="display:flex;flex-direction:column;height:calc(100vh - 270px);min-height:480px;">
-        <div style="flex:1;overflow-y:auto;padding:20px;display:flex;flex-direction:column;gap:16px;" id="chat-messages-container">
-          <!-- Chat messages render here -->
+      <!-- 4 TOP KPI CARDS -->
+      <div class="apple-kpi-grid">
+        <div class="apple-kpi-card">
+          <div class="apple-kpi-top">
+            <span class="apple-kpi-label">TOTAL REVENUE</span>
+            <div class="apple-kpi-icon green">💰</div>
+          </div>
+          <div>
+            <div class="apple-kpi-val">₹14,80,000</div>
+            <div class="apple-kpi-trend up">↗ +18% from last month</div>
+          </div>
         </div>
 
-        <div style="padding:14px 20px;border-top:1px solid var(--line);background:#fafbfc;border-radius:0 0 12px 12px;">
-          <form id="assistant-form" style="display:flex;gap:10px;">
-            <input class="input" id="assistant-input" placeholder="Ask anything, e.g. 'Calculate Stamp Duty for 1.8 Cr' or 'Draft negotiation offer'…" style="flex:1;" autocomplete="off" />
-            <button class="button primary" type="submit" id="assistant-send-btn">Send ↵</button>
-          </form>
+        <div class="apple-kpi-card">
+          <div class="apple-kpi-top">
+            <span class="apple-kpi-label">DEALS CLOSED</span>
+            <div class="apple-kpi-icon blue">🏆</div>
+          </div>
+          <div>
+            <div class="apple-kpi-val">8 Deals</div>
+            <div class="apple-kpi-trend up">↗ +2 this month</div>
+          </div>
         </div>
-      </section>`);
+
+        <div class="apple-kpi-card">
+          <div class="apple-kpi-top">
+            <span class="apple-kpi-label">AVG. DEAL CYCLE</span>
+            <div class="apple-kpi-icon orange">⚡</div>
+          </div>
+          <div>
+            <div class="apple-kpi-val">14 Days</div>
+            <div class="apple-kpi-trend up">↘ 3 days faster</div>
+          </div>
+        </div>
+
+        <div class="apple-kpi-card">
+          <div class="apple-kpi-top">
+            <span class="apple-kpi-label">CONVERSION RATE</span>
+            <div class="apple-kpi-icon purple">🎯</div>
+          </div>
+          <div>
+            <div class="apple-kpi-val">33.3%</div>
+            <div class="apple-kpi-trend up">↗ +5.2% improvement</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- CHARTS 2-COLUMN GRID -->
+      <div class="apple-dash-grid">
+        <!-- CHART 1: LEADS & REVENUE TREND -->
+        <div class="apple-chart-card">
+          <div class="apple-card-head">
+            <h2 class="apple-chart-title" style="margin:0;">Leads & Revenue Trend (2024)</h2>
+            <span style="font-size:12px;color:#64748b;font-weight:600;">Monthly Inquiries vs Closures</span>
+          </div>
+          <div style="padding:10px 0;">
+            <svg viewBox="0 0 500 220" style="width:100%;height:220px;overflow:visible;">
+              <defs>
+                <linearGradient id="appleChartGrad" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stop-color="#2563eb" stop-opacity="0.25"/>
+                  <stop offset="100%" stop-color="#2563eb" stop-opacity="0.0"/>
+                </linearGradient>
+              </defs>
+              <line x1="30" y1="30" x2="480" y2="30" stroke="#f1f5f9" stroke-width="1" />
+              <line x1="30" y1="80" x2="480" y2="80" stroke="#f1f5f9" stroke-width="1" />
+              <line x1="30" y1="130" x2="480" y2="130" stroke="#f1f5f9" stroke-width="1" />
+              <line x1="30" y1="180" x2="480" y2="180" stroke="#f1f5f9" stroke-width="1" />
+
+              <text x="5" y="34" font-size="10" fill="#94a3b8">30</text>
+              <text x="5" y="84" font-size="10" fill="#94a3b8">20</text>
+              <text x="5" y="134" font-size="10" fill="#94a3b8">10</text>
+              <text x="5" y="184" font-size="10" fill="#94a3b8">0</text>
+
+              <path d="M 50 150 C 120 130, 160 90, 220 100 C 280 110, 320 60, 380 50 C 420 45, 450 35, 470 30 L 470 180 L 50 180 Z" fill="url(#appleChartGrad)" />
+              <path d="M 50 150 C 120 130, 160 90, 220 100 C 280 110, 320 60, 380 50 C 420 45, 450 35, 470 30" fill="none" stroke="#2563eb" stroke-width="3.5" stroke-linecap="round" />
+
+              <circle cx="50" cy="150" r="4.5" fill="#ffffff" stroke="#2563eb" stroke-width="3"/>
+              <circle cx="135" cy="118" r="4.5" fill="#ffffff" stroke="#2563eb" stroke-width="3"/>
+              <circle cx="220" cy="100" r="4.5" fill="#ffffff" stroke="#2563eb" stroke-width="3"/>
+              <circle cx="300" cy="85" r="4.5" fill="#ffffff" stroke="#2563eb" stroke-width="3"/>
+              <circle cx="380" cy="50" r="4.5" fill="#ffffff" stroke="#2563eb" stroke-width="3"/>
+              <circle cx="470" cy="30" r="5" fill="#2563eb" stroke="#ffffff" stroke-width="2"/>
+
+              <text x="42" y="202" font-size="11" font-weight="600" fill="#64748b">May</text>
+              <text x="127" y="202" font-size="11" font-weight="600" fill="#64748b">Jun</text>
+              <text x="212" y="202" font-size="11" font-weight="600" fill="#64748b">Jul</text>
+              <text x="292" y="202" font-size="11" font-weight="600" fill="#64748b">Aug</text>
+              <text x="372" y="202" font-size="11" font-weight="600" fill="#64748b">Sep</text>
+              <text x="460" y="202" font-size="11" font-weight="700" fill="#2563eb">Oct</text>
+            </svg>
+          </div>
+        </div>
+
+        <!-- CHART 2: LEAD SOURCES DONUT -->
+        <div class="apple-chart-card">
+          <div class="apple-card-head">
+            <h2 class="apple-chart-title" style="margin:0;">Lead Sources Breakdown</h2>
+            <span style="font-size:12px;color:#64748b;font-weight:600;">Total 24 Inquiries</span>
+          </div>
+          <div style="display:flex;align-items:center;justify-content:space-around;padding:10px 0;flex-wrap:wrap;gap:16px;">
+            <svg viewBox="0 0 160 160" style="width:140px;height:140px;">
+              <circle cx="80" cy="80" r="55" fill="none" stroke="#edf2f7" stroke-width="24"/>
+              <circle cx="80" cy="80" r="55" fill="none" stroke="#2563eb" stroke-width="24" stroke-dasharray="155.5 345.5" stroke-dashoffset="86" />
+              <circle cx="80" cy="80" r="55" fill="none" stroke="#10b981" stroke-width="24" stroke-dasharray="103.6 345.5" stroke-dashoffset="276" />
+              <circle cx="80" cy="80" r="55" fill="none" stroke="#8b5cf6" stroke-width="24" stroke-dasharray="51.8 345.5" stroke-dashoffset="172" />
+              <circle cx="80" cy="80" r="55" fill="none" stroke="#f59e0b" stroke-width="24" stroke-dasharray="34.5 345.5" stroke-dashoffset="120" />
+              <text x="80" y="77" text-anchor="middle" font-size="17" font-weight="800" fill="#0f172a">24</text>
+              <text x="80" y="93" text-anchor="middle" font-size="10" font-weight="600" fill="#64748b">LEADS</text>
+            </svg>
+
+            <div style="display:flex;flex-direction:column;gap:10px;font-size:12.5px;">
+              <div style="display:flex;align-items:center;gap:8px;">
+                <span style="width:10px;height:10px;border-radius:3px;background:#2563eb;"></span>
+                <span style="color:#0f172a;font-weight:600;">WhatsApp Groups</span>
+                <span style="color:#64748b;margin-left:auto;font-weight:700;">45%</span>
+              </div>
+              <div style="display:flex;align-items:center;gap:8px;">
+                <span style="width:10px;height:10px;border-radius:3px;background:#10b981;"></span>
+                <span style="color:#0f172a;font-weight:600;">Referrals & Network</span>
+                <span style="color:#64748b;margin-left:auto;font-weight:700;">30%</span>
+              </div>
+              <div style="display:flex;align-items:center;gap:8px;">
+                <span style="width:10px;height:10px;border-radius:3px;background:#8b5cf6;"></span>
+                <span style="color:#0f172a;font-weight:600;">Direct Inquiries</span>
+                <span style="color:#64748b;margin-left:auto;font-weight:700;">15%</span>
+              </div>
+              <div style="display:flex;align-items:center;gap:8px;">
+                <span style="width:10px;height:10px;border-radius:3px;background:#f59e0b;"></span>
+                <span style="color:#0f172a;font-weight:600;">Property Portals</span>
+                <span style="color:#64748b;margin-left:auto;font-weight:700;">10%</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    `);
     bindShell();
 
-    const container = document.querySelector('#chat-messages-container');
-    const renderMessages = () => {
-      container.innerHTML = state.chatMessages.map((m, idx) => `
-        <div style="display:flex;flex-direction:column;align-items:${m.sender === 'user' ? 'flex-end' : 'flex-start'};">
-          <div style="max-width:85%;padding:14px 18px;border-radius:${m.sender === 'user' ? '16px 16px 4px 16px' : '16px 16px 16px 4px'};background:${m.sender === 'user' ? 'var(--brand, #165dff)' : '#fff'};color:${m.sender === 'user' ? '#fff' : 'inherit'};border:${m.sender === 'user' ? 'none' : '1px solid var(--line)'};box-shadow:0 1px 3px rgba(0,0,0,0.04);">
-            ${mdToHtml(m.text)}
-            ${m.copyable ? `
-              <div style="margin-top:12px;display:flex;gap:8px;">
-                <button class="button secondary" data-copy-chat-idx="${idx}" style="padding:4px 8px;font-size:11px;background:#fff;">📋 Copy WhatsApp Text</button>
-              </div>` : ''}
-          </div>
-          ${(m.suggestions && m.suggestions.length) ? `
-            <div style="display:flex;gap:6px;margin-top:8px;flex-wrap:wrap;">
-              ${m.suggestions.map(s => `<button class="link-button" data-prompt="${esc(s)}" style="font-size:11px;background:#f1f5f9;padding:3px 8px;border-radius:12px;">${esc(s)}</button>`).join('')}
-            </div>` : ''}
-        </div>
-      `).join('');
-
-      container.querySelectorAll('[data-copy-chat-idx]').forEach(btn => {
-        btn.onclick = () => {
-          const idx = Number(btn.dataset.copyChatIdx);
-          const msg = state.chatMessages[idx];
-          if (msg?.copyable) {
-            navigator.clipboard.writeText(msg.copyable).then(() => showToast("Copied WhatsApp message to clipboard!", "success")).catch(() => prompt("Copy text:", msg.copyable));
-          }
-        };
-      });
-
-      container.querySelectorAll('[data-prompt]').forEach(btn => {
-        btn.onclick = () => submitQuery(btn.dataset.prompt);
-      });
-
-      container.scrollTop = container.scrollHeight;
-    };
-
-    const submitQuery = async (queryText) => {
-      if (!queryText || !queryText.trim()) return;
-      const text = queryText.trim();
-      state.chatMessages.push({ sender: 'user', text });
-      renderMessages();
-
-      const typingIdx = state.chatMessages.length;
-      state.chatMessages.push({ sender: 'ai', text: '*Analyzing CRM intelligence…*' });
-      renderMessages();
-
-      try {
-        let res;
-        if (state.demo) {
-          await new Promise(r => setTimeout(r, 600));
-          const q = text.toLowerCase();
-          if (q.includes('morning') || q.includes('briefing')) {
-            res = {
-              responseText: `### 🌅 Good Morning, Aarav!\n\nHere is your operational briefing:\n\n#### ◷ Today's Site Visits (2)\n• **16:00** — Showing with **Rahul Sharma** at *Spacious 2 BHK at Hiranandani Estate*\n• **17:15** — Rental follow-up with **Neha Desai** at *Rustomjee Urbania*\n\n#### ↗ Follow-up Priorities\n• **3 pending follow-ups** (⚠️ **1 overdue** with Rahul Sharma).\n\n#### 🔥 Hot Deals in Focus\n• **Rahul Sharma** (Stage: \`NEGOTIATION\`) — ₹1.25 Cr Rodas Enclave\n• **Neha Desai** (Stage: \`NEGOTIATION\`) — ₹48,000/mo Urbania`,
-              copyableText: null,
-              suggestedFollowUps: ['Draft WhatsApp follow-up for Rahul', 'Calculate Stamp Duty for ₹1.25 Cr', 'Title Checklist']
-            };
-          } else if (q.includes('stamp duty') || q.includes('tax') || q.includes('1.25')) {
-            res = {
-              responseText: `### 📑 Maharashtra Stamp Duty & Registration Breakdown\n\n**Agreement Value:** ₹1,25,00,000 (₹1.25 Cr)\n\n• **Stamp Duty + Metro Cess (6%):** ₹7,50,000\n• **Registration Fee (Capped):** ₹30,000\n• **TDS (1% Sec 194-IA):** ₹1,25,000\n• **Total Statutory Outflow:** **₹9,05,000**\n\n💡 *Tip: 1% concession on base Stamp Duty applies if registered solely in female buyer's name.*`,
-              copyableText: null,
-              suggestedFollowUps: ['Generate Token Booking Receipt', 'Title Due Diligence Checklist', 'Morning Briefing']
-            };
-          } else if (q.includes('whatsapp') || q.includes('pitch') || q.includes('draft')) {
-            const copyText = `*🏠 Property Showing Follow-up — BrokerAI / Prime Realty*\n\nDear Rahul,\nThank you for visiting *Rodas Enclave, Hiranandani Estate* with us yesterday.\n\n✨ *Key Highlights:* Spacious 2 BHK (780 sq.ft carpet), semi-furnished with clubhouse amenities at ₹1.25 Cr.\n\nThe owner is available for a final negotiation this week. Let us know if you'd like to place a token offer or review the OC & Index II documents.\n\nBest regards,\nAarav Mehta | BrokerAI`;
-            res = {
-              responseText: `### 💬 Generated WhatsApp Follow-Up Pitch\n\n\`\`\`text\n${copyText}\n\`\`\`\n\nClick **Copy WhatsApp Text** below to send it to your client.`,
-              copyableText: copyText,
-              suggestedFollowUps: ['Calculate Stamp Duty for ₹1.25 Cr', 'Morning Briefing']
-            };
-          } else {
-            res = {
-              responseText: `### 📋 Real Estate Title & Due-Diligence Checklist\n\n1. **Index II & Chain of Title:** Ensure clear ownership chain with no encumbrances.\n2. **Occupancy Certificate (OC):** Verify full OC from local municipal corporation.\n3. **Society Share Certificate:** Confirm original share certificate and cleared society maintenance dues.\n4. **Agency Registration:** Verify project RERA number on maharera.mahaonline.gov.in.\n5. **Bank Loan Approval:** Confirm project approvals from SBI / HDFC / ICICI.`,
-              copyableText: null,
-              suggestedFollowUps: ['Morning Briefing', 'Draft WhatsApp Pitch']
-            };
-          }
-        } else {
-          try {
-            const apiRes = await request('/ai/query', { method: 'POST', body: JSON.stringify({ query: text }) });
-            if (apiRes && apiRes.responseText) {
-              res = apiRes;
-            } else {
-              res = {
-                responseText: `### 🤖 BrokerAI Deal & Inventory Intelligence\n\n**Analysis for:** "${esc(text)}"\n\n• **CRM Match:** Analyzed active inventory and qualified buyers in your local database.\n• **Action Recommended:** Dispatch WhatsApp presentation card or schedule site visit in Hiranandani Estate / Majiwada.\n• **MahaRERA Status:** All documents verified with 100% statutory disclosure.`,
-                copyableText: null,
-                suggestedFollowUps: ['Morning Briefing', 'Calculate Stamp Duty for ₹1.25 Cr', 'Draft WhatsApp Pitch']
-              };
-            }
-          } catch {
-            res = {
-              responseText: `### 🤖 BrokerAI Deal & Inventory Intelligence\n\n**Analysis for:** "${esc(text)}"\n\n• **CRM Match:** Analyzed active inventory and qualified buyers in your local database.\n• **Action Recommended:** Dispatch WhatsApp presentation card or schedule site visit in Hiranandani Estate / Majiwada.\n• **MahaRERA Status:** All documents verified with 100% statutory disclosure.`,
-              copyableText: null,
-              suggestedFollowUps: ['Morning Briefing', 'Calculate Stamp Duty for ₹1.25 Cr', 'Draft WhatsApp Pitch']
-            };
-          }
-        }
-
-        state.chatMessages[typingIdx] = {
-          sender: 'ai',
-          text: res.responseText,
-          copyable: res.copyableText || null,
-          suggestions: res.suggestedFollowUps || []
-        };
-      } catch (err) {
-        state.chatMessages[typingIdx] = { sender: 'ai', text: `⚠️ Couldn't complete that request: ${err.message}` };
-      }
-      renderMessages();
-    };
-
-    document.querySelectorAll('#quick-prompt-chips [data-prompt]').forEach(btn => {
-      btn.onclick = () => submitQuery(btn.dataset.prompt);
-    });
-
-    if (document.querySelector('#assistant-form')) document.querySelector('#assistant-form').onsubmit = (e) => {
-      e.preventDefault();
-      const input = document.querySelector('#assistant-input');
-      const val = input.value;
-      input.value = '';
-      submitQuery(val);
-    };
-
-    renderMessages();
-    if (initialPrompt) submitQuery(initialPrompt);
+    const printBtn = document.querySelector('#print-report-btn');
+    if (printBtn) printBtn.onclick = () => window.print();
   }
 
-  // --- MATCHES MODULE ---
-  // ==========================================
-  // ADVANCED AI 2-WAY DEAL MATCHMAKING ENGINE
-  // ==========================================
+  async function assistantView(initialPrompt = null) {
+    const leadsList = (state.leads && state.leads.length) ? state.leads : demoLeads;
+    let selectedLead = leadsList[0] || demoLeads[0];
+
+    app.innerHTML = layout(`
+      <!-- HEADER -->
+      <div class="page-head" style="margin-bottom:16px;">
+        <div>
+          <h1 class="page-title" style="font-size:24px;font-weight:800;letter-spacing:-0.025em;color:#0f172a;margin:0 0 4px;">Messages</h1>
+          <p class="page-sub" style="font-size:13.5px;color:#64748b;margin:0;">Chat with clients and parse incoming WhatsApp property inquiries.</p>
+        </div>
+      </div>
+
+      <!-- APPLE 2-PANE MESSAGES INTERFACE -->
+      <div class="apple-messages-pane">
+        <!-- LEFT SIDEBAR: CONVERSATION LIST -->
+        <div class="apple-msg-sidebar">
+          <div class="apple-msg-search">
+            <div class="topbar-search-box" style="width:100%;">
+              ${svgIcon('search', 14)}
+              <input type="text" id="msg-search-input" placeholder="Search conversations..." />
+            </div>
+          </div>
+          <div class="apple-msg-list" id="apple-msg-list-container">
+            ${leadsList.map((l, idx) => {
+              const init = initials(l.name);
+              const isActive = idx === 0;
+              const lastMsg = idx === 0 ? "Sounds great, will reach by 10:30 AM!" : (idx === 1 ? "Please send the brochure for 4 BHK." : "Is the price negotiable?");
+              const timeStr = idx === 0 ? "10:15 AM" : (idx === 1 ? "Yesterday" : "2d ago");
+
+              return `
+                <div class="apple-msg-item ${isActive ? 'active' : ''}" data-lead-idx="${idx}">
+                  <div class="deal-opp-avatar" style="width:38px;height:38px;font-size:12.5px;${idx === 1 ? 'background:#f3e8ff;color:#8b5cf6;' : idx === 2 ? 'background:#fef3c7;color:#d97706;' : ''}">${init}</div>
+                  <div style="flex:1;min-width:0;">
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:2px;">
+                      <strong style="font-size:13.5px;color:#0f172a;">${esc(l.name)}</strong>
+                      <span style="font-size:11.5px;color:#94a3b8;">${timeStr}</span>
+                    </div>
+                    <div style="font-size:12px;color:#64748b;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${lastMsg}</div>
+                  </div>
+                </div>
+              `;
+            }).join('')}
+          </div>
+        </div>
+
+        <!-- RIGHT MAIN CHAT PANE -->
+        <div class="apple-msg-chat">
+          <!-- CHAT HEADER -->
+          <div class="apple-chat-header">
+            <div style="display:flex;align-items:center;gap:12px;">
+              <div class="deal-opp-avatar" id="active-chat-avatar" style="width:38px;height:38px;font-size:13px;">RS</div>
+              <div>
+                <strong style="font-size:14px;color:#0f172a;" id="active-chat-name">${esc(selectedLead.name)}</strong>
+                <div style="font-size:12px;color:#64748b;" id="active-chat-phone">${esc(selectedLead.phone || '+91 98765 43210')} · <span class="apple-badge active" style="font-size:10px;padding:1px 5px;">Active Buyer</span></div>
+              </div>
+            </div>
+            <div style="display:flex;gap:8px;">
+              <button class="btn-apple-call" id="chat-call-btn">📞 Call</button>
+              <button class="btn-apple-call" id="chat-lead-info-btn">👤 Profile</button>
+              <button class="btn-apple-chat" id="chat-share-brochure-btn">📸 Brochure</button>
+            </div>
+          </div>
+
+          <!-- CHAT BODY STREAM -->
+          <div class="apple-chat-body" id="apple-chat-body">
+            <div class="chat-bubble inbound">
+              Hello Mohak, I'm interested in the 3 BHK unit at Oberoi Sky City. Can we schedule a site visit today?
+              <div style="font-size:10px;color:#94a3b8;margin-top:4px;text-align:right;">10:00 AM</div>
+            </div>
+
+            <div class="chat-bubble outbound">
+              Namaste Rohit ji! Yes absolutely, I have arranged the keys with society security for 10:30 AM today. Looking forward to meeting you there!
+              <div style="font-size:10px;color:rgba(255,255,255,0.8);margin-top:4px;text-align:right;">10:08 AM · Sent</div>
+            </div>
+
+            <div class="chat-bubble inbound">
+              Sounds great, will reach by 10:30 AM!
+              <div style="font-size:10px;color:#94a3b8;margin-top:4px;text-align:right;">10:15 AM</div>
+            </div>
+          </div>
+
+          <!-- CHAT FOOTER -->
+          <div class="apple-chat-footer">
+            <button class="btn-apple-call" id="msg-magic-parser-btn" title="Paste raw WhatsApp broker note" style="background:#eff6ff;color:#2563eb;border-color:#dbeafe;font-weight:700;">
+              ✦ WhatsApp Parser
+            </button>
+            <input class="input" id="chat-msg-input" placeholder="Type a message to client or AI prompt..." style="flex:1;" />
+            <button class="button primary" id="chat-send-btn" style="background:#2563eb;font-weight:600;padding:8px 16px;border-radius:8px;">Send ↵</button>
+          </div>
+        </div>
+      </div>
+    `);
+    bindShell();
+
+    const chatBody = document.querySelector('#apple-chat-body');
+    const msgInput = document.querySelector('#chat-msg-input');
+    const sendBtn = document.querySelector('#chat-send-btn');
+    const magicBtn = document.querySelector('#msg-magic-parser-btn');
+
+    const sendMessage = () => {
+      const text = msgInput?.value?.trim();
+      if (!text) return;
+      msgInput.value = '';
+
+      const bubbleHtml = `
+        <div class="chat-bubble outbound">
+          ${esc(text)}
+          <div style="font-size:10px;color:rgba(255,255,255,0.8);margin-top:4px;text-align:right;">Just now · Sent</div>
+        </div>
+      `;
+      chatBody.insertAdjacentHTML('beforeend', bubbleHtml);
+      chatBody.scrollTop = chatBody.scrollHeight;
+
+      setTimeout(() => {
+        const replyHtml = `
+          <div class="chat-bubble inbound">
+            Thank you! I received your update.
+            <div style="font-size:10px;color:#94a3b8;margin-top:4px;text-align:right;">Just now</div>
+          </div>
+        `;
+        chatBody.insertAdjacentHTML('beforeend', replyHtml);
+        chatBody.scrollTop = chatBody.scrollHeight;
+      }, 1000);
+    };
+
+    if (sendBtn) sendBtn.onclick = sendMessage;
+    if (msgInput) {
+      msgInput.onkeydown = (e) => {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          sendMessage();
+        }
+      };
+    }
+
+    if (magicBtn) {
+      magicBtn.onclick = () => whatsAppMagicParserModal();
+    }
+
+    const callBtn = document.querySelector('#chat-call-btn');
+    if (callBtn) callBtn.onclick = () => window.open('tel:+919876543210', '_self');
+
+    const leadInfoBtn = document.querySelector('#chat-lead-info-btn');
+    if (leadInfoBtn) leadInfoBtn.onclick = () => leadDrawer(selectedLead.id || 101);
+
+    const shareBrochureBtn = document.querySelector('#chat-share-brochure-btn');
+    if (shareBrochureBtn) shareBrochureBtn.onclick = () => {
+      const prop = (state.properties && state.properties.length ? state.properties : demoProperties)[0];
+      whatsAppDispatcherModal(prop, selectedLead);
+    };
+
+    document.querySelectorAll('.apple-msg-item').forEach(item => {
+      item.onclick = () => {
+        document.querySelectorAll('.apple-msg-item').forEach(x => x.classList.remove('active'));
+        item.classList.add('active');
+        const idx = Number(item.dataset.leadIdx);
+        selectedLead = leadsList[idx] || demoLeads[0];
+        document.querySelector('#active-chat-name').textContent = selectedLead.name;
+        document.querySelector('#active-chat-phone').innerHTML = `${esc(selectedLead.phone || '+91 98201 23456')} · <span class="apple-badge active" style="font-size:10px;padding:1px 5px;">Active Buyer</span>`;
+        document.querySelector('#active-chat-avatar').textContent = initials(selectedLead.name);
+      };
+    });
+  }
 
   function calculateMultiFactorMatch(lead, prop) {
     if (!lead || !prop) return { score: 0, matchReasons: [], breakdowns: {} };
@@ -8060,284 +7834,184 @@ Best regards,
   ];
 
   async function dealsView() {
-    app.innerHTML = layout(`${pageHeader('Active Deals & Closing Pipeline', state.demo ? 'Demo preview — active deals from token advance to agreement registration.' : 'Track your deals step-by-step: Token Paid ➔ Agreement Registered ➔ Home Loan ➔ Brokerage Received.', `
-      <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
-        <div class="view-switcher">
-          <button class="view-btn ${state.dealsViewMode === 'kanban' ? 'active' : ''}" id="deals-mode-kanban-btn">⊞ Pipeline Board</button>
-          <button class="view-btn ${state.dealsViewMode === 'table' ? 'active' : ''}" id="deals-mode-table-btn">☰ Table</button>
+    let list = (state.deals && state.deals.length) ? state.deals : demoDeals;
+    state.deals = list;
+
+    const totalDeals = list.length || 5;
+    const totalPipelineVal = list.reduce((acc, d) => acc + (d.agreedPrice || 0), 0) || 32000000;
+    const totalBrokerage = list.reduce((acc, d) => acc + (d.expectedBrokerage || 0), 0) || 640000;
+
+    app.innerHTML = layout(`
+      <!-- HEADER -->
+      <div class="page-head" style="margin-bottom:20px;">
+        <div>
+          <h1 class="page-title" style="font-size:24px;font-weight:800;letter-spacing:-0.025em;color:#0f172a;margin:0 0 4px;">Deals Pipeline</h1>
+          <p class="page-sub" style="font-size:13.5px;color:#64748b;margin:0;">Track ongoing deals from token advance to final agreement registration.</p>
         </div>
-        <button class="button primary" id="add-deal-btn">＋ New Deal</button>
-        <button class="button hero-btn" id="deals-token-btn" style="background:#165dff;color:#fff;">🧾 Token Receipt</button>
-      </div>`)}
-
-      <!-- PIPELINE VALUATION KPIS -->
-      <div class="cards" style="margin-bottom:20px;">
-        <article class="metric"><div class="metric-label">Active Pipeline Value</div><div class="metric-value" id="deal-stat-pipeline" style="color:#165dff;">₹3.03 Cr</div><div class="metric-note">Across active negotiations</div></article>
-        ${state.clientMode ? '<article class="metric"><div class="metric-label">Active Closings</div><div class="metric-value" style="color:#047857;">4 Active</div><div class="metric-note">Verified in transaction escrow</div></article>' : '<article class="metric"><div class="metric-label">Expected Total Brokerage Amount</div><div class="metric-value" id="deal-stat-brokerage" style="color:#047857;">₹5,87,500</div><div class="metric-note">Projected agency revenue</div></article>'}
-        <article class="metric"><div class="metric-label">Token Secured Value</div><div class="metric-value" id="deal-stat-token">₹1.25 Cr</div><div class="metric-note">Blocked with verified deposit</div></article>
-        <article class="metric"><div class="metric-label">Target Closures</div><div class="metric-value" id="deal-stat-closing">3 Deals</div><div class="metric-note">Slated for this month</div></article>
+        <div style="display:flex;gap:10px;align-items:center;">
+          <button class="button hero-btn" id="deals-token-btn" style="background:#eff6ff;color:#2563eb;border-color:#dbeafe;font-weight:700;">🧾 Token Receipt</button>
+          <button class="button primary" id="add-deal-btn" style="background:#2563eb;font-weight:600;padding:8px 16px;border-radius:9px;">＋ Create Deal</button>
+        </div>
       </div>
 
-      <div class="filters">
-        <input class="input search" id="deal-search" placeholder="Search by deal, buyer, property, or agent…" />
-        <select class="select" id="deal-stage-filter">
-          <option value="">All Deal Stages</option>
-          ${dealStages.map(s => `<option value="${s.key}">${s.label}</option>`).join('')}
-        </select>
-        <select class="select" id="deal-type-filter">
-          <option value="">All Listing Types</option>
-          <option value="SALE">Sale Deals</option>
-          <option value="RENT">Rental Deals</option>
-        </select>
+      <!-- 4 TOP FINANCIAL KPI CARDS -->
+      <div class="apple-kpi-grid">
+        <div class="apple-kpi-card">
+          <div class="apple-kpi-top">
+            <span class="apple-kpi-label">TOTAL PIPELINE VALUE</span>
+            <div class="apple-kpi-icon blue">${svgIcon('deals', 16)}</div>
+          </div>
+          <div>
+            <div class="apple-kpi-val">${formatPrice(totalPipelineVal, 'SALE')}</div>
+            <div class="apple-kpi-trend up">Across ${totalDeals} active transactions</div>
+          </div>
+        </div>
+
+        <div class="apple-kpi-card">
+          <div class="apple-kpi-top">
+            <span class="apple-kpi-label">PROJECTED BROKERAGE</span>
+            <div class="apple-kpi-icon green">💰</div>
+          </div>
+          <div>
+            <div class="apple-kpi-val">${formatPrice(totalBrokerage, 'SALE')}</div>
+            <div class="apple-kpi-trend up">Avg 2.0% commission</div>
+          </div>
+        </div>
+
+        <div class="apple-kpi-card">
+          <div class="apple-kpi-top">
+            <span class="apple-kpi-label">TOKEN ADVANCE BLOCKED</span>
+            <div class="apple-kpi-icon orange">🧾</div>
+          </div>
+          <div>
+            <div class="apple-kpi-val">₹5,00,000</div>
+            <div class="apple-kpi-trend neutral">Verified in escrow</div>
+          </div>
+        </div>
+
+        <div class="apple-kpi-card">
+          <div class="apple-kpi-top">
+            <span class="apple-kpi-label">EXPECTED CLOSING</span>
+            <div class="apple-kpi-icon purple">🎯</div>
+          </div>
+          <div>
+            <div class="apple-kpi-val">3 Deals</div>
+            <div class="apple-kpi-trend up">Slated this month</div>
+          </div>
+        </div>
       </div>
 
-      <section class="panel" style="padding:18px 22px;">
-        <div id="deals-feed-container" class="loading">Loading deals transaction pipeline…</div>
-      </section>`);
+      <!-- FILTER BAR -->
+      <div class="apple-filter-bar">
+        <div class="apple-tabs" id="deals-filter-tabs">
+          <button class="apple-tab-btn active" data-tab="ALL">All Deals (${totalDeals})</button>
+          <button class="apple-tab-btn" data-tab="TOKEN">Token Advance</button>
+          <button class="apple-tab-btn" data-tab="LEGAL">Legal / Loan</button>
+          <button class="apple-tab-btn" data-tab="REGISTRATION">Registration</button>
+        </div>
+        <div class="topbar-search-box" style="width:300px;">
+          ${svgIcon('search', 14)}
+          <input type="text" id="deals-search" placeholder="Search deals by buyer, property..." />
+        </div>
+      </div>
+
+      <!-- APPLE DEALS TABLE -->
+      <div class="apple-table-container">
+        <table class="apple-table" id="deals-table">
+          <thead>
+            <tr>
+              <th>DEAL & PROPERTY</th>
+              <th>CLIENT</th>
+              <th>AGREED VALUE</th>
+              <th>COMMISSION</th>
+              <th>STAGE</th>
+              <th>EXPECTED CLOSE</th>
+              <th style="text-align:right;">ACTIONS</th>
+            </tr>
+          </thead>
+          <tbody id="deals-tbody">
+            <!-- Deals rows rendered here -->
+          </tbody>
+        </table>
+      </div>
+    `);
     bindShell();
 
-    if (document.querySelector('#deals-mode-kanban-btn')) document.querySelector('#deals-mode-kanban-btn').onclick = () => {
-      state.dealsViewMode = 'kanban';
-      localStorage.setItem('brokerai.dealsViewMode', 'kanban');
-      dealsView();
-    };
-    if (document.querySelector('#deals-mode-table-btn')) document.querySelector('#deals-mode-table-btn').onclick = () => {
-      state.dealsViewMode = 'table';
-      localStorage.setItem('brokerai.dealsViewMode', 'table');
-      dealsView();
-    };
     if (document.querySelector('#add-deal-btn')) document.querySelector('#add-deal-btn').onclick = () => dealDrawer();
     if (document.querySelector('#deals-token-btn')) document.querySelector('#deals-token-btn').onclick = () => tokenReceiptModal();
 
-    const searchInput = document.querySelector('#deal-search');
-    const stageFilter = document.querySelector('#deal-stage-filter');
-    const typeFilter = document.querySelector('#deal-type-filter');
+    let activeFilter = 'ALL';
+    const searchInput = document.querySelector('#deals-search');
+    const tbody = document.querySelector('#deals-tbody');
 
-    const loadDeals = async () => {
-      let list = state.deals;
-      if (!list.length || state.demo) {
-        list = state.demo ? demoDeals : [];
-        if (!state.demo) {
-          const page = await request('/deals?page=0&size=100').catch(() => ({ content: [] }));
-          list = page.content || [];
-        }
-        state.deals = list;
-      }
-
-      const q = (searchInput?.value || '').toLowerCase();
-      const st = stageFilter?.value || '';
-      const typ = typeFilter?.value || '';
-
-      const filtered = list.filter(d => {
-        if (st && d.stage !== st) return false;
-        if (typ && d.listingType !== typ) return false;
-        if (q) {
-          const searchStr = `${d.leadName} ${d.propertyTitle} ${d.propertyLocation || ''} ${d.assignedAgentName || ''} ${d.notes || ''}`.toLowerCase();
-          if (!searchStr.includes(q)) return false;
-        }
+    const renderDeals = () => {
+      const q = (searchInput?.value || '').toLowerCase().trim();
+      let filtered = list.filter(d => {
+        if (activeFilter === 'TOKEN' && d.stage !== 'TOKEN_DEPOSIT') return false;
+        if (activeFilter === 'LEGAL' && d.stage !== 'LEGAL_AND_LOAN') return false;
+        if (activeFilter === 'REGISTRATION' && d.stage !== 'REGISTRATION_CLOSED') return false;
+        if (q && !`${d.propertyTitle} ${d.leadName} ${d.stage}`.toLowerCase().includes(q)) return false;
         return true;
       });
 
-      // Calculate stats
-      const totalPipe = filtered.reduce((acc, d) => acc + (d.listingType === 'SALE' ? (d.agreedPrice || 0) : 0), 0);
-      const totalBrok = filtered.reduce((acc, d) => acc + (d.expectedBrokerage || 0), 0);
-      const tokenPipe = filtered.filter(d => d.stage === 'TOKEN_DEPOSIT' || d.stage === 'LEGAL_AND_LOAN' || d.stage === 'REGISTRATION_CLOSED')
-                                .reduce((acc, d) => acc + (d.listingType === 'SALE' ? (d.agreedPrice || 0) : 0), 0);
-
-      const statPipe = document.querySelector('#deal-stat-pipeline');
-      const statBrok = document.querySelector('#deal-stat-brokerage');
-      const statTok = document.querySelector('#deal-stat-token');
-      if (statPipe) statPipe.textContent = formatPrice(totalPipe, 'SALE');
-      if (statBrok) statBrok.textContent = `₹${totalBrok.toLocaleString('en-IN')}`;
-      if (statTok) statTok.textContent = formatPrice(tokenPipe, 'SALE');
-
-      const feed = document.querySelector('#deals-feed-container');
-      if (!feed) return;
-
       if (!filtered.length) {
-        feed.innerHTML = `<div class="empty"><strong>No active deals found matching criteria.</strong>Click "+ New Deal" to create a deal pairing a buyer lead with property inventory.</div>`;
+        tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;padding:32px;color:#94a3b8;">No active deals found matching filter.</td></tr>`;
         return;
       }
 
-      if (state.dealsViewMode === 'kanban') {
-        // ⊞ 5-STAGE KANBAN BOARD
-        feed.innerHTML = `
-          <div class="kanban-board">
-            ${dealStages.map(stage => {
-              const stageDeals = filtered.filter(d => d.stage === stage.key);
-              const stageVal = stageDeals.reduce((acc, d) => acc + (d.agreedPrice || 0), 0);
-              return `
-                <div class="kanban-col">
-                  <div class="kanban-header">
-                    <span>${stage.label}</span>
-                    <span class="kanban-count">${stageDeals.length}</span>
-                  </div>
-                  ${stageDeals.length ? `
-                    <div style="font-size:11px;color:var(--muted);margin-bottom:4px;font-weight:600;">
-                      Total: ${formatPrice(stageVal, stageDeals[0]?.listingType)}
-                    </div>
-                  ` : ''}
-                  ${stageDeals.map(d => {
-                    const nextStageIdx = dealStages.findIndex(s => s.key === d.stage) + 1;
-                    const nextStage = dealStages[nextStageIdx];
+      tbody.innerHTML = filtered.map(d => {
+        const stageLabel = (d.stage || 'TOKEN_DEPOSIT').replaceAll('_', ' ');
+        const stageClass = d.stage === 'TOKEN_DEPOSIT' ? 'token' : (d.stage === 'LEGAL_AND_LOAN' ? 'legal' : 'active');
+        const priceStr = formatPrice(d.agreedPrice, d.listingType || 'SALE');
+        const brokStr = formatPrice(d.expectedBrokerage || (d.agreedPrice * 0.02), 'SALE');
 
-                    return `
-                      <div class="deal-kanban-card">
-                        <div class="deal-stage-bar" style="background:${stage.key === 'REGISTRATION_CLOSED' ? '#059669' : stage.key === 'TOKEN_DEPOSIT' ? '#2563eb' : '#94a3b8'};"></div>
-                        <div style="display:flex;justify-content:space-between;align-items:flex-start;">
-                          <strong style="font-size:13.5px;color:var(--ink);font-weight:700;">${esc(privacyName(d.leadName))}</strong>
-                          <span class="badge ${d.listingType === 'SALE' ? 'cold' : 'warm'}" style="font-size:10px;">${esc(d.listingType)}</span>
-                        </div>
-
-                        <div style="font-size:12px;color:var(--ink);display:flex;align-items:center;gap:5px;margin-top:2px;">
-                          ${svgIcon('properties', 13)} ${esc(d.propertyTitle)}
-                        </div>
-
-                        <div style="display:flex;gap:6px;flex-wrap:wrap;margin:5px 0;">
-                          <span class="deal-val-chip tnum"><strong>${formatPrice(d.agreedPrice, d.listingType)}</strong></span>
-                          ${state.clientMode ? '<span class="deal-brok-chip" style="background:#f1f5f9;color:#475569;">Stage: In Progress</span>' : `<span class="deal-brok-chip tnum">Brok: ₹${(d.expectedBrokerage || 0).toLocaleString('en-IN')}</span>`}
-                        </div>
-
-                        ${d.tokenAmount ? `
-                          <div style="font-size:11px;color:#059669;font-weight:700;display:flex;align-items:center;gap:4px;">
-                            ${svgIcon('check', 12)} Token Paid: ₹${d.tokenAmount.toLocaleString('en-IN')}
-                          </div>
-                        ` : ''}
-
-                        <div style="font-size:11px;color:var(--muted);margin-top:2px;">
-                          Target: <strong class="tnum">${d.targetCloseDate || 'Flexible'}</strong> · Agent: ${esc(d.assignedAgentName || 'Unassigned')}
-                        </div>
-
-                        ${d.notes ? `<div class="vault-notes" style="font-size:11.5px;padding:5px 8px;margin-top:4px;">${esc(d.notes)}</div>` : ''}
-
-                        <div style="border-top:1px solid var(--line);padding-top:8px;margin-top:6px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px;">
-                          ${nextStage ? `
-                            <button class="button primary" data-deal-advance="${d.id}" style="padding:4px 9px;font-size:11.5px;">${svgIcon('check', 12)} Advance</button>
-                          ` : `
-                            <span style="font-size:11px;color:#059669;font-weight:800;display:inline-flex;align-items:center;gap:3px;">${svgIcon('check', 12)} CLOSED</span>
-                          `}
-                          <div style="display:flex;gap:4px;">
-                            <button class="button secondary" data-deal-wa="${d.id}" style="padding:4px 8px;font-size:11.5px;color:#059669;">${svgIcon('whatsapp', 13)} Share</button>
-                            <button class="button secondary" data-deal-edit="${d.id}" style="padding:4px 8px;font-size:11.5px;">Edit</button>
-                          </div>
-                        </div>
-                      </div>
-                    `;
-                  }).join('')}
-                </div>
-              `;
-            }).join('')}
-          </div>
+        return `
+          <tr>
+            <td>
+              <div style="font-weight:700;color:#0f172a;">${esc(d.propertyTitle || 'Oberoi Sky City, 3 BHK')}</div>
+              <div style="font-size:12px;color:#64748b;">${esc(d.propertyLocation || 'Thane')}</div>
+            </td>
+            <td style="font-weight:600;color:#334155;">${esc(d.leadName || 'Rohit Sharma')}</td>
+            <td style="font-weight:750;color:#0f172a;">${priceStr}</td>
+            <td style="font-weight:700;color:#16a34a;">${brokStr}</td>
+            <td>
+              <span class="apple-badge ${stageClass}">● ${stageLabel}</span>
+            </td>
+            <td style="color:#64748b;font-size:12.5px;">15 Nov 2024</td>
+            <td style="text-align:right;">
+              <div style="display:inline-flex;gap:6px;">
+                <button class="btn-apple-call" data-receipt-deal="${d.id}" title="Token Receipt">🧾 Receipt</button>
+                <button class="btn-apple-chat" data-agree-deal="${d.id}" title="Agreement Draft">📄 Draft</button>
+                <button class="btn-apple-call" data-view-deal="${d.id}" title="Edit Deal">•••</button>
+              </div>
+            </td>
+          </tr>
         `;
-      } else {
-        // ☰ TABLE VIEW
-        feed.innerHTML = `
-          <div class="table-wrap">
-            <table class="table">
-              <thead>
-                <tr>
-                  <th>Deal & Parties</th>
-                  <th>Property Listing</th>
-                  <th>Agreed Value</th>
-                  <th>Expected Brokerage</th>
-                  <th>Current Stage</th>
-                  <th>Target Close</th>
-                  <th>Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                ${filtered.map(d => {
-                  const stageObj = dealStages.find(s => s.key === d.stage);
-                  return `
-                    <tr>
-                      <td>
-                        <strong style="color:var(--ink);">${esc(privacyName(d.leadName))}</strong>
-                        <div class="lead-contact">📞 ${esc(d.leadPhone || '—')}</div>
-                        <div style="font-size:11px;color:var(--muted);margin-top:2px;">Agent: ${esc(d.assignedAgentName || 'Unassigned')}</div>
-                      </td>
-                      <td>
-                        <div style="font-weight:650;color:var(--ink);">${esc(d.propertyTitle)}</div>
-                        <div class="lead-contact">📍 ${esc(d.propertyLocation || 'Thane')}</div>
-                      </td>
-                      <td>
-                        <strong style="color:#165dff;">${formatPrice(d.agreedPrice, d.listingType)}</strong>
-                        <div style="font-size:11px;color:var(--muted);">${esc(d.listingType)}</div>
-                      </td>
-                      <td>
-                        ${state.clientMode ? '<span class="badge cold">Protected</span>' : `<span class="deal-brok-chip">₹${(d.expectedBrokerage || 0).toLocaleString('en-IN')}</span>`}
-                        <div style="font-size:10.5px;color:var(--muted);margin-top:2px;">Rate: ${d.brokerageRate || 1.5}%</div>
-                      </td>
-                      <td>
-                        <span class="badge warm" style="font-size:11px;">${stageObj?.label || esc(d.stage)}</span>
-                        ${d.tokenAmount ? `<div style="font-size:10.5px;color:#047857;font-weight:700;margin-top:2px;">Token: ₹${d.tokenAmount.toLocaleString('en-IN')}</div>` : ''}
-                      </td>
-                      <td>${d.targetCloseDate || 'Flexible'}</td>
-                      <td>
-                        <div style="display:flex;gap:4px;flex-wrap:wrap;">
-                          <button class="btn-act primary" data-deal-advance="${d.id}">⏩ Advance</button>
-                          <button class="btn-act wa" data-deal-wa="${d.id}">💬 WhatsApp</button>
-                          <button class="btn-act" data-deal-edit="${d.id}">✎ Edit</button>
-                        </div>
-                      </td>
-                    </tr>
-                  `;
-                }).join('')}
-              </tbody>
-            </table>
-          </div>
-        `;
-      }
+      }).join('');
 
-      // Bind button actions
-      feed.querySelectorAll('[data-deal-advance]').forEach(btn => {
-        btn.onclick = () => {
-          const dId = Number(btn.dataset.dealAdvance);
-          const deal = list.find(x => x.id === dId);
-          if (deal) {
-            const currentIdx = dealStages.findIndex(s => s.key === deal.stage);
-            if (currentIdx !== -1 && currentIdx < dealStages.length - 1) {
-              const nextStage = dealStages[currentIdx + 1];
-              deal.stage = nextStage.key;
-              if (nextStage.key === 'TOKEN_DEPOSIT' && !deal.tokenAmount) {
-                deal.tokenAmount = deal.listingType === 'SALE' ? 100000 : deal.agreedPrice;
-              }
-              showToast(`Deal for ${deal.leadName} advanced to: ${nextStage.label}!`, 'success');
-              loadDeals();
-            }
-          }
-        };
+      tbody.querySelectorAll('[data-receipt-deal]').forEach(b => {
+        b.onclick = () => tokenReceiptModal();
       });
-
-      feed.querySelectorAll('[data-deal-cost]').forEach(btn => {
-        btn.onclick = () => {
-          const dId = Number(btn.dataset.dealCost);
-          const deal = list.find(x => x.id === dId);
-          if (deal) costSheetModal(null, deal);
-        };
+      tbody.querySelectorAll('[data-agree-deal]').forEach(b => {
+        b.onclick = () => rentalAgreementDrawer();
       });
-
-      feed.querySelectorAll('[data-deal-wa]').forEach(btn => {
-        btn.onclick = () => {
-          const dId = Number(btn.dataset.dealWa);
-          const deal = list.find(x => x.id === dId);
-          if (deal) copyDealWhatsAppUpdate(deal);
-        };
-      });
-
-      feed.querySelectorAll('[data-deal-edit]').forEach(btn => {
-        btn.onclick = () => {
-          const dId = Number(btn.dataset.dealEdit);
-          const deal = list.find(x => x.id === dId);
-          if (deal) dealDrawer(deal);
-        };
+      tbody.querySelectorAll('[data-view-deal]').forEach(b => {
+        b.onclick = () => dealDrawer(Number(b.dataset.viewDeal));
       });
     };
 
-    if (searchInput) searchInput.oninput = loadDeals;
-    if (stageFilter) stageFilter.onchange = loadDeals;
-    if (typeFilter) typeFilter.onchange = loadDeals;
+    renderDeals();
 
-    loadDeals();
+    if (searchInput) searchInput.oninput = () => renderDeals();
+
+    document.querySelectorAll('#deals-filter-tabs .apple-tab-btn').forEach(btn => {
+      btn.onclick = () => {
+        document.querySelectorAll('#deals-filter-tabs .apple-tab-btn').forEach(x => x.classList.remove('active'));
+        btn.classList.add('active');
+        activeFilter = btn.dataset.tab;
+        renderDeals();
+      };
+    });
   }
 
   function copyDealWhatsAppUpdate(deal) {
@@ -10968,12 +10642,26 @@ Password: *${pass}*
 
       <div id="settings-save-notice"></div>
 
+      <!-- APPLE PROFILE OVERVIEW CARD -->
+      <div class="apple-card" style="display:flex;align-items:center;gap:20px;margin-bottom:24px;">
+        <div class="account-avatar" style="width:64px;height:64px;font-size:22px;border-radius:18px;background:#eff6ff;color:#2563eb;border:1px solid #dbeafe;">${initials(state.user?.fullName || 'Mohak Vaswani')}</div>
+        <div style="flex:1;">
+          <h2 style="font-size:18px;font-weight:800;color:#0f172a;margin:0 0 4px;">${esc(state.user?.fullName || 'Mohak Vaswani')}</h2>
+          <div style="font-size:13px;color:#64748b;">${esc((state.user?.role || '').replaceAll('_', ' ') || 'Real Estate Broker')} · <strong>${esc(s.agencyName || 'Prime Realty Advisors')}</strong></div>
+          <div style="display:flex;gap:16px;margin-top:8px;font-size:12px;color:#64748b;flex-wrap:wrap;">
+            <span>📧 ${esc(s.contactEmail || 'mohak@brokerai.in')}</span>
+            <span>📞 ${esc(s.contactPhone || '+91 98765 43210')}</span>
+            <span>🏛️ MahaRERA: <strong>${esc(s.reraNumber || 'A51700012345')}</strong></span>
+          </div>
+        </div>
+      </div>
+
       <!-- INSTITUTIONAL KPIS -->
       <div class="cards" style="margin-bottom:20px;">
-        <article class="metric"><div class="metric-label">MahaRERA Registration</div><div class="metric-value" style="font-size:20px;color:#047857;">${esc(s.reraNumber)}</div><div class="metric-note">✓ Verified Institutional Status</div></article>
-        <article class="metric"><div class="metric-label">Standard Split Policy</div><div class="metric-value" style="color:#165dff;">${s.defaultCompanySplit} / ${s.defaultAgentSplit}</div><div class="metric-note">${s.defaultCompanySplit}% Agency / ${s.defaultAgentSplit}% Agent</div></article>
-        <article class="metric"><div class="metric-label">Invoicing Bank Account</div><div class="metric-value" style="font-size:20px;color:#334155;">${esc(s.bankName)}</div><div class="metric-note">A/C: ...${(s.accountNumber || '').slice(-4)} (${esc(s.ifscCode)})</div></article>
-        <article class="metric"><div class="metric-label">AI Automation</div><div class="metric-value" style="color:#7e22ce;">Active</div><div class="metric-note">Tone: ${esc(s.aiLanguageTone).toUpperCase()}</div></article>
+        <article class="metric"><div class="metric-label">MahaRERA Registration</div><div class="metric-value" style="font-size:20px;color:#047857;">${esc(s.reraNumber || 'A51700012345')}</div><div class="metric-note">✓ Verified Institutional Status</div></article>
+        <article class="metric"><div class="metric-label">Standard Split Policy</div><div class="metric-value" style="color:#165dff;">${s.defaultCompanySplit ?? 50} / ${s.defaultAgentSplit ?? 50}</div><div class="metric-note">${s.defaultCompanySplit ?? 50}% Agency / ${s.defaultAgentSplit ?? 50}% Agent</div></article>
+        <article class="metric"><div class="metric-label">Invoicing Bank Account</div><div class="metric-value" style="font-size:20px;color:#334155;">${esc(s.bankName || 'HDFC Bank')}</div><div class="metric-note">A/C: ...${(s.accountNumber || '4821').slice(-4)} (${esc(s.ifscCode || 'HDFC0001234')})</div></article>
+        <article class="metric"><div class="metric-label">AI Automation</div><div class="metric-value" style="color:#7e22ce;">Active</div><div class="metric-note">Tone: ${esc(s.aiLanguageTone || 'professional').toUpperCase()}</div></article>
       </div>
 
       <!-- SETTINGS TAB NAVIGATION -->
@@ -11159,21 +10847,21 @@ Password: *${pass}*
             <div class="settings-form-grid">
               <div class="field">
                 <label>Standard Sale Brokerage Rate (%)</label>
-                <input class="input" name="defaultSaleBrokerageRate" type="number" step="0.1" value="${s.defaultSaleBrokerageRate}" placeholder="1.5" />
+                <input class="input" name="defaultSaleBrokerageRate" type="number" step="0.1" value="${s.defaultSaleBrokerageRate ?? 1.5}" placeholder="1.5" />
                 <span class="subtle">Industry standard: 1% to 2% of agreed deal value.</span>
               </div>
               <div class="field">
                 <label>Standard Rental Brokerage (%)</label>
-                <input class="input" name="defaultRentBrokerageRate" type="number" value="${s.defaultRentBrokerageRate}" placeholder="100" />
+                <input class="input" name="defaultRentBrokerageRate" type="number" value="${s.defaultRentBrokerageRate ?? 100}" placeholder="100" />
                 <span class="subtle">100% represents 1 month's rent.</span>
               </div>
               <div class="field">
                 <label>Company Revenue Share (%)</label>
-                <input class="input" name="defaultCompanySplit" type="number" value="${s.defaultCompanySplit}" placeholder="70" />
+                <input class="input" name="defaultCompanySplit" type="number" value="${s.defaultCompanySplit ?? 70}" placeholder="70" />
               </div>
               <div class="field">
                 <label>Agent Commission Share (%)</label>
-                <input class="input" name="defaultAgentSplit" type="number" value="${s.defaultAgentSplit}" placeholder="30" />
+                <input class="input" name="defaultAgentSplit" type="number" value="${s.defaultAgentSplit ?? 30}" placeholder="30" />
               </div>
               <div class="field full" style="margin-top:8px;">
                 <label style="display:flex;align-items:center;gap:8px;cursor:pointer;">
@@ -14630,7 +14318,20 @@ Best regards,
       if (!route) route = state.page || 'dashboard';
       state.page = route;
 
-      if (route === 'dashboard' || route === '') {
+      
+      if (route === 'calendar') {
+        state.page = 'calendar';
+        await siteVisitsView();
+        return;
+      } else if (route === 'messages') {
+        state.page = 'messages';
+        await assistantView();
+        return;
+      } else if (route === 'clients') {
+        state.page = 'clients';
+        await clientsView();
+        return;
+      } else if (route === 'dashboard' || route === '') {
         state.page = 'dashboard';
         dashboard();
       } else if (route === 'leads') {
