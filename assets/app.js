@@ -890,7 +890,7 @@ const demoDocuments = [
         ['letterhead', 'letterhead', '🖨️ MahaRERA Letterhead'],
         ['commissions', 'commissions', '💰 Commission Splits'],
         ['reports', 'reports', 'Reports & Analytics'],
-        ['pricing', 'pricing', '💎 Manage Subscription'],
+        ['pricing', 'pricing', '💎 Plan Details'],
         ['settings', 'settings', 'Settings']
       ];
     }
