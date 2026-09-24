@@ -1999,9 +1999,7 @@ const demoDocuments = [
               ${unread ? `<span class="notif-badge">${unread}</span>` : ''}
             </button>
 
-            <button class="topbar-icon-btn" id="topbar-msg-btn" title="Messages" onclick="location.hash='#/assistant';">
-              ${svgIcon('assistant', 16)}
-            </button>
+            
 
             <span class="account-avatar" style="width:34px;height:34px;font-size:12px;cursor:pointer;" id="topbar-avatar-btn">${userInit}</span>
           </div>
@@ -2028,9 +2026,9 @@ const demoDocuments = [
           <div class="nav-icon-wrap">${svgIcon('visits', 18)}</div>
           <span>Calendar</span>
         </a>
-        <a href="#/messages" class="mobile-bottom-nav-item ${currentPage === 'messages' || currentPage === 'assistant' ? 'active' : ''}">
-          <div class="nav-icon-wrap">${svgIcon('assistant', 18)}</div>
-          <span>Chat</span>
+        <a href="#/deals" class="mobile-bottom-nav-item ${currentPage === 'deals' ? 'active' : ''}">
+          <div class="nav-icon-wrap">${svgIcon('deals', 18)}</div>
+          <span>Deals</span>
         </a>
       </nav>
 
@@ -14444,9 +14442,7 @@ Best regards,
         state.page = 'calendar';
         await siteVisitsView();
         return;
-      } else if (route === 'messages') {
-        state.page = 'messages';
-        await assistantView();
+      
         return;
       } else if (route === 'clients') {
         state.page = 'clients';
@@ -14491,9 +14487,10 @@ Best regards,
       } else if (route === 'reports' || route === 'analytics' || route === 'leaderboard') {
         state.page = 'reports';
         await reportsView();
-      } else if (route === 'assistant' || route === 'copilot') {
-        state.page = 'assistant';
-        await assistantView();
+      } else if (route === 'assistant' || route === 'copilot' || route === 'messages') {
+        state.page = 'dashboard';
+        window.location.hash = '#/dashboard';
+        dashboard();
       } else if (route === 'notifications') {
         state.page = 'notifications';
         await notificationsView();
