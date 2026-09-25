@@ -1987,17 +1987,34 @@ const demoDocuments = [
 
       <main class="main">
         <!-- TOPBAR -->
-        <header class="topbar">
-          <!-- SEARCH BOX -->
-          <div class="topbar-search-box" id="topbar-spotlight-btn" style="cursor:pointer;" title="Search or jump to... (Ctrl + K)">
-            ${svgIcon('search', 15)}
-            <input type="text" placeholder="Search leads, properties, clients..." readonly style="cursor:pointer;" />
-            <kbd style="font-size:11px;background:#e2e8f0;padding:2px 6px;border-radius:5px;color:#64748b;font-weight:600;">Ctrl K</kbd>
-          </div>
+        <header class="topbar" id="app-topbar">
+          <div class="topbar-left" style="display:flex;align-items:center;gap:12px;">
+            <!-- ☰ TOP-LEFT HAMBURGER MENU BUTTON -->
+            <button class="topbar-hamburger-btn" id="topbar-hamburger-btn" title="Open Navigation Menu (☰)" aria-label="Open Navigation Menu">
+              <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" fill="none">
+                <line x1="3" y1="6" x2="21" y2="6"></line>
+                <line x1="3" y1="12" x2="21" y2="12"></line>
+                <line x1="3" y1="18" x2="21" y2="18"></line>
+              </svg>
+            </button>
 
-          <!-- DATE DISPLAY -->
-          <div class="topbar-date" style="font-weight:600;color:#64748b;">
-            <span>${formattedDate}</span>
+            <!-- BRAND BADGE & PAGE TITLE -->
+            <div class="topbar-brand-wrap" style="display:flex;align-items:center;gap:8px;cursor:pointer;" onclick="window.location.hash='#/dashboard'" title="Go to Dashboard">
+              <span class="mark" style="width:30px;height:30px;border-radius:8px;">
+                <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" style="width:16px;height:16px;"><path d="M4 20V10l8-6 8 6v10"/><path d="M9 20v-6h6v6"/></svg>
+              </span>
+              <div class="topbar-title-block" style="display:flex;flex-direction:column;">
+                <span style="font-size:14.5px;font-weight:800;color:#0f172a;letter-spacing:-0.02em;line-height:1.2;">${esc(state.agencySettings?.agencyName || 'BrokerAI')}</span>
+                <span style="font-size:11px;font-weight:700;color:#2563eb;text-transform:uppercase;letter-spacing:0.04em;">${esc(currentPage.toUpperCase())}</span>
+              </div>
+            </div>
+
+            <!-- SEARCH SPOTLIGHT (DESKTOP) -->
+            <div class="topbar-search-box" id="topbar-spotlight-btn" style="cursor:pointer;" title="Search CRM (Ctrl + K)">
+              ${svgIcon('search', 14)}
+              <input type="text" placeholder="Search leads, properties, deals..." readonly style="cursor:pointer;" />
+              <kbd style="font-size:10.5px;background:#e2e8f0;padding:2px 5px;border-radius:4px;color:#64748b;font-weight:600;">⌘K</kbd>
+            </div>
           </div>
 
           <!-- TOP ACTIONS -->
@@ -2024,9 +2041,7 @@ const demoDocuments = [
               ${unread ? `<span class="notif-badge">${unread}</span>` : ''}
             </button>
 
-            
-
-            <span class="account-avatar" style="width:34px;height:34px;font-size:12px;cursor:pointer;" id="topbar-avatar-btn">${userInit}</span>
+            <span class="account-avatar" style="width:34px;height:34px;font-size:12.5px;font-weight:750;cursor:pointer;" id="topbar-avatar-btn" title="Account Settings">${userInit}</span>
           </div>
         </header>
 
@@ -9213,72 +9228,78 @@ Password: *${pass}*
     drawer.className = 'mobile-slide-drawer';
 
     const s = state.agencySettings || defaultAgencySettings;
+    const userName = state.user?.fullName || 'Broker Partner';
+    const userRole = state.user?.role ? state.user.role.replaceAll('_', ' ') : 'Principal Broker';
+    const userInit = initials(userName);
+    const cap = getPlanCapabilities();
 
     drawer.innerHTML = `
-      <div class="drawer-header-brand">
-        <div style="display:flex;align-items:center;gap:10px;">
-          <span class="mark" style="width:34px;height:34px;">
-            <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M4 20V10l8-6 8 6v10"/><path d="M9 20v-6h6v6"/></svg>
+      <div class="drawer-header-brand" style="background:#0f172a;color:#ffffff;padding:18px 20px;border-bottom:1px solid rgba(255,255,255,0.1);display:flex;align-items:center;justify-content:space-between;">
+        <div style="display:flex;align-items:center;gap:12px;">
+          <span class="mark" style="width:36px;height:36px;border-radius:10px;background:#2563eb;box-shadow:0 2px 10px rgba(37,99,235,0.4);">
+            <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" style="width:18px;height:18px;"><path d="M4 20V10l8-6 8 6v10"/><path d="M9 20v-6h6v6"/></svg>
           </span>
           <div>
-            <div style="font-size:15px;font-weight:800;color:#ffffff;">${esc(s.agencyName || 'BrokerAI')}</div>
-            <div style="font-size:11px;color:#34d399;font-weight:700;">● MahaRERA: ${esc(s.reraNumber || 'A51700012345')}</div>
+            <div style="font-size:16px;font-weight:800;color:#ffffff;letter-spacing:-0.015em;">${esc(s.agencyName || 'BrokerAI')}</div>
+            <div style="font-size:12px;color:#34d399;font-weight:700;">● MahaRERA: ${esc(s.reraNumber || 'A51700012345')}</div>
           </div>
         </div>
-        <button class="drawer-close-btn" id="drawer-close-btn">✕</button>
+        <button class="drawer-close-btn" id="drawer-close-btn" style="background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);color:#ffffff;width:32px;height:32px;border-radius:8px;cursor:pointer;font-size:14px;">✕</button>
       </div>
 
-      <div class="drawer-body">
-        <div class="drawer-section-label">Core Modules</div>
-        <nav class="drawer-nav-list">
+      <div class="drawer-body" style="padding:16px 14px;display:flex;flex-direction:column;flex:1;overflow-y:auto;background:#ffffff;">
+        <!-- USER PROFILE CARD -->
+        <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:14px;padding:12px 14px;display:flex;align-items:center;gap:10px;margin-bottom:14px;">
+          <span class="account-avatar" style="width:38px;height:38px;font-size:13px;background:rgba(37,99,235,0.15);color:#2563eb;border:1px solid rgba(37,99,235,0.25);">${userInit}</span>
+          <div style="flex:1;min-width:0;">
+            <div style="font-size:14px;font-weight:750;color:#0f172a;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${esc(userName)}</div>
+            <div style="font-size:12px;font-weight:600;color:#64748b;">${esc(userRole)}</div>
+          </div>
+        </div>
+
+        <div class="drawer-section-label" style="font-size:11.5px;font-weight:800;color:#64748b;text-transform:uppercase;letter-spacing:0.06em;margin:0 0 8px 6px;">Workspace Navigation</div>
+        <nav class="drawer-nav-list" style="display:flex;flex-direction:column;gap:4px;margin-bottom:14px;">
           ${getNavItems().map(([id, iconName, label]) => `
-            <a class="drawer-nav-item ${state.page === id ? 'active' : ''}" href="#/${id}">
-              <span class="drawer-nav-icon">${svgIcon(iconName, 18)}</span>
-              <span>${label}</span>
+            <a class="drawer-nav-item ${state.page === id ? 'active' : ''}" href="#/${id}" style="display:flex;align-items:center;gap:12px;padding:10px 14px;border-radius:10px;font-size:14px;font-weight:650;color:${state.page === id ? '#2563eb' : '#1e293b'};background:${state.page === id ? '#eff6ff' : 'transparent'};text-decoration:none;transition:all 0.15s ease;">
+              <span class="drawer-nav-icon" style="color:${state.page === id ? '#2563eb' : '#64748b'};">${svgIcon(iconName, 18)}</span>
+              <span style="flex:1;">${label}</span>
+              ${state.page === id ? `<span style="font-size:11px;font-weight:750;color:#2563eb;background:#dbeafe;padding:2px 7px;border-radius:6px;">Active</span>` : ''}
             </a>
           `).join('')}
         </nav>
 
-        <div class="drawer-section-label" style="margin-top:14px;">WhatsApp & Deal Tools</div>
-        <div style="display:flex;flex-direction:column;gap:6px;">
-          <button class="drawer-tool-btn emerald" id="drawer-wa-dispatcher-btn">
-            ${svgIcon('whatsapp', 16)}
-            <span><strong>Send WhatsApp Pitch (Outgoing)</strong></span>
+        <div class="drawer-section-label" style="font-size:11.5px;font-weight:800;color:#64748b;text-transform:uppercase;letter-spacing:0.06em;margin:0 0 8px 6px;">Quick Deal Actions</div>
+        <div style="display:flex;flex-direction:column;gap:7px;margin-bottom:14px;">
+          <button class="drawer-tool-btn emerald" id="drawer-wa-dispatcher-btn" style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:10px;border:1px solid #a7f3d0;background:#ecfdf5;color:#047857;font-size:13.5px;font-weight:700;cursor:pointer;text-align:left;">
+            ${svgIcon('whatsapp', 18)}
+            <span><strong>Send WhatsApp Pitch (1-Click)</strong></span>
           </button>
-          <button class="drawer-tool-btn" id="drawer-magic-parser-btn">
-            ${svgIcon('whatsapp', 16)}
-            <span>Magic WhatsApp Parser (Incoming)</span>
+          <button class="drawer-tool-btn" id="drawer-magic-parser-btn" style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:10px;border:1px solid #e2e8f0;background:#f8fafc;color:#1e293b;font-size:13.5px;font-weight:650;cursor:pointer;text-align:left;">
+            ${svgIcon('whatsapp', 18)}
+            <span>Magic WhatsApp AI Parser</span>
           </button>
-          <button class="drawer-tool-btn" id="drawer-cost-btn">
-            ${svgIcon('calculator', 16)}
+          <button class="drawer-tool-btn" id="drawer-cost-btn" style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:10px;border:1px solid #e2e8f0;background:#f8fafc;color:#1e293b;font-size:13.5px;font-weight:650;cursor:pointer;text-align:left;">
+            ${svgIcon('calculator', 18)}
             <span>On-Road Cost & EMI Desk</span>
           </button>
         </div>
 
-        <div class="drawer-section-label" style="margin-top:14px;">System & Settings</div>
-        <nav class="drawer-nav-list">
-          ${getSecondaryNavItems().map(([id, iconName, label]) => `
-            <a class="drawer-nav-item ${state.page === id ? 'active' : ''}" href="#/${id}">
-              <span class="drawer-nav-icon">${svgIcon(iconName, 18)}</span>
-              <span>${label}</span>
-            </a>
-          `).join('')}
-        </nav>
-        
-        <div style="background:#f1f5f9;border:1px solid #cbd5e1;border-radius:12px;padding:12px;display:flex;justify-content:space-between;align-items:center;margin-top:8px;">
+        <!-- ASSIGNED PACKAGE CARD -->
+        <div style="background:#f8fafc;border:1.5px solid #e2e8f0;border-radius:14px;padding:12px 14px;display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
           <div>
-            <div style="font-size:11px;color:#64748b;font-weight:750;">ACTIVE PLAN</div>
-            <div style="font-size:13px;font-weight:850;color:#0f172a;">${getPlanCapabilities().badge}</div>
+            <div style="font-size:11px;color:#64748b;font-weight:800;text-transform:uppercase;letter-spacing:0.04em;">Assigned Package</div>
+            <div style="font-size:13.5px;font-weight:800;color:#0f172a;display:flex;align-items:center;gap:6px;margin-top:2px;">
+              <span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:${cap.color};"></span>
+              <span>${cap.badge}</span>
+            </div>
           </div>
-          <a href="#/pricing" class="button secondary" id="drawer-plan-details-btn" style="padding:4px 8px;font-size:11px;text-decoration:none;">Plan Details</a>
+          <a href="#/pricing" class="button secondary" id="drawer-plan-details-btn" style="padding:5px 10px;font-size:12px;font-weight:750;text-decoration:none;border-radius:8px;">Plan Details →</a>
         </div>
 
-        <div style="margin-top:auto;padding-top:14px;border-top:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;">
-          <div>
-            <div style="font-size:13px;font-weight:800;color:var(--ink);">${esc(state.user?.fullName || 'Broker')}</div>
-            <div style="font-size:11px;color:#16a34a;font-weight:700;">🟢 Online · Demo Live</div>
-          </div>
-          <button class="button secondary" id="drawer-signout-btn" style="padding:4px 8px;font-size:11px;">Sign out</button>
+        <!-- SIGN OUT -->
+        <div style="margin-top:auto;padding-top:14px;border-top:1px solid #e2e8f0;display:flex;justify-content:space-between;align-items:center;">
+          <div style="font-size:12px;color:#16a34a;font-weight:700;">🟢 Online · BrokerAI Cockpit</div>
+          <button class="button secondary" id="drawer-signout-btn" style="padding:6px 12px;font-size:12px;font-weight:700;color:#dc2626;border-color:#fecaca;">Sign out</button>
         </div>
       </div>
     `;
@@ -9304,7 +9325,7 @@ Password: *${pass}*
     const costBtn = drawer.querySelector('#drawer-cost-btn');
     if (costBtn) costBtn.onclick = () => { close(); costSheetModal(); };
 
-    const planDetailsBtn = drawer.querySelector('#drawer-plan-details-btn') || drawer.querySelector('#drawer-switch-plan-btn');
+    const planDetailsBtn = drawer.querySelector('#drawer-plan-details-btn');
     if (planDetailsBtn) planDetailsBtn.onclick = () => { close(); window.location.hash = '#/pricing'; };
 
     const signoutBtn = drawer.querySelector('#drawer-signout-btn');
@@ -9324,7 +9345,7 @@ Password: *${pass}*
     };
   }
 
-
+  
   // --- SMART MOBILE INSTALL BANNER ---
   function checkMobileInstallBanner() {
     const isStandalone = (typeof window !== 'undefined' && typeof window.matchMedia === 'function' && window.matchMedia('(display-mode: standalone)').matches) || (typeof navigator !== 'undefined' && navigator.standalone === true);
@@ -9367,8 +9388,6 @@ Password: *${pass}*
   }
 
 
-  
-
   function bindShell() {
     try {
       if (typeof checkMobileInstallBanner === 'function') {
@@ -9401,6 +9420,7 @@ Password: *${pass}*
 
     // Mobile Hamburger & Drawer triggers
     const openMobileMenu = () => { if (typeof mobileMenuModal === 'function') mobileMenuModal(); };
+    document.querySelector('#topbar-hamburger-btn')?.addEventListener('click', openMobileMenu);
     document.querySelector('#mobile-hamburger-btn')?.addEventListener('click', openMobileMenu);
     document.querySelector('#mobile-more-tab-btn')?.addEventListener('click', openMobileMenu);
     document.querySelector('#mob-nav-menu')?.addEventListener('click', openMobileMenu);

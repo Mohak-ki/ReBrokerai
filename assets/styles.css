@@ -8606,3 +8606,274 @@ aside.drawer {
   transform: scale(1.03);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
 }
+
+
+/* ==========================================================================
+   APPLE HUMAN INTERFACE TYPOGRAPHY & STICKY TOPBAR WITH HAMBURGER MENU (v166)
+   ========================================================================== */
+
+:root {
+  --apple-font-stack: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Helvetica Neue", Helvetica, Arial, sans-serif;
+}
+
+html, body {
+  font-family: var(--apple-font-stack) !important;
+  font-size: 15px !important;
+  line-height: 1.55 !important;
+  color: #0f172a !important;
+  letter-spacing: -0.011em !important;
+  -webkit-font-smoothing: antialiased !important;
+  -moz-osx-font-smoothing: grayscale !important;
+  text-rendering: optimizeLegibility !important;
+  background: var(--canvas, #f6f8fc) !important;
+}
+
+/* --- UNIVERSAL STICKY TOPBAR --- */
+.topbar {
+  position: -webkit-sticky !important;
+  position: sticky !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  height: 64px !important;
+  padding: 0 20px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  background: rgba(255, 255, 255, 0.92) !important;
+  backdrop-filter: saturate(180%) blur(20px) !important;
+  -webkit-backdrop-filter: saturate(180%) blur(20px) !important;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08) !important;
+  z-index: 1000 !important;
+  box-shadow: 0 1px 6px rgba(0, 0, 0, 0.03) !important;
+  box-sizing: border-box !important;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+
+.topbar-left {
+  display: flex !important;
+  align-items: center !important;
+  gap: 12px !important;
+  min-width: 0 !important;
+}
+
+/* TOP-LEFT HAMBURGER MENU BUTTON */
+.topbar-hamburger-btn {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  width: 40px !important;
+  height: 40px !important;
+  border-radius: 10px !important;
+  border: 1px solid #e2e8f0 !important;
+  background: #ffffff !important;
+  color: #0f172a !important;
+  cursor: pointer !important;
+  transition: all 0.15s cubic-bezier(0.16, 1, 0.3, 1) !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05) !important;
+  flex-shrink: 0 !important;
+}
+.topbar-hamburger-btn:hover {
+  background: #f8fafc !important;
+  border-color: #cbd5e1 !important;
+  color: #2563eb !important;
+  transform: scale(1.04) !important;
+}
+.topbar-hamburger-btn:active {
+  transform: scale(0.96) !important;
+  background: #f1f5f9 !important;
+}
+
+.topbar-brand-wrap {
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  user-select: none !important;
+}
+
+.topbar-search-box {
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  background: #f8fafc !important;
+  border: 1px solid #e2e8f0 !important;
+  border-radius: 10px !important;
+  padding: 7px 12px !important;
+  width: 260px !important;
+  max-width: 100% !important;
+  color: #64748b !important;
+  font-size: 13.5px !important;
+  transition: all 0.15s ease !important;
+}
+.topbar-search-box:focus-within, .topbar-search-box:hover {
+  background: #ffffff !important;
+  border-color: #2563eb !important;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1) !important;
+  color: #0f172a !important;
+}
+.topbar-search-box input {
+  border: none !important;
+  background: transparent !important;
+  outline: none !important;
+  font-size: 13.5px !important;
+  font-family: inherit !important;
+  color: #0f172a !important;
+  width: 100% !important;
+}
+
+/* TOPBAR ACTION PILLS */
+.topbar-action-pill {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+  font-size: 13px !important;
+  font-weight: 700 !important;
+  padding: 6px 12px !important;
+  border-radius: 20px !important;
+  border: 1px solid #e2e8f0 !important;
+  background: #ffffff !important;
+  color: #1e293b !important;
+  cursor: pointer !important;
+  transition: all 0.15s ease !important;
+}
+.topbar-action-pill:hover {
+  transform: translateY(-1px) !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08) !important;
+}
+.topbar-action-pill.emerald {
+  background: #ecfdf5 !important;
+  color: #047857 !important;
+  border-color: #a7f3d0 !important;
+}
+.topbar-action-pill.emerald:hover {
+  background: #d1fae5 !important;
+  border-color: #6ee7b7 !important;
+}
+
+/* --- APPLE READABLE TYPOGRAPHY UPGRADES --- */
+.page-title {
+  font-family: var(--apple-font-stack) !important;
+  font-size: 26px !important;
+  font-weight: 800 !important;
+  letter-spacing: -0.025em !important;
+  color: #0f172a !important;
+  line-height: 1.25 !important;
+}
+
+.page-sub, .subtle {
+  font-family: var(--apple-font-stack) !important;
+  font-size: 14px !important;
+  font-weight: 500 !important;
+  color: #475569 !important;
+  line-height: 1.5 !important;
+}
+
+/* Card & Section Headings */
+h1, h2, h3, h4 {
+  font-family: var(--apple-font-stack) !important;
+  color: #0f172a !important;
+  letter-spacing: -0.018em !important;
+}
+
+h2 { font-size: 20px !important; font-weight: 800 !important; }
+h3 { font-size: 16.5px !important; font-weight: 750 !important; }
+
+/* Readable Buttons */
+.button, .btn {
+  font-family: var(--apple-font-stack) !important;
+  font-size: 13.5px !important;
+  font-weight: 700 !important;
+  padding: 8px 16px !important;
+  border-radius: 10px !important;
+  letter-spacing: -0.01em !important;
+}
+
+/* Readable Form Controls */
+.input, .select, input, select, textarea {
+  font-family: var(--apple-font-stack) !important;
+  font-size: 14.5px !important;
+  font-weight: 500 !important;
+  color: #0f172a !important;
+  line-height: 1.5 !important;
+}
+
+label, .field-label {
+  font-family: var(--apple-font-stack) !important;
+  font-size: 13px !important;
+  font-weight: 700 !important;
+  color: #334155 !important;
+  margin-bottom: 5px !important;
+}
+
+/* Table Legibility */
+table th {
+  font-family: var(--apple-font-stack) !important;
+  font-size: 12px !important;
+  font-weight: 750 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.05em !important;
+  color: #64748b !important;
+  padding: 12px 14px !important;
+}
+
+table td {
+  font-family: var(--apple-font-stack) !important;
+  font-size: 14px !important;
+  font-weight: 500 !important;
+  color: #1e293b !important;
+  padding: 12px 14px !important;
+  line-height: 1.5 !important;
+}
+
+/* Badges & Tags */
+.badge, .tag, .apple-badge, .status {
+  font-family: var(--apple-font-stack) !important;
+  font-size: 12px !important;
+  font-weight: 750 !important;
+  letter-spacing: 0.02em !important;
+}
+
+/* --- APPLE SLIDE DRAWER ELEVATION & STYLING --- */
+.drawer-backdrop {
+  position: fixed !important;
+  inset: 0 !important;
+  background: rgba(15, 23, 42, 0.5) !important;
+  backdrop-filter: blur(4px) !important;
+  -webkit-backdrop-filter: blur(4px) !important;
+  z-index: 10000 !important;
+  transition: opacity 0.2s ease !important;
+}
+
+.mobile-slide-drawer {
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  bottom: 0 !important;
+  width: min(340px, 86vw) !important;
+  background: #ffffff !important;
+  box-shadow: 16px 0 50px rgba(0, 0, 0, 0.3) !important;
+  z-index: 10005 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  animation: slideInAppleLeft 0.25s cubic-bezier(0.16, 1, 0.3, 1) !important;
+  overflow-y: auto !important;
+  -webkit-overflow-scrolling: touch !important;
+}
+
+@keyframes slideInAppleLeft {
+  from { transform: translateX(-100%); opacity: 0.8; }
+  to { transform: translateX(0); opacity: 1; }
+}
+
+@media (max-width: 768px) {
+  .topbar-search-box {
+    display: none !important;
+  }
+  .topbar-brand-wrap .topbar-title-block span:last-child {
+    display: none !important;
+  }
+  .topbar {
+    padding: 0 12px !important;
+  }
+}
+
