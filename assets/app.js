@@ -707,6 +707,11 @@ const demoDocuments = [
   function planUpgradeWall(requiredPlanName = 'Agency Elite', featureName = 'Team Closer Roster') {
     const current = getPlanCapabilities();
     const targetPlanId = (requiredPlanName.toLowerCase().includes('elite') || requiredPlanName.toLowerCase().includes('agency')) ? 'elite' : 'pro';
+    const reqPrice = (targetPlanId === 'elite' ? '₹3,000/mo' : '₹1,200/mo');
+    const agency = (state && state.agencySettings && state.agencySettings.agencyName) || 'My Agency';
+    const brokerName = (state && state.user && state.user.fullName) || 'Broker';
+    const waText = encodeURIComponent(`Hello Mohak Ji!\n\nI want to upgrade my BrokerAI package to *${requiredPlanName} (${reqPrice})* for *${agency}* (Broker: ${brokerName}).\n\nPlease share the payment details for activation.`);
+    const waUrl = `https://wa.me/919137000000?text=${waText}`;
     
     return `
       <div style="max-width:760px;margin:36px auto;padding:36px 32px;background:#ffffff;border-radius:24px;border:1px solid #e2e8f0;box-shadow:0 16px 40px rgba(0,0,0,0.06);text-align:center;box-sizing:border-box;">
@@ -718,12 +723,12 @@ const demoDocuments = [
         </div>
         <h2 style="font-size:26px;font-weight:850;color:#0f172a;margin:0 0 12px;letter-spacing:-0.02em;">${esc(featureName)} is Locked</h2>
         <p style="font-size:15px;color:#64748b;max-width:540px;margin:0 auto 24px;line-height:1.6;">
-          Your active package is <strong>${esc(current.name)}</strong> (${esc(current.badge)}). 
-          Switch or upgrade to <strong>${esc(requiredPlanName)}</strong> to unlock this module along with expanded agent seats, territory desks, and institutional features.
+          Your assigned package is <strong>${esc(current.name)}</strong> (${esc(current.badge)}). 
+          To unlock ${esc(featureName)}, request a plan upgrade from the platform owner to activate ${esc(requiredPlanName)}.
         </p>
 
         <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:16px;padding:20px;max-width:520px;margin:0 auto 28px;text-align:left;">
-          <div style="font-size:12px;font-weight:800;color:#0f172a;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:12px;">What's Included in ${esc(requiredPlanName)}:</div>
+          <div style="font-size:12px;font-weight:800;color:#0f172a;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:12px;">What's Included in ${esc(requiredPlanName)} (${reqPrice}):</div>
           <div style="display:grid;gap:8px;font-size:13.5px;color:#334155;">
             ${targetPlanId === 'elite' ? `
               <div style="display:flex;align-items:center;gap:8px;"><span style="color:#059669;font-weight:800;">✓</span> 20 Active Closer Seats & Live Roster</div>
@@ -742,11 +747,11 @@ const demoDocuments = [
         </div>
 
         <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;">
-          <button class="button primary" id="upgrade-wall-switch-btn" style="background:#2563eb;color:#ffffff;padding:12px 28px;font-size:14px;font-weight:750;border-radius:12px;border:0;cursor:pointer;box-shadow:0 4px 12px rgba(37,99,235,0.25);">
-            ⚡ 1-Click Switch to ${esc(requiredPlanName)}
-          </button>
-          <a href="#/pricing" class="button secondary" style="padding:12px 22px;font-size:14px;font-weight:650;border-radius:12px;text-decoration:none;">
-            Compare All Plans
+          <a href="${waUrl}" target="_blank" class="button primary" style="background:#059669;color:#ffffff;padding:12px 24px;font-size:14px;font-weight:750;border-radius:12px;border:0;text-decoration:none;display:inline-flex;align-items:center;gap:8px;box-shadow:0 4px 12px rgba(5,150,105,0.25);">
+            ${svgIcon('whatsapp', 18)} Request Upgrade via WhatsApp
+          </a>
+          <a href="#/pricing" class="button secondary" style="padding:12px 24px;font-size:14px;font-weight:650;border-radius:12px;border:1px solid #cbd5e1;text-decoration:none;display:inline-flex;align-items:center;gap:6px;">
+            💎 View Plan Details
           </a>
         </div>
       </div>
@@ -1111,8 +1116,8 @@ const demoDocuments = [
     modal.innerHTML = `
       <div style="display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #edf2f7;padding-bottom:14px;margin-bottom:16px;">
         <div>
-          <h2 style="font-size:18px;font-weight:800;color:#0f172a;margin:0 0 2px;">Switch Subscription Plan</h2>
-          <p style="font-size:12.5px;color:#64748b;margin:0;">Select a plan to adapt features to your locality and team scale.</p>
+          <h2 style="font-size:18px;font-weight:800;color:#0f172a;margin:0 0 2px;">Subscription Plan Details</h2>
+          <p style="font-size:12.5px;color:#64748b;margin:0;">Assigned packages and capabilities. Upgrades are assigned by Platform Owner.</p>
         </div>
         <button class="close" id="close-plan-sim-btn" style="font-size:20px;border:0;background:none;cursor:pointer;color:#94a3b8;padding:4px;">✕</button>
       </div>
@@ -1138,9 +1143,9 @@ const demoDocuments = [
               </div>
               <div>
                 ${isAct ? `
-                  <button disabled style="width:100%;padding:6px;background:#edf2f7;color:#64748b;font-size:12px;font-weight:700;border:none;border-radius:8px;">✓ Current Active Plan</button>
+                  <button disabled style="width:100%;padding:8px;background:#f0fdf4;color:#15803d;border:1.5px solid #bbf7d0;font-size:12px;font-weight:800;border-radius:8px;cursor:default;">✓ CURRENT ASSIGNED PLAN</button>
                 ` : `
-                  <button class="plan-select-btn" data-plan-id="${p.id}" style="width:100%;padding:7px;background:${p.color};color:#ffffff;font-size:12px;font-weight:700;border:none;border-radius:8px;cursor:pointer;transition:opacity 0.15s;">Switch to ${p.name}</button>
+                  <button class="plan-request-btn" data-plan-id="${p.id}" style="width:100%;padding:8px;background:#059669;color:#ffffff;font-size:12px;font-weight:750;border:none;border-radius:8px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:6px;">⚡ Request Upgrade via WhatsApp</button>
                 `}
               </div>
             </div>
@@ -1148,7 +1153,8 @@ const demoDocuments = [
         }).join('')}
       </div>
 
-      <div style="display:flex;justify-content:flex-end;">
+      <div style="display:flex;justify-content:space-between;align-items:center;">
+        <a href="#/pricing" id="full-pricing-details-link" style="font-size:12.5px;font-weight:750;color:#2563eb;text-decoration:none;">View Full Plan Details →</a>
         <button class="button secondary" id="close-sim-footer-btn" style="padding:6px 14px;font-size:12px;border-radius:8px;">Close</button>
       </div>
     `;
@@ -1158,24 +1164,22 @@ const demoDocuments = [
 
     const close = () => backdrop.remove();
     backdrop.onclick = (e) => { if (e.target === backdrop) close(); };
-    const closeBtn1 = modal.querySelector('#close-plan-sim-btn');
-    if (closeBtn1) closeBtn1.onclick = close;
-    const closeBtn2 = modal.querySelector('#close-sim-footer-btn');
-    if (closeBtn2) closeBtn2.onclick = close;
+    modal.querySelector('#close-plan-sim-btn').onclick = close;
+    modal.querySelector('#close-sim-footer-btn').onclick = close;
+    modal.querySelector('#full-pricing-details-link').onclick = () => { close(); };
 
-    modal.querySelectorAll('.plan-select-btn').forEach(btn => {
+    modal.querySelectorAll('.plan-request-btn').forEach(btn => {
       btn.onclick = () => {
         const plan = btn.dataset.planId;
-        state.currentPlan = (plan === 'agency' || plan === 'elite') ? 'agency' : (plan === 'starter' || plan === 'solo' ? 'starter' : 'pro');
-        localStorage.setItem('brokerai.currentPlan', state.currentPlan);
         close();
-        const cap = getPlanCapabilities(state.currentPlan);
-        showToast(`✓ Switched to ${cap.name}! Capabilities and menus updated.`, 'success');
-        render();
+        if (typeof planActivationModal === 'function') {
+          planActivationModal(plan);
+        } else {
+          window.location.hash = '#/pricing';
+        }
       };
     });
   }
-
   const request = async (path, options = {}) => {
     if (!apiBase) {
       // Standalone Cloud PWA Mode (No local backend required)
@@ -1960,7 +1964,7 @@ const demoDocuments = [
         </nav>
 
         <!-- ACTIVE PLAN SWITCHER CARD IN SIDEBAR -->
-        <div class="sidebar-plan-card" style="margin:12px 14px 6px;padding:10px 12px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.12);border-radius:12px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;" id="sidebar-plan-switch-btn" title="Click to Switch or Simulate Plan">
+        <a href="#/pricing" class="sidebar-plan-card" style="text-decoration:none;margin:12px 14px 6px;padding:10px 12px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.12);border-radius:12px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;" id="sidebar-plan-switch-btn" title="View Plan Details">
           <div>
             <div style="font-size:10px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:0.04em;">Active Plan</div>
             <div style="font-size:12px;font-weight:800;color:#ffffff;display:flex;align-items:center;gap:5px;margin-top:2px;">
@@ -1968,8 +1972,8 @@ const demoDocuments = [
               <span>${cap.badge}</span>
             </div>
           </div>
-          <span style="font-size:11px;font-weight:700;background:rgba(37,99,235,0.25);color:#93c5fd;border:1px solid rgba(37,99,235,0.4);padding:3px 8px;border-radius:6px;">Switch</span>
-        </div>
+          <span style="font-size:11px;font-weight:700;background:rgba(255,255,255,0.1);color:#e2e8f0;border:1px solid rgba(255,255,255,0.15);padding:3px 8px;border-radius:6px;">Details</span>
+        </a>
 
         <div class="account">
           <div class="account-avatar">${userInit}</div>
@@ -2010,9 +2014,10 @@ const demoDocuments = [
                 👑 Owner Desk
               </a>
             ` : ''}
-            <button class="plan-indicator-badge" id="topbar-plan-pill" style="cursor:pointer;display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:700;padding:5px 12px;border-radius:20px;border:1px solid rgba(255,255,255,0.2);background:${cap.color};color:#ffffff;" title="Click to switch/simulate subscription plans">
-              ${cap.badge} ▾
-            </button>
+            <a href="#/pricing" class="plan-indicator-badge" id="topbar-plan-pill" style="text-decoration:none;cursor:pointer;display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:750;padding:5px 12px;border-radius:20px;border:1px solid rgba(255,255,255,0.2);background:${cap.color};color:#ffffff;" title="View Plan Details">
+              <span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:#ffffff;"></span>
+              <span>${cap.badge}</span>
+            </a>
 
             <button class="topbar-icon-btn" id="topbar-notif-bell" title="Notifications">
               ${svgIcon('notifications', 16)}
@@ -4248,8 +4253,8 @@ Best regards,
     const caps = getPlanCapabilities();
     const currentLeadsCount = (state.leads || []).length;
     if (!lead && currentLeadsCount >= caps.maxLeads) {
-      alert(`⚠️ You have reached the limit of ${caps.maxLeads} leads on the ${caps.name} tier.\n\nUpgrade to Pro Closer for UNLIMITED Leads & Smart AI Matching.`);
-      planSimulatorModal();
+      alert(`⚠️ You have reached the limit of ${caps.maxLeads} leads on the ${caps.name} tier.\n\nPlease contact Platform Owner Mohak Vaswani or view Plan Details to upgrade your package.`);
+      window.location.hash = '#/pricing';
       return;
     }
 
@@ -5940,8 +5945,8 @@ ${agencyBranding}
     const caps = getPlanCapabilities();
     const currentPropsCount = (state.properties || []).length;
     if (!property && currentPropsCount >= caps.maxProperties) {
-      alert(`⚠️ You have reached the limit of ${caps.maxProperties} properties on the ${caps.name} tier.\n\nUpgrade to Pro Closer for UNLIMITED Listings & MahaRERA Token Receipts.`);
-      planSimulatorModal();
+      alert(`⚠️ You have reached the limit of ${caps.maxProperties} properties on the ${caps.name} tier.\n\nPlease contact Platform Owner Mohak Vaswani or view Plan Details to upgrade your package.`);
+      window.location.hash = '#/pricing';
       return;
     }
 
@@ -7037,17 +7042,8 @@ Best regards,
 async function documentsView() {
     const caps = getPlanCapabilities();
     if (!caps.tokenReceipts) {
-      app.innerHTML = layout(renderGatedFeatureScreen('Tripartite MahaRERA Token Receipts & Legal Vault', 'Pro Closer', 'pro'));
+      app.innerHTML = layout(planUpgradeWall('Pro Closer', 'Tripartite MahaRERA Token Receipts & Legal Vault'));
       bindShell();
-      const unlockBtn = document.querySelector('#instant-unlock-feature-btn');
-      if (unlockBtn) {
-        unlockBtn.onclick = () => {
-          state.currentPlan = 'pro';
-          localStorage.setItem('brokerai.currentPlan', 'pro');
-          showToast('✓ Upgraded to Pro Closer! Token Receipts & Vault unlocked.', 'success');
-          documentsView();
-        };
-      }
       return;
     }
 
@@ -7817,12 +7813,7 @@ Best regards,
     if (caps.planId === 'starter') {
       mountView(planUpgradeWall('Pro Closer', 'AI 2-Way Matchmaking Engine'), 'AI Matchmaking · Upgrade Required', 'matches');
       const btn = document.querySelector('#upgrade-wall-switch-btn');
-      if (btn) btn.onclick = () => {
-        state.currentPlan = 'pro';
-        localStorage.setItem('brokerai.currentPlan', 'pro');
-        showToast('✓ Unlocked Pro Closer! AI Matchmaking active.', 'success');
-        setTimeout(() => { matchesView(); }, 300);
-      };
+      if (btn) btn.onclick = () => { window.location.hash = '#/pricing'; };
       return;
     }
   
@@ -9279,7 +9270,7 @@ Password: *${pass}*
             <div style="font-size:11px;color:#64748b;font-weight:750;">ACTIVE PLAN</div>
             <div style="font-size:13px;font-weight:850;color:#0f172a;">${getPlanCapabilities().badge}</div>
           </div>
-          <button class="button secondary" id="drawer-switch-plan-btn" style="padding:4px 8px;font-size:11px;">Switch</button>
+          <a href="#/pricing" class="button secondary" id="drawer-plan-details-btn" style="padding:4px 8px;font-size:11px;text-decoration:none;">Plan Details</a>
         </div>
 
         <div style="margin-top:auto;padding-top:14px;border-top:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;">
@@ -9313,8 +9304,8 @@ Password: *${pass}*
     const costBtn = drawer.querySelector('#drawer-cost-btn');
     if (costBtn) costBtn.onclick = () => { close(); costSheetModal(); };
 
-    const switchPlanBtn = drawer.querySelector('#drawer-switch-plan-btn');
-    if (switchPlanBtn) switchPlanBtn.onclick = () => { close(); planSimulatorModal(); };
+    const planDetailsBtn = drawer.querySelector('#drawer-plan-details-btn') || drawer.querySelector('#drawer-switch-plan-btn');
+    if (planDetailsBtn) planDetailsBtn.onclick = () => { close(); window.location.hash = '#/pricing'; };
 
     const signoutBtn = drawer.querySelector('#drawer-signout-btn');
     if (signoutBtn) signoutBtn.onclick = () => {
@@ -9429,18 +9420,16 @@ Password: *${pass}*
       };
     });
 
-    // Plan Switcher Trigger (Topbar Pill, All Plan Badges, Sidebar Buttons)
-    const openPlanSwitcher = (e) => {
+    // Plan Details Trigger (Navigates to Plan Details / Pricing)
+    const openPlanDetails = (e) => {
       if (e) e.preventDefault();
-      if (typeof planSimulatorModal === 'function') {
-        planSimulatorModal();
-      }
+      window.location.hash = '#/pricing';
     };
-    document.querySelector('#topbar-plan-pill')?.addEventListener('click', openPlanSwitcher);
-    document.querySelectorAll('.plan-indicator-badge').forEach(btn => btn.addEventListener('click', openPlanSwitcher));
-    document.querySelector('#sidebar-plan-switch-btn')?.addEventListener('click', openPlanSwitcher);
-    document.querySelector('#sidebar-plan-badge')?.addEventListener('click', openPlanSwitcher);
-    document.querySelector('#dashboard-plan-sim-btn')?.addEventListener('click', openPlanSwitcher);
+    document.querySelector('#topbar-plan-pill')?.addEventListener('click', openPlanDetails);
+    document.querySelectorAll('.plan-indicator-badge').forEach(btn => btn.addEventListener('click', openPlanDetails));
+    document.querySelector('#sidebar-plan-switch-btn')?.addEventListener('click', openPlanDetails);
+    document.querySelector('#sidebar-plan-badge')?.addEventListener('click', openPlanDetails);
+    document.querySelector('#dashboard-plan-sim-btn')?.addEventListener('click', openPlanDetails);
 
     // Topbar Action & Tool Buttons
     document.querySelector('#topbar-magic-parser-btn')?.addEventListener('click', (e) => {
@@ -10856,10 +10845,10 @@ Password: *${pass}*
         <div style="font-size:40px;margin-bottom:12px;">📑</div>
         <div style="display:inline-block;padding:3px 12px;border-radius:20px;background:#eff6ff;color:#2563eb;font-weight:800;font-size:11px;margin-bottom:8px;text-transform:uppercase;">Pro Closer Feature</div>
         <h3 style="font-size:20px;font-weight:800;color:#0f172a;margin:0 0 8px;">Digital Token Receipts Locked</h3>
-        <p style="font-size:13.5px;color:#64748b;line-height:1.5;margin:0 0 20px;">Generating formal digital token advance receipts and encrypted client receipts requires the <strong>Pro Closer</strong> plan.</p>
+        <p style="font-size:13.5px;color:#64748b;line-height:1.5;margin:0 0 20px;">Generating formal digital token advance receipts requires an active <strong>Pro Closer</strong> or <strong>Agency Elite</strong> package. Upgrades are assigned by Platform Owner Mohak Vaswani.</p>
         <div style="display:flex;gap:10px;justify-content:center;">
           <button class="button secondary" id="token-lock-close-btn">Cancel</button>
-          <button class="button primary" id="token-lock-upgrade-btn" style="background:#2563eb;font-weight:700;">⚡ Switch to Pro Closer (₹1,200)</button>
+          <button class="button primary" id="token-lock-upgrade-btn" style="background:#2563eb;font-weight:700;">💬 Request Upgrade via WhatsApp</button>
         </div>
       `;
       backdrop.appendChild(modal);
@@ -10868,11 +10857,12 @@ Password: *${pass}*
       backdrop.onclick = (e) => { if (e.target === backdrop) close(); };
       modal.querySelector('#token-lock-close-btn').onclick = close;
       modal.querySelector('#token-lock-upgrade-btn').onclick = () => {
-        state.currentPlan = 'pro';
-        localStorage.setItem('brokerai.currentPlan', 'pro');
         close();
-        showToast('✓ Switched to Pro Closer! Token Receipts unlocked.', 'success');
-        tokenReceiptModal();
+        if (typeof planActivationModal === 'function') {
+          planActivationModal('pro');
+        } else {
+          window.location.hash = '#/pricing';
+        }
       };
       return;
     }
@@ -11910,7 +11900,7 @@ Would you like to schedule a private walkthrough this evening?
         <div style="font-size:40px;margin-bottom:12px;">⚡</div>
         <div style="display:inline-block;padding:3px 12px;border-radius:20px;background:#eff6ff;color:#2563eb;font-weight:800;font-size:11px;margin-bottom:8px;text-transform:uppercase;">Pro Closer Feature</div>
         <h3 style="font-size:20px;font-weight:800;color:#0f172a;margin:0 0 8px;">WhatsApp Magic Parser is Locked</h3>
-        <p style="font-size:13.5px;color:#64748b;line-height:1.5;margin:0 0 20px;">Automated extraction of property listings and buyer inquiries from raw WhatsApp messages requires the <strong>Pro Closer</strong> plan.</p>
+        <p style="font-size:13.5px;color:#64748b;line-height:1.5;margin:0 0 20px;">Automated extraction of property listings and buyer inquiries requires an active <strong>Pro Closer</strong> or <strong>Agency Elite</strong> package. Upgrades are assigned by Platform Owner Mohak Vaswani.</p>
         <div style="display:flex;gap:10px;justify-content:center;">
           <button class="button secondary" id="wa-lock-close-btn">Cancel</button>
           <button class="button primary" id="wa-lock-upgrade-btn" style="background:#2563eb;font-weight:700;">⚡ Switch to Pro Closer (₹1,200)</button>
@@ -11922,11 +11912,12 @@ Would you like to schedule a private walkthrough this evening?
       backdrop.onclick = (e) => { if (e.target === backdrop) close(); };
       modal.querySelector('#wa-lock-close-btn').onclick = close;
       modal.querySelector('#wa-lock-upgrade-btn').onclick = () => {
-        state.currentPlan = 'pro';
-        localStorage.setItem('brokerai.currentPlan', 'pro');
         close();
-        showToast('✓ Switched to Pro Closer! WhatsApp Parser unlocked.', 'success');
-        magicWhatsAppParserModal();
+        if (typeof planActivationModal === 'function') {
+          planActivationModal('pro');
+        } else {
+          window.location.hash = '#/pricing';
+        }
       };
       return;
     }
@@ -12258,12 +12249,7 @@ Immediate possession. Call broker: 9833445566`
     if (caps.planId !== 'agency') {
       mountView(planUpgradeWall('Agency Elite', 'Commission Splits Ledger & 18% GST Invoicing'), 'Commission Splits · Upgrade Required', 'commissions');
       const btn = document.querySelector('#upgrade-wall-switch-btn');
-      if (btn) btn.onclick = () => {
-        state.currentPlan = 'agency';
-        localStorage.setItem('brokerai.currentPlan', 'agency');
-        showToast('✓ Unlocked Agency Elite! Commission Ledger active.', 'success');
-        setTimeout(() => { commissionsView(); }, 300);
-      };
+      if (btn) btn.onclick = () => { window.location.hash = '#/pricing'; };
       return;
     }
   
@@ -12863,12 +12849,7 @@ Best regards,
     if (caps.planId !== 'agency') {
       mountView(planUpgradeWall('Agency Elite', 'Team Closer Roster & Seat Quotas'), 'Team Closer Roster · Upgrade Required', 'team');
       const btn = document.querySelector('#upgrade-wall-switch-btn');
-      if (btn) btn.onclick = () => {
-        state.currentPlan = 'agency';
-        localStorage.setItem('brokerai.currentPlan', 'agency');
-        toast('Unlocked Agency Elite! Reloading view...', 'success');
-        setTimeout(() => { render(); }, 300);
-      };
+      if (btn) btn.onclick = () => { window.location.hash = '#/pricing'; };
       return;
     }
 
@@ -13194,12 +13175,7 @@ Best regards,
     if (caps.planId !== 'agency') {
       mountView(planUpgradeWall('Agency Elite', 'Branch Territory Desks & Lead Routing'), 'Branch Desks · Upgrade Required', 'branches');
       const btn = document.querySelector('#upgrade-wall-switch-btn');
-      if (btn) btn.onclick = () => {
-        state.currentPlan = 'agency';
-        localStorage.setItem('brokerai.currentPlan', 'agency');
-        toast('Unlocked Agency Elite! Reloading view...', 'success');
-        setTimeout(() => { render(); }, 300);
-      };
+      if (btn) btn.onclick = () => { window.location.hash = '#/pricing'; };
       return;
     }
 
@@ -13443,12 +13419,7 @@ Best regards,
     if (caps.planId !== 'agency') {
       mountView(planUpgradeWall('Agency Elite', 'MahaRERA Letterhead & White-Label Brand Generator'), 'Letterhead · Upgrade Required', 'letterhead');
       const btn = document.querySelector('#upgrade-wall-switch-btn');
-      if (btn) btn.onclick = () => {
-        state.currentPlan = 'agency';
-        localStorage.setItem('brokerai.currentPlan', 'agency');
-        toast('Unlocked Agency Elite! Reloading view...', 'success');
-        setTimeout(() => { render(); }, 300);
-      };
+      if (btn) btn.onclick = () => { window.location.hash = '#/pricing'; };
       return;
     }
 
@@ -13708,10 +13679,12 @@ Best regards,
 
               <div>
                 ${isCurrent ? `
-                  <button disabled style="width:100%;padding:9px;background:#edf2f7;color:#64748b;font-size:12.5px;font-weight:700;border:none;border-radius:9px;">✓ Current Active Plan</button>
+                  <button disabled style="width:100%;padding:10px;background:#f0fdf4;color:#15803d;border:1.5px solid #bbf7d0;font-size:12.5px;font-weight:800;border-radius:10px;cursor:default;">
+                    ✓ CURRENT ASSIGNED PLAN
+                  </button>
                 ` : `
-                  <button class="pricing-cta-btn button ${p.popular ? 'primary' : 'secondary'}" data-plan-id="${p.id}" style="width:100%;padding:9px;font-size:12.5px;font-weight:700;border-radius:9px;${p.popular ? 'background:#2563eb;' : ''}">
-                    Switch to ${p.name}
+                  <button class="pricing-request-upgrade-btn button ${p.popular ? 'primary' : 'secondary'}" data-upgrade-plan-id="${p.id}" style="width:100%;padding:10px;font-size:12.5px;font-weight:750;border-radius:10px;${p.popular ? 'background:#2563eb;' : ''}">
+                    ⚡ Request Upgrade to ${p.name}
                   </button>
                 `}
               </div>
@@ -13729,14 +13702,12 @@ Best regards,
       };
     });
 
-    document.querySelectorAll('.pricing-cta-btn').forEach(btn => {
+    document.querySelectorAll('.pricing-request-upgrade-btn').forEach(btn => {
       btn.onclick = () => {
-        const plan = btn.dataset.planId;
-        state.currentPlan = (plan === 'agency' || plan === 'elite') ? 'agency' : (plan === 'starter' || plan === 'solo' ? 'starter' : 'pro');
-        localStorage.setItem('brokerai.currentPlan', state.currentPlan);
-        const cap = getPlanCapabilities(state.currentPlan);
-        showToast(`✓ Switched to ${cap.name}! Capabilities and menus updated.`, 'success');
-        pricingView();
+        const planId = btn.dataset.upgradePlanId;
+        if (typeof planActivationModal === 'function') {
+          planActivationModal(planId, selectedTenureMonths);
+        }
       };
     });
   }
@@ -14954,6 +14925,7 @@ Best regards,
     if (!app) return;
     if (isRendering) return;
     isRendering = true;
+    state.currentPlan = localStorage.getItem('brokerai.currentPlan') || state.currentPlan || 'starter';
 
     try {
       let hash = window.location.hash || '#/dashboard';
