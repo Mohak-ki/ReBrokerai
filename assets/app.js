@@ -1934,57 +1934,6 @@ const demoDocuments = [
 
     return `${state.clientMode ? `<div class="client-mode-banner"><div style="display:flex;align-items:center;gap:8px;"><span>🛡️</span><strong>Client Presentation Mode Active:</strong> Owner contacts, lockbox PINs, and brokerage margins are masked for live client viewing.</div><button id="exit-client-banner-btn">✕ Exit Client Mode (Show Private Info)</button></div>` : ''}
     <div class="shell">
-      <aside class="sidebar">
-        <div class="brand">
-          ${state.agencySettings?.logoUrl ? `
-            <img src="${esc(state.agencySettings.logoUrl)}" style="width:28px;height:28px;object-fit:contain;border-radius:6px;background:#fff;padding:2px;" alt="Logo" />
-          ` : `
-            <span class="mark">
-              <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><path d="M4 20V10l8-6 8 6v10"/><path d="M9 20v-6h6v6"/></svg>
-            </span>
-          `}
-          <span>${esc(state.agencySettings?.agencyName || 'BrokerCRM')}</span>
-        </div>
-
-        <nav class="nav" style="display:flex;flex-direction:column;gap:3px;margin-top:6px;flex:1;overflow-y:auto;">
-          ${navItems.map(([id, iconName, label]) => {
-            const isActive = currentPage === id || 
-              (currentPage === 'visits' && id === 'visits') || 
-              (currentPage === 'assistant' && id === 'assistant') || 
-              (currentPage === 'matches' && id === 'matches') ||
-              (currentPage === 'follow-ups' && id === 'follow-ups') ||
-              (currentPage === 'documents' && id === 'documents');
-            return `
-              <button data-page="${id}" class="${isActive ? 'active' : ''}" style="justify-content:flex-start;">
-                <span class="nav-icon">${svgIcon(iconName, 18)}</span>
-                <span style="flex:1;text-align:left;">${label}</span>
-                ${id === 'assistant' && unread ? `<span style="background:#ef4444;color:#fff;font-size:10px;font-weight:800;padding:1px 6px;border-radius:10px;">${unread}</span>` : ''}
-              </button>`;
-          }).join('')}
-        </nav>
-
-        <!-- ACTIVE PLAN SWITCHER CARD IN SIDEBAR -->
-        <a href="#/pricing" class="sidebar-plan-card" style="text-decoration:none;margin:12px 14px 6px;padding:10px 12px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.12);border-radius:12px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;" id="sidebar-plan-switch-btn" title="View Plan Details">
-          <div>
-            <div style="font-size:10px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:0.04em;">Active Plan</div>
-            <div style="font-size:12px;font-weight:800;color:#ffffff;display:flex;align-items:center;gap:5px;margin-top:2px;">
-              <span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:${cap.color};"></span>
-              <span>${cap.badge}</span>
-            </div>
-          </div>
-          <span style="font-size:11px;font-weight:700;background:rgba(255,255,255,0.1);color:#e2e8f0;border:1px solid rgba(255,255,255,0.15);padding:3px 8px;border-radius:6px;">Details</span>
-        </a>
-
-        <div class="account">
-          <div class="account-avatar">${userInit}</div>
-          <div class="account-info">
-            <div class="account-name">${esc(userName)}</div>
-            <div class="account-role">${esc(userRole)}</div>
-          </div>
-          <button class="signout" id="signout" title="Sign out">${svgIcon('logout', 16)}</button>
-        </div>
-      </aside>
-
       <main class="main">
         <!-- TOPBAR -->
         <header class="topbar" id="app-topbar">

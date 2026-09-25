@@ -8877,3 +8877,47 @@ table td {
   }
 }
 
+
+
+/* ==========================================================================
+   CLEAN FULL-WIDTH APPLE WORKSPACE WITHOUT PERMANENT SIDEBAR (v167)
+   ========================================================================== */
+
+.shell {
+  min-height: 100vh !important;
+  display: block !important;
+  width: 100% !important;
+  max-width: 100vw !important;
+  background: var(--canvas, #f6f8fc) !important;
+  padding-bottom: 0 !important;
+}
+
+.sidebar {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+}
+
+.main {
+  width: 100% !important;
+  min-width: 0 !important;
+  display: flex !important;
+  flex-direction: column !important;
+}
+
+.content {
+  width: 100% !important;
+  max-width: 1560px !important;
+  margin: 0 auto !important;
+  padding: 24px 32px !important;
+  box-sizing: border-box !important;
+}
+
+@media (max-width: 768px) {
+  .content {
+    padding: 16px 14px !important;
+  }
+}
+
