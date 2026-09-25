@@ -8921,3 +8921,69 @@ table td {
   }
 }
 
+
+
+/* ==========================================================================
+   SIDE MENU DRAWER HIGH-CONTRAST BLACK TYPOGRAPHY (v169)
+   ========================================================================== */
+
+.mobile-slide-drawer {
+  color: #000000 !important;
+}
+
+.mobile-slide-drawer .drawer-body {
+  color: #000000 !important;
+}
+
+.mobile-slide-drawer .drawer-section-label {
+  color: #000000 !important;
+  font-size: 12px !important;
+  font-weight: 850 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.06em !important;
+}
+
+.mobile-slide-drawer .drawer-nav-item {
+  color: #000000 !important;
+  font-size: 14.5px !important;
+  font-weight: 750 !important;
+}
+
+.mobile-slide-drawer .drawer-nav-item span {
+  color: #000000 !important;
+  font-weight: 750 !important;
+}
+
+.mobile-slide-drawer .drawer-nav-item:hover {
+  background: #f1f5f9 !important;
+  color: #000000 !important;
+}
+
+.mobile-slide-drawer .drawer-nav-item.active {
+  background: #eff6ff !important;
+  color: #1d4ed8 !important;
+}
+
+.mobile-slide-drawer .drawer-nav-item.active span {
+  color: #1d4ed8 !important;
+}
+
+.mobile-slide-drawer .drawer-nav-icon {
+  color: #000000 !important;
+}
+
+.mobile-slide-drawer .drawer-nav-item.active .drawer-nav-icon {
+  color: #1d4ed8 !important;
+}
+
+.mobile-slide-drawer .drawer-tool-btn {
+  color: #000000 !important;
+  font-weight: 800 !important;
+}
+
+.mobile-slide-drawer .drawer-tool-btn span,
+.mobile-slide-drawer .drawer-tool-btn strong {
+  color: #000000 !important;
+  font-weight: 800 !important;
+}
+
