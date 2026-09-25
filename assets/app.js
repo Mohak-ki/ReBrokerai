@@ -1968,9 +1968,11 @@ const demoDocuments = [
 
           <!-- TOP ACTIONS -->
           <div class="top-actions">
-            <button class="topbar-action-pill emerald" id="topbar-magic-parser-btn" title="Paste raw broker WhatsApp message">
-              ${svgIcon('whatsapp', 14)} <span>Paste WhatsApp</span>
-            </button>
+            ${cap.magicWhatsAppParser ? `
+              <button class="topbar-action-pill emerald" id="topbar-magic-parser-btn" title="Paste raw broker WhatsApp message">
+                ${svgIcon('whatsapp', 14)} <span>Paste WhatsApp</span>
+              </button>
+            ` : ''}
             <button class="topbar-action-pill neutral" id="topbar-cost-calc-btn" title="On-Road Stamp Duty & EMI Calculator">
               ${svgIcon('calculator', 14)} <span>Cost & EMI</span>
             </button>
@@ -9223,10 +9225,12 @@ Password: *${pass}*
             ${svgIcon('whatsapp', 18)}
             <span><strong>Send WhatsApp Pitch (1-Click)</strong></span>
           </button>
-          <button class="drawer-tool-btn" id="drawer-magic-parser-btn" style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:10px;border:1px solid #e2e8f0;background:#f8fafc;color:#1e293b;font-size:13.5px;font-weight:650;cursor:pointer;text-align:left;">
-            ${svgIcon('whatsapp', 18)}
-            <span>Magic WhatsApp AI Parser</span>
-          </button>
+          ${cap.magicWhatsAppParser ? `
+            <button class="drawer-tool-btn" id="drawer-magic-parser-btn" style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:10px;border:1px solid #e2e8f0;background:#f8fafc;color:#1e293b;font-size:13.5px;font-weight:650;cursor:pointer;text-align:left;">
+              ${svgIcon('whatsapp', 18)}
+              <span>Magic WhatsApp AI Parser</span>
+            </button>
+          ` : ''}
           <button class="drawer-tool-btn" id="drawer-cost-btn" style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:10px;border:1px solid #e2e8f0;background:#f8fafc;color:#1e293b;font-size:13.5px;font-weight:650;cursor:pointer;text-align:left;">
             ${svgIcon('calculator', 18)}
             <span>On-Road Cost & EMI Desk</span>
