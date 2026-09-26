@@ -1577,6 +1577,20 @@ const demoDocuments = [
       <div class="spotlight-results" id="spotlight-results-list">
         <!-- QUICK ACTIONS -->
         <div class="spotlight-section-title">Quick Actions</div>
+        <div class="spotlight-item" data-action="rent-agreement">
+          <div style="display:flex;align-items:center;gap:10px;">
+            <span style="font-size:18px;">📜</span>
+            <span><strong>11-Month Rental Agreement Generator</strong> · Touch signatures & PDF draft</span>
+          </div>
+          <span class="spotlight-shortcut-badge">📜 Agreement</span>
+        </div>
+        <div class="spotlight-item" data-action="token-receipt">
+          <div style="display:flex;align-items:center;gap:10px;">
+            <span style="font-size:18px;">🧾</span>
+            <span><strong>Issue Token Booking Receipt</strong> · Tripartite MahaRERA deposit deed</span>
+          </div>
+          <span class="spotlight-shortcut-badge">🧾 Receipt</span>
+        </div>
         <div class="spotlight-item" data-action="pricing-desk">
           <div style="display:flex;align-items:center;gap:10px;">
             <span>💎</span>
@@ -1637,6 +1651,9 @@ const demoDocuments = [
         <div class="spotlight-item" data-nav="deals">
           <div style="display:flex;align-items:center;gap:10px;">${svgIcon('deals', 16)} <span>Deals Cockpit & Closings</span></div>
         </div>
+        <div class="spotlight-item" data-nav="documents">
+          <div style="display:flex;align-items:center;gap:10px;"><span>📁</span> <span>Documents & Legal Vault</span></div>
+        </div>
       </div>`;
 
     backdrop.appendChild(modal);
@@ -1656,7 +1673,9 @@ const demoDocuments = [
       const leadId = item.dataset.leadId;
       close();
 
-      if (act === 'wa-dispatcher') {
+      if (act === 'rent-agreement') rentalAgreementModal();
+      else if (act === 'token-receipt') tokenReceiptModal();
+      else if (act === 'wa-dispatcher') {
         const prop = (state.properties || demoProperties)[0];
         const lead = (state.leads || demoLeads)[0];
         whatsAppDispatcherModal(prop, lead);
@@ -3424,9 +3443,14 @@ _Feel free to reach our team at ${state.user?.fullName ? `${state.user.fullName}
                 <span>+ Add Property</span>
               </button>
 
-              <button class="quick-action-btn" id="qa-add-client">
-                <div class="quick-action-icon" style="background:#f3e8ff;color:#8b5cf6;">👥</div>
-                <span>+ Add Client</span>
+              <button class="quick-action-btn" id="qa-rent-agreement">
+                <div class="quick-action-icon" style="background:#ecfdf5;color:#047857;">📜</div>
+                <span>📜 Rent Agreement</span>
+              </button>
+
+              <button class="quick-action-btn" id="qa-token-receipt">
+                <div class="quick-action-icon" style="background:#eff6ff;color:#2563eb;">🧾</div>
+                <span>🧾 Token Receipt</span>
               </button>
 
               <button class="quick-action-btn" id="qa-create-deal">
@@ -3448,8 +3472,11 @@ _Feel free to reach our team at ${state.user?.fullName ? `${state.user.fullName}
     const qaProp = document.querySelector('#qa-add-property');
     if (qaProp) qaProp.onclick = () => propertyDrawer();
 
-    const qaClient = document.querySelector('#qa-add-client');
-    if (qaClient) qaClient.onclick = () => leadDrawer();
+    const qaRent = document.querySelector('#qa-rent-agreement');
+    if (qaRent) qaRent.onclick = () => rentalAgreementModal();
+
+    const qaToken = document.querySelector('#qa-token-receipt');
+    if (qaToken) qaToken.onclick = () => tokenReceiptModal();
 
     const qaDeal = document.querySelector('#qa-create-deal');
     if (qaDeal) qaDeal.onclick = () => dealDrawer();
@@ -7020,8 +7047,10 @@ async function documentsView() {
           <button class="view-btn ${state.docsViewMode === 'cards' ? 'active' : ''}" id="docs-mode-cards-btn">⊞ Vault Cards</button>
           <button class="view-btn ${state.docsViewMode === 'table' ? 'active' : ''}" id="docs-mode-table-btn">☰ Table</button>
         </div>
+        <button class="button hero-btn" id="gen-rental-agreement-btn" style="background:#047857;color:#fff;font-weight:700;">📜 11-Month Rent Agreement</button>
+        <button class="button hero-btn" id="gen-token-receipt-btn" style="background:#165dff;color:#fff;font-weight:700;">🧾 Issue Token Receipt</button>
+        <button class="button secondary" id="doc-stamp-calc-btn" style="font-weight:700;">🧮 Cost & Stamp Duty</button>
         <button class="button primary" id="add-doc-btn">＋ Upload Document</button>
-        <button class="button hero-btn" id="gen-token-receipt-btn" style="background:#165dff;color:#fff;">🧾 Issue Token Receipt</button>
       </div>`)}
 
       <!-- VAULT INTELLIGENCE KPIS -->
@@ -7074,7 +7103,9 @@ async function documentsView() {
       documentsView();
     };
     if (document.querySelector('#add-doc-btn')) document.querySelector('#add-doc-btn').onclick = () => documentDrawer();
+    if (document.querySelector('#gen-rental-agreement-btn')) document.querySelector('#gen-rental-agreement-btn').onclick = () => rentalAgreementModal();
     if (document.querySelector('#gen-token-receipt-btn')) document.querySelector('#gen-token-receipt-btn').onclick = () => tokenReceiptModal();
+    if (document.querySelector('#doc-stamp-calc-btn')) document.querySelector('#doc-stamp-calc-btn').onclick = () => stampDutyCostCalculatorModal();
 
     // CATEGORY TABS
     document.querySelectorAll('#doc-category-tabs .filter-tab').forEach(btn => {
@@ -8298,7 +8329,8 @@ Best regards,
           <h1 class="page-title" style="font-size:24px;font-weight:800;letter-spacing:-0.025em;color:#0f172a;margin:0 0 4px;">Deals Pipeline</h1>
           <p class="page-sub" style="font-size:13.5px;color:#64748b;margin:0;">Track ongoing deals from token advance to final agreement registration.</p>
         </div>
-        <div style="display:flex;gap:10px;align-items:center;">
+        <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+          <button class="button hero-btn" id="deals-rental-btn" style="background:#ecfdf5;color:#047857;border:1.5px solid #a7f3d0;font-weight:750;">📜 11-Month Agreement</button>
           <button class="button hero-btn" id="deals-token-btn" style="background:#eff6ff;color:#2563eb;border-color:#dbeafe;font-weight:700;">🧾 Token Receipt</button>
           <button class="button primary" id="add-deal-btn" style="background:#2563eb;font-weight:600;padding:8px 16px;border-radius:9px;">＋ Create Deal</button>
         </div>
@@ -8388,6 +8420,7 @@ Best regards,
     bindShell();
 
     if (document.querySelector('#add-deal-btn')) document.querySelector('#add-deal-btn').onclick = () => dealDrawer();
+    if (document.querySelector('#deals-rental-btn')) document.querySelector('#deals-rental-btn').onclick = () => rentalAgreementModal();
     if (document.querySelector('#deals-token-btn')) document.querySelector('#deals-token-btn').onclick = () => tokenReceiptModal();
 
     let activeFilter = 'ALL';
@@ -9246,6 +9279,14 @@ Password: *${pass}*
         <!-- SECTION: QUICK DEAL ACTIONS -->
         <div class="drawer-section-label" style="font-size:12px;font-weight:850;color:#000000;text-transform:uppercase;letter-spacing:0.06em;margin:0 0 8px 6px;">Quick Deal Actions</div>
         <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:18px;">
+          <button class="drawer-tool-btn" id="drawer-rental-agreement-btn" style="display:flex;align-items:center;gap:10px;padding:11px 14px;border-radius:10px;border:1.5px solid #a7f3d0;background:#f0fdf4;color:#000000;font-size:14px;font-weight:800;cursor:pointer;text-align:left;">
+            <span style="font-size:18px;">📜</span>
+            <span style="color:#000000;font-weight:800;">11-Month Rental Agreement</span>
+          </button>
+          <button class="drawer-tool-btn" id="drawer-token-receipt-btn" style="display:flex;align-items:center;gap:10px;padding:11px 14px;border-radius:10px;border:1.5px solid #bfdbfe;background:#eff6ff;color:#000000;font-size:14px;font-weight:800;cursor:pointer;text-align:left;">
+            <span style="font-size:18px;">🧾</span>
+            <span style="color:#000000;font-weight:800;">Issue Token Booking Receipt</span>
+          </button>
           <button class="drawer-tool-btn emerald" id="drawer-wa-dispatcher-btn" style="display:flex;align-items:center;gap:10px;padding:11px 14px;border-radius:10px;border:1.5px solid #86efac;background:#f0fdf4;color:#000000;font-size:14px;font-weight:800;cursor:pointer;text-align:left;">
             <span style="color:#059669;">${svgIcon('whatsapp', 18)}</span>
             <span style="color:#000000;font-weight:800;">Send WhatsApp Pitch (1-Click)</span>
@@ -9295,6 +9336,12 @@ Password: *${pass}*
     drawer.querySelectorAll('.drawer-nav-item').forEach(link => {
       link.onclick = () => close();
     });
+
+    const rentBtn = drawer.querySelector('#drawer-rental-agreement-btn');
+    if (rentBtn) rentBtn.onclick = () => { close(); rentalAgreementModal(); };
+
+    const tokenBtn = drawer.querySelector('#drawer-token-receipt-btn');
+    if (tokenBtn) tokenBtn.onclick = () => { close(); tokenReceiptModal(); };
 
     const waBtn = drawer.querySelector('#drawer-wa-dispatcher-btn');
     if (waBtn) waBtn.onclick = () => { close(); whatsAppDispatcherModal(); };
