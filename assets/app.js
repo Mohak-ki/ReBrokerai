@@ -440,7 +440,7 @@ const demoDocuments = [
         if (Array.isArray(p) && p.length) return p;
       }
     } catch {}
-    return typeof demoLeads !== 'undefined' ? demoLeads : [];
+    return typeof demoLeads !== 'undefined' ? JSON.parse(JSON.stringify(demoLeads)) : [];
   }
 
   function getStoredProperties() {
@@ -451,7 +451,7 @@ const demoDocuments = [
         if (Array.isArray(p) && p.length) return p;
       }
     } catch {}
-    return typeof demoProperties !== 'undefined' ? demoProperties : [];
+    return typeof demoProperties !== 'undefined' ? JSON.parse(JSON.stringify(demoProperties)) : [];
   }
 
   function getStoredDocuments() {
@@ -462,18 +462,18 @@ const demoDocuments = [
         if (Array.isArray(p) && p.length) return p;
       }
     } catch {}
-    return typeof demoDocuments !== 'undefined' ? demoDocuments : [];
+    return typeof demoDocuments !== 'undefined' ? JSON.parse(JSON.stringify(demoDocuments)) : [];
   }
 
   function getStoredVisits() {
     try {
-      const saved = localStorage.getItem('brokerai.visits');
+      const saved = localStorage.getItem('brokerai.visits') || localStorage.getItem('brokerai.siteVisits');
       if (saved) {
         const p = JSON.parse(saved);
         if (Array.isArray(p) && p.length) return p;
       }
     } catch {}
-    return typeof demoVisits !== 'undefined' ? demoVisits : [];
+    return typeof demoVisits !== 'undefined' ? JSON.parse(JSON.stringify(demoVisits)) : [];
   }
 
   function getStoredDeals() {
@@ -484,7 +484,7 @@ const demoDocuments = [
         if (Array.isArray(p) && p.length) return p;
       }
     } catch {}
-    return typeof demoDeals !== 'undefined' ? demoDeals : [];
+    return typeof demoDeals !== 'undefined' ? JSON.parse(JSON.stringify(demoDeals)) : [];
   }
 
   function getStoredCommissions() {
@@ -495,18 +495,18 @@ const demoDocuments = [
         if (Array.isArray(p) && p.length) return p;
       }
     } catch {}
-    return typeof demoCommissions !== 'undefined' ? demoCommissions : [];
+    return typeof demoCommissions !== 'undefined' ? JSON.parse(JSON.stringify(demoCommissions)) : [];
   }
 
   function getStoredFollowUps() {
     try {
-      const saved = localStorage.getItem('brokerai.followups');
+      const saved = localStorage.getItem('brokerai.followups') || localStorage.getItem('brokerai.followUps');
       if (saved) {
         const p = JSON.parse(saved);
         if (Array.isArray(p) && p.length) return p;
       }
     } catch {}
-    return typeof demoFollowUps !== 'undefined' ? demoFollowUps : [];
+    return typeof demoFollowUps !== 'undefined' ? JSON.parse(JSON.stringify(demoFollowUps)) : [];
   }
 
 
@@ -2754,40 +2754,36 @@ const demoDocuments = [
       <div class="apple-card">
         <div class="apple-card-head">
           <h2 class="apple-card-title">Today's Showing Schedule</h2>
-          <button class="apple-card-link" id="view-all-showings-btn">View All Showings →</button>
+          <button class="apple-card-link" id="view-all-showings-btn">View All Showings (${((state.visits && state.visits.length) ? state.visits : getStoredVisits()).length}) →</button>
         </div>
         <div class="deal-opp-list">
-          <div class="deal-opp-item">
-            <div class="deal-opp-left">
-              <div class="deal-opp-avatar" style="background:#eff6ff;color:#2563eb;">◷</div>
-              <div class="deal-opp-info">
-                <div class="deal-opp-name">10:30 AM · Rohit Sharma (Oberoi Sky City, 3 BHK)</div>
-                <div class="deal-opp-prop">Key arranged with Society Security Gate 2 · Client driving from Powai</div>
+          ${((state.visits && state.visits.length) ? state.visits : getStoredVisits()).slice(0, 4).map(v => `
+            <div class="deal-opp-item">
+              <div class="deal-opp-left">
+                <div class="deal-opp-avatar" style="background:#eff6ff;color:#2563eb;">◷</div>
+                <div class="deal-opp-info">
+                  <div class="deal-opp-name">${formatDateTime(v.scheduledAt)} · ${esc(v.leadName || 'Client')} (${esc(v.propertyTitle || 'Property')})</div>
+                  <div class="deal-opp-prop">${esc(v.notes || 'Key with society security guard / main gate pass')}</div>
+                </div>
+              </div>
+              <div class="deal-opp-right">
+                <button class="btn-apple-call" onclick="window.open('https://maps.google.com/?q=' + encodeURIComponent('${esc(v.propertyTitle || '')} ${esc(v.propertyLocation || 'Thane')}'), '_blank')" title="Driving Route">📍 Maps Route</button>
+                <button class="btn-apple-chat" data-visit-wa-id="${v.id}" title="Confirm Showing">💬 WhatsApp</button>
               </div>
             </div>
-            <div class="deal-opp-right">
-              <button class="btn-apple-call" onclick="window.open('https://maps.google.com/?q=Oberoi+Sky+City+Borivali', '_blank')" title="Driving Route">📍 Maps Route</button>
-              <button class="btn-apple-chat" onclick="whatsAppDispatcherModal((state.properties||demoProperties)[0], (state.leads||demoLeads)[0])" title="Confirm Showing">💬 WhatsApp</button>
-            </div>
-          </div>
-
-          <div class="deal-opp-item">
-            <div class="deal-opp-left">
-              <div class="deal-opp-avatar" style="background:#f3e8ff;color:#8b5cf6;">◷</div>
-              <div class="deal-opp-info">
-                <div class="deal-opp-name">3:00 PM · Priya Desai (Hiranandani Meadows, 4 BHK)</div>
-                <div class="deal-opp-prop">Owner Mr. Kapoor will be present at the flat · Family visit</div>
-              </div>
-            </div>
-            <div class="deal-opp-right">
-              <button class="btn-apple-call" onclick="window.open('https://maps.google.com/?q=Hiranandani+Meadows+Thane', '_blank')" title="Driving Route">📍 Maps Route</button>
-              <button class="btn-apple-chat" onclick="whatsAppDispatcherModal((state.properties||demoProperties)[1], (state.leads||demoLeads)[1])" title="Confirm Showing">💬 WhatsApp</button>
-            </div>
-          </div>
+          `).join('')}
         </div>
       </div>
     `);
     bindShell();
+
+    document.querySelectorAll('[data-visit-wa-id]').forEach(btn => {
+      btn.onclick = () => {
+        const id = btn.dataset.visitWaId;
+        const v = ((state.visits && state.visits.length) ? state.visits : getStoredVisits()).find(x => String(x.id) === String(id));
+        if (v) copyVisitWhatsAppShare(v);
+      };
+    });
 
     if (document.querySelector('#new-visit')) document.querySelector('#new-visit').onclick = () => siteVisitDrawer();
   }
@@ -2832,8 +2828,8 @@ _Feel free to reach our team at ${state.user?.fullName ? `${state.user.fullName}
 
   async function siteVisitDrawer(defaultLeadId = null, defaultPropertyId = null) {
     document.querySelectorAll('.modal-backdrop, .drawer-backdrop, .spotlight-backdrop').forEach(b => b.remove());
-    const leads = (state.leads && state.leads.length) ? state.leads : (typeof demoLeads !== 'undefined' ? demoLeads : getStoredLeads());
-    const properties = (state.properties && state.properties.length) ? state.properties : (typeof demoProperties !== 'undefined' ? demoProperties : getStoredProperties());
+    const leads = (state.leads && state.leads.length) ? state.leads : getStoredLeads();
+    const properties = (state.properties && state.properties.length) ? state.properties : getStoredProperties();
 
     const backdrop = document.createElement('div');
     backdrop.className = 'drawer-backdrop';
@@ -2856,14 +2852,14 @@ _Feel free to reach our team at ${state.user?.fullName ? `${state.user.fullName}
               <label>Buyer lead</label>
               <select class="select" name="leadId" required>
                 <option value="">Select buyer lead</option>
-                ${leads.map(l => `<option value="${l.id}" ${defaultLeadId === l.id ? 'selected' : ''}>${esc(l.name)} (${esc(l.phone)})</option>`).join('')}
+                ${leads.map(l => `<option value="${l.id}" ${(defaultLeadId && String(defaultLeadId) === String(l.id)) ? 'selected' : ''}>${esc(l.name)} (${esc(l.phone)})</option>`).join('')}
               </select>
             </div>
             <div class="field full">
               <label>Property</label>
               <select class="select" name="propertyId" required>
                 <option value="">Select property listing</option>
-                ${properties.map(p => `<option value="${p.id}" ${defaultPropertyId === p.id ? 'selected' : ''}>${esc(p.title)} · ${esc(p.location)} (${formatPrice(p.price, p.listingType)})</option>`).join('')}
+                ${properties.map(p => `<option value="${p.id}" ${(defaultPropertyId && String(defaultPropertyId) === String(p.id)) ? 'selected' : ''}>${esc(p.title)} · ${esc(p.location)} (${formatPrice(p.price, p.listingType)})</option>`).join('')}
               </select>
             </div>
             <div class="field">
@@ -2907,8 +2903,8 @@ _Feel free to reach our team at ${state.user?.fullName ? `${state.user.fullName}
         return;
       }
       try {
-        const l = (state.leads || demoLeads).find(x => x.id === payload.leadId) || { id: payload.leadId, name: 'Client', phone: '+91 98765 43210' };
-        const p = (state.properties || demoProperties).find(x => x.id === payload.propertyId) || { id: payload.propertyId, title: 'Property', location: 'Thane', price: 12500000 };
+        const l = (state.leads || demoLeads).find(x => String(x.id) === String(payload.leadId)) || { id: payload.leadId, name: 'Client', phone: '+91 98765 43210' };
+        const p = (state.properties || demoProperties).find(x => String(x.id) === String(payload.propertyId)) || { id: payload.propertyId, title: 'Property', location: 'Thane', price: 12500000 };
 
         const newVisit = {
           id: Date.now(),
@@ -2927,33 +2923,34 @@ _Feel free to reach our team at ${state.user?.fullName ? `${state.user.fullName}
         };
 
         if (!state.visits || !state.visits.length) {
-          state.visits = JSON.parse(JSON.stringify(demoVisits));
+          state.visits = getStoredVisits();
         }
         state.visits.unshift(newVisit);
-        demoVisits.unshift(newVisit);
+        if (typeof demoVisits !== 'undefined') demoVisits.unshift(newVisit);
         localStorage.setItem('brokerai.visits', JSON.stringify(state.visits));
 
         // Auto-log follow-up reminder
-        if (!state.followUps) state.followUps = JSON.parse(JSON.stringify(demoFollowUps));
+        if (!state.followUps || !state.followUps.length) state.followUps = getStoredFollowUps();
         state.followUps.unshift({
           id: Date.now() + 1,
           leadId: l.id,
           leadName: l.name,
           leadPhone: l.phone,
           title: `Showing for ${p.title} scheduled on ${new Date(payload.scheduledAt).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })}`,
-          type: 'VISIT',
+          type: 'SITE_VISIT',
           priority: 'HIGH',
           status: 'PENDING',
           dueAt: payload.scheduledAt,
           isOverdue: false,
           notes: payload.notes || 'Confirm gate pass 30 mins prior'
         });
+        localStorage.setItem('brokerai.followups', JSON.stringify(state.followUps));
         localStorage.setItem('brokerai.followUps', JSON.stringify(state.followUps));
 
         showToast(`✓ Site showing for ${esc(l.name)} scheduled successfully!`, 'success');
 
         close();
-        if (state.page === 'visits') siteVisitsView();
+        if (state.page === 'visits' || state.page === 'site-visits' || state.page === 'calendar') siteVisitsView();
         else if (state.page === 'dashboard') dashboard();
         else render();
       } catch (err) {
@@ -3166,10 +3163,21 @@ _Feel free to reach our team at ${state.user?.fullName ? `${state.user.fullName}
   // --- EXECUTIVE DASHBOARD ---
   function dashboard() {
     const userName = (state.user?.fullName || 'Mohak').split(' ')[0];
-    const leadsList = (state.leads && state.leads.length) ? state.leads : demoLeads;
-    const propsList = (state.properties && state.properties.length) ? state.properties : demoProperties;
-    const visitsList = (state.visits && state.visits.length) ? state.visits : demoVisits;
-    const dealsList = (state.deals && state.deals.length) ? state.deals : demoDeals;
+    const leadsList = (state.leads && state.leads.length) ? state.leads : getStoredLeads();
+    const propsList = (state.properties && state.properties.length) ? state.properties : getStoredProperties();
+    const visitsList = (state.visits && state.visits.length) ? state.visits : getStoredVisits();
+    const dealsList = (state.deals && state.deals.length) ? state.deals : getStoredDeals();
+    const followUpsList = (state.followUps && state.followUps.length) ? state.followUps : getStoredFollowUps();
+
+    const topOpportunities = (leadsList && leadsList.length) ? leadsList.slice(0, 3) : demoLeads.slice(0, 3);
+    const displayTasks = (followUpsList && followUpsList.length)
+      ? followUpsList.slice(0, 4)
+      : [
+          { id: 't1', title: 'Follow up with Rohit Sharma regarding site visit', dueAt: new Date().toISOString(), type: 'CALL', status: 'PENDING' },
+          { id: 't2', title: 'Send agreement draft for Lodha Amara deal', dueAt: new Date().toISOString(), type: 'LEGAL', status: 'PENDING' },
+          { id: 't3', title: 'Schedule photoshoot for Bandra Penthouse', dueAt: new Date(Date.now() + 86400000).toISOString(), type: 'PROPERTY', status: 'PENDING' },
+          { id: 't4', title: 'Confirm token payment receipt with Neha', dueAt: new Date().toISOString(), type: 'FINANCE', status: 'COMPLETED' }
+        ];
 
     const totalLeads = leadsList.length || 24;
     const activeClients = 18;
@@ -3263,71 +3271,41 @@ _Feel free to reach our team at ${state.user?.fullName ? `${state.user.fullName}
               <button class="apple-card-link" onclick="location.hash='#/leads';">View all</button>
             </div>
             <div class="deal-opp-list">
-              <!-- Lead 1: Rohit Sharma -->
-              <div class="deal-opp-item">
-                <div class="deal-opp-left">
-                  <div class="deal-opp-avatar">RS</div>
-                  <div class="deal-opp-info">
-                    <div class="deal-opp-name">
-                      Rohit Sharma
-                      <span class="apple-badge hot" style="font-size:10.5px;padding:1px 6px;">Hot</span>
+              ${topOpportunities.map((ld, idx) => {
+                const initials = (ld.name || 'CL').split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase() || 'CL';
+                const budgetStr = ld.budget ? formatPrice(ld.budget, 'SALE') : '₹1.50 Cr';
+                const stageClass = ld.stage === 'HOT' ? 'hot' : (ld.stage === 'WARM' ? 'warm' : 'active');
+                const stageLabel = ld.stage || 'Hot';
+                const propTitle = ld.preferredProperty || ld.propertyTitle || 'Oberoi Sky City, 3 BHK';
+                const avatarColors = [
+                  { bg: '#eff6ff', color: '#2563eb' },
+                  { bg: '#f3e8ff', color: '#8b5cf6' },
+                  { bg: '#fef3c7', color: '#d97706' }
+                ];
+                const c = avatarColors[idx % avatarColors.length];
+                return `
+                  <div class="deal-opp-item">
+                    <div class="deal-opp-left">
+                      <div class="deal-opp-avatar" style="background:${c.bg};color:${c.color};">${initials}</div>
+                      <div class="deal-opp-info">
+                        <div class="deal-opp-name">
+                          ${esc(ld.name)}
+                          <span class="apple-badge ${stageClass}" style="font-size:10.5px;padding:1px 6px;">${stageLabel}</span>
+                        </div>
+                        <div class="deal-opp-prop">${esc(propTitle)}</div>
+                      </div>
                     </div>
-                    <div class="deal-opp-prop">Oberoi Sky City, 3 BHK</div>
-                  </div>
-                </div>
-                <div class="deal-opp-right">
-                  <span class="deal-opp-match">95% Match</span>
-                  <span class="deal-opp-budget">₹2.80 Cr</span>
-                  <div class="deal-opp-actions">
-                    <button class="btn-apple-call" id="dash-call-1" title="Call Rohit">📞 Call</button>
-                    <button class="btn-apple-chat" id="dash-chat-1" title="WhatsApp Rohit">💬 Chat</button>
-                  </div>
-                </div>
-              </div>
-
-              <!-- Lead 2: Priya Desai -->
-              <div class="deal-opp-item">
-                <div class="deal-opp-left">
-                  <div class="deal-opp-avatar" style="background:#f3e8ff;color:#8b5cf6;">PD</div>
-                  <div class="deal-opp-info">
-                    <div class="deal-opp-name">
-                      Priya Desai
-                      <span class="apple-badge hot" style="font-size:10.5px;padding:1px 6px;">Hot</span>
+                    <div class="deal-opp-right">
+                      <span class="deal-opp-match">${ld.matchScore ? `${ld.matchScore}% Match` : '92% Match'}</span>
+                      <span class="deal-opp-budget">${budgetStr}</span>
+                      <div class="deal-opp-actions">
+                        <button class="btn-apple-call" data-dash-call="${esc(ld.phone || '+919876543210')}" title="Call ${esc(ld.name)}">📞 Call</button>
+                        <button class="btn-apple-chat" data-dash-chat="${ld.id}" title="WhatsApp ${esc(ld.name)}">💬 Chat</button>
+                      </div>
                     </div>
-                    <div class="deal-opp-prop">Hiranandani Meadows, 4 BHK</div>
                   </div>
-                </div>
-                <div class="deal-opp-right">
-                  <span class="deal-opp-match">92% Match</span>
-                  <span class="deal-opp-budget">₹4.20 Cr</span>
-                  <div class="deal-opp-actions">
-                    <button class="btn-apple-call" id="dash-call-2" title="Call Priya">📞 Call</button>
-                    <button class="btn-apple-chat" id="dash-chat-2" title="WhatsApp Priya">💬 Chat</button>
-                  </div>
-                </div>
-              </div>
-
-              <!-- Lead 3: Amit Kulkarni -->
-              <div class="deal-opp-item">
-                <div class="deal-opp-left">
-                  <div class="deal-opp-avatar" style="background:#fef3c7;color:#d97706;">AK</div>
-                  <div class="deal-opp-info">
-                    <div class="deal-opp-name">
-                      Amit Kulkarni
-                      <span class="apple-badge warm" style="font-size:10.5px;padding:1px 6px;">Warm</span>
-                    </div>
-                    <div class="deal-opp-prop">Lodha Amara, 2 BHK</div>
-                  </div>
-                </div>
-                <div class="deal-opp-right">
-                  <span class="deal-opp-match">88% Match</span>
-                  <span class="deal-opp-budget">₹1.15 Cr</span>
-                  <div class="deal-opp-actions">
-                    <button class="btn-apple-call" id="dash-call-3" title="Call Amit">📞 Call</button>
-                    <button class="btn-apple-chat" id="dash-chat-3" title="WhatsApp Amit">💬 Chat</button>
-                  </div>
-                </div>
-              </div>
+                `;
+              }).join('')}
             </div>
           </div>
 
@@ -3340,23 +3318,23 @@ _Feel free to reach our team at ${state.user?.fullName ? `${state.user.fullName}
               <div class="activity-item">
                 <div class="activity-dot blue">👤</div>
                 <div class="activity-content">
-                  <div class="activity-title">New lead added — Rohit Sharma registered interest for Oberoi Sky City</div>
-                  <div class="activity-time">2 hours ago</div>
+                  <div class="activity-title">New lead added — ${esc(leadsList[0]?.name || 'Rohit Sharma')} registered interest</div>
+                  <div class="activity-time">Today</div>
                 </div>
               </div>
 
               <div class="activity-item">
                 <div class="activity-dot green">◷</div>
                 <div class="activity-content">
-                  <div class="activity-title">Site visit scheduled — Priya Desai for Hiranandani Meadows (Today 4:00 PM)</div>
-                  <div class="activity-time">4 hours ago</div>
+                  <div class="activity-title">Site visit scheduled — ${esc(leadsList[1]?.name || 'Priya Desai')} for ${esc(propsList[0]?.title || 'Hiranandani Meadows')}</div>
+                  <div class="activity-time">Today 4:00 PM</div>
                 </div>
               </div>
 
               <div class="activity-item">
                 <div class="activity-dot orange">🧾</div>
                 <div class="activity-content">
-                  <div class="activity-title">Deal advanced to Token Received — Neha Desai for Rustomjee Urbania</div>
+                  <div class="activity-title">Deal milestone reached — Token Advance confirmed</div>
                   <div class="activity-time">Yesterday</div>
                 </div>
               </div>
@@ -3364,7 +3342,7 @@ _Feel free to reach our team at ${state.user?.fullName ? `${state.user.fullName}
               <div class="activity-item">
                 <div class="activity-dot purple">🏠</div>
                 <div class="activity-content">
-                  <div class="activity-title">New property listed — 3 BHK Luxury Flat in Vasant Vihar (₹1.85 Cr)</div>
+                  <div class="activity-title">New listing available — ${esc(propsList[0]?.title || '3 BHK Luxury Flat in Vasant Vihar')}</div>
                   <div class="activity-time">2 days ago</div>
                 </div>
               </div>
@@ -3381,49 +3359,23 @@ _Feel free to reach our team at ${state.user?.fullName ? `${state.user.fullName}
               <button class="apple-card-link" id="dash-add-task-btn">＋ Add Task</button>
             </div>
             <div class="task-checklist" id="dash-tasks-container">
-              <div class="task-item" id="task-row-1">
-                <div class="task-left">
-                  <input type="checkbox" class="task-checkbox" id="task-cb-1" />
-                  <div class="task-info">
-                    <div class="task-text">Follow up with Rohit Sharma regarding site visit</div>
-                    <div class="task-time">Today, 2:00 PM</div>
+              ${displayTasks.map(t => {
+                const isDone = t.status === 'COMPLETED' || t.completed;
+                const typeClass = (t.type || 'CALL').toLowerCase();
+                const typeLabel = (t.type || 'CALL');
+                return `
+                  <div class="task-item ${isDone ? 'completed' : ''}" id="task-row-${t.id}">
+                    <div class="task-left">
+                      <input type="checkbox" class="task-checkbox" id="task-cb-${t.id}" data-task-id="${t.id}" ${isDone ? 'checked' : ''} />
+                      <div class="task-info">
+                        <div class="task-text">${esc(t.title || t.notes || 'Follow-up Task')}</div>
+                        <div class="task-time">${isDone ? 'Completed' : (t.dueAt ? formatDateTime(t.dueAt) : 'Today')}</div>
+                      </div>
+                    </div>
+                    <span class="task-tag ${typeClass}">${typeLabel}</span>
                   </div>
-                </div>
-                <span class="task-tag call">Call</span>
-              </div>
-
-              <div class="task-item" id="task-row-2">
-                <div class="task-left">
-                  <input type="checkbox" class="task-checkbox" id="task-cb-2" />
-                  <div class="task-info">
-                    <div class="task-text">Send agreement draft for Lodha Amara deal</div>
-                    <div class="task-time">Today, 4:30 PM</div>
-                  </div>
-                </div>
-                <span class="task-tag legal">Legal</span>
-              </div>
-
-              <div class="task-item" id="task-row-3">
-                <div class="task-left">
-                  <input type="checkbox" class="task-checkbox" id="task-cb-3" />
-                  <div class="task-info">
-                    <div class="task-text">Schedule photoshoot for Bandra Penthouse</div>
-                    <div class="task-time">Tomorrow, 11:00 AM</div>
-                  </div>
-                </div>
-                <span class="task-tag property">Property</span>
-              </div>
-
-              <div class="task-item completed" id="task-row-4">
-                <div class="task-left">
-                  <input type="checkbox" class="task-checkbox" id="task-cb-4" checked />
-                  <div class="task-info">
-                    <div class="task-text">Confirm token payment receipt with Neha</div>
-                    <div class="task-time">Completed</div>
-                  </div>
-                </div>
-                <span class="task-tag finance">Finance</span>
-              </div>
+                `;
+              }).join('')}
             </div>
           </div>
 
@@ -3482,81 +3434,46 @@ _Feel free to reach our team at ${state.user?.fullName ? `${state.user.fullName}
     if (qaDeal) qaDeal.onclick = () => dealDrawer();
 
     // Wire up Task Checkboxes
-    [1, 2, 3, 4].forEach(id => {
-      const cb = document.querySelector('#task-cb-' + id);
-      const row = document.querySelector('#task-row-' + id);
-      if (cb && row) {
-        cb.onchange = () => {
-          if (cb.checked) {
-            row.classList.add('completed');
-            showToast('✓ Task marked as completed!', 'success');
-          } else {
-            row.classList.remove('completed');
+    document.querySelectorAll('#dash-tasks-container .task-checkbox').forEach(cb => {
+      cb.onchange = () => {
+        const taskId = cb.dataset.taskId;
+        const row = document.querySelector('#task-row-' + taskId);
+        const isCompleted = cb.checked;
+        if (row) {
+          if (isCompleted) row.classList.add('completed');
+          else row.classList.remove('completed');
+        }
+
+        if (state.followUps && state.followUps.length) {
+          const item = state.followUps.find(f => String(f.id) === String(taskId));
+          if (item) {
+            item.status = isCompleted ? 'COMPLETED' : 'PENDING';
+            item.completed = isCompleted;
+            localStorage.setItem('brokerai.followups', JSON.stringify(state.followUps));
+            localStorage.setItem('brokerai.followUps', JSON.stringify(state.followUps));
           }
-        };
-      }
+        }
+        showToast(isCompleted ? '✓ Task marked as completed!' : 'Task re-opened', 'success');
+      };
     });
 
     const addTaskBtn = document.querySelector('#dash-add-task-btn');
     if (addTaskBtn) {
-      addTaskBtn.onclick = () => {
-        const text = prompt('Enter new task description:');
-        if (text && text.trim()) {
-          const container = document.querySelector('#dash-tasks-container');
-          const newId = Date.now();
-          const taskHtml = `
-            <div class="task-item" id="task-row-${newId}">
-              <div class="task-left">
-                <input type="checkbox" class="task-checkbox" id="task-cb-${newId}" />
-                <div class="task-info">
-                  <div class="task-text">${esc(text.trim())}</div>
-                  <div class="task-time">Today</div>
-                </div>
-              </div>
-              <span class="task-tag call">Task</span>
-            </div>
-          `;
-          container.insertAdjacentHTML('afterbegin', taskHtml);
-          const newCb = document.querySelector('#task-cb-' + newId);
-          const newRow = document.querySelector('#task-row-' + newId);
-          if (newCb && newRow) {
-            newCb.onchange = () => {
-              if (newCb.checked) newRow.classList.add('completed');
-              else newRow.classList.remove('completed');
-            };
-          }
-          showToast('✓ New task added to your checklist!', 'success');
-        }
-      };
+      addTaskBtn.onclick = () => followUpDrawer();
     }
 
-    // Wire up Call & Chat buttons
-    const call1 = document.querySelector('#dash-call-1');
-    if (call1) call1.onclick = () => window.open('tel:+919876543210', '_self');
-    const chat1 = document.querySelector('#dash-chat-1');
-    if (chat1) chat1.onclick = () => {
-      const lead = leadsList[0] || demoLeads[0];
-      const prop = propsList[0] || demoProperties[0];
-      whatsAppDispatcherModal(prop, lead);
-    };
+    // Wire up dynamic Call & Chat buttons
+    document.querySelectorAll('[data-dash-call]').forEach(b => {
+      b.onclick = () => window.open(`tel:${b.dataset.dashCall}`, '_self');
+    });
 
-    const call2 = document.querySelector('#dash-call-2');
-    if (call2) call2.onclick = () => window.open('tel:+919820123456', '_self');
-    const chat2 = document.querySelector('#dash-chat-2');
-    if (chat2) chat2.onclick = () => {
-      const lead = leadsList[1] || demoLeads[1] || demoLeads[0];
-      const prop = propsList[1] || demoProperties[1] || demoProperties[0];
-      whatsAppDispatcherModal(prop, lead);
-    };
-
-    const call3 = document.querySelector('#dash-call-3');
-    if (call3) call3.onclick = () => window.open('tel:+919811223344', '_self');
-    const chat3 = document.querySelector('#dash-chat-3');
-    if (chat3) chat3.onclick = () => {
-      const lead = leadsList[2] || demoLeads[2] || demoLeads[0];
-      const prop = propsList[2] || demoProperties[2] || demoProperties[0];
-      whatsAppDispatcherModal(prop, lead);
-    };
+    document.querySelectorAll('[data-dash-chat]').forEach(b => {
+      b.onclick = () => {
+        const lead = leadsList.find(l => String(l.id) === String(b.dataset.dashChat)) || leadsList[0];
+        const prop = propsList[0] || demoProperties[0];
+        whatsAppDispatcherModal(prop, lead);
+      };
+    });
   }
 
   // --- UNIVERSAL REAL ESTATE CSV PARSER, IMPORTER & EXPORTER ---
@@ -4141,8 +4058,9 @@ _Feel free to reach our team at ${state.user?.fullName ? `${state.user.fullName}
     const tbody = document.querySelector('#leads-tbody');
 
     const renderLeads = () => {
+      const currentList = (state.leads && state.leads.length) ? state.leads : list;
       const q = (searchInput?.value || '').toLowerCase().trim();
-      let filtered = list.filter(l => {
+      let filtered = currentList.filter(l => {
         if (activeTab !== 'ALL' && l.temperature !== activeTab) return false;
         if (q) {
           const req = l.requirement || {};
@@ -4200,7 +4118,7 @@ _Feel free to reach our team at ${state.user?.fullName ? `${state.user.fullName}
       });
       tbody.querySelectorAll('[data-wa-lead]').forEach(b => {
         b.onclick = () => {
-          const lead = list.find(x => x.id == b.dataset.waLead) || list[0];
+          const lead = currentList.find(x => String(x.id) === String(b.dataset.waLead)) || currentList[0];
           const prop = (state.properties && state.properties.length ? state.properties : demoProperties)[0];
           whatsAppDispatcherModal(prop, lead);
         };
@@ -4244,9 +4162,10 @@ Best regards,
   // --- LEAD DRAWER (MOBILE & TOUCH OPTIMIZED) ---
   function leadDrawer(lead = null) {
     document.querySelectorAll('.modal-backdrop, .drawer-backdrop, .spotlight-backdrop').forEach(b => b.remove());
+    const leadObj = (typeof lead === 'object' && lead !== null) ? lead : (typeof lead === 'number' || typeof lead === 'string') ? ((state.leads && state.leads.length ? state.leads : getStoredLeads()).find(l => String(l.id) === String(lead)) || null) : null;
     const caps = getPlanCapabilities();
     const currentLeadsCount = (state.leads || []).length;
-    if (!lead && currentLeadsCount >= caps.maxLeads) {
+    if (!leadObj && currentLeadsCount >= caps.maxLeads) {
       alert(`⚠️ You have reached the limit of ${caps.maxLeads} leads on the ${caps.name} tier.\n\nPlease contact Platform Owner Mohak Vaswani or view Plan Details to upgrade your package.`);
       window.location.hash = '#/pricing';
       return;
@@ -4258,23 +4177,23 @@ Best regards,
     drawer.className = 'drawer';
     drawer.style.cssText = 'width:min(680px,100vw);';
 
-    const defaultName = lead?.name || '';
-    const defaultPhone = lead?.phone || '';
-    const defaultEmail = lead?.email || '';
-    const defaultReq = lead?.requirement?.notes || lead?.requirement?.propertyType || (typeof lead?.requirement === 'string' ? lead.requirement : '') || '2 BHK Apartment';
-    const defaultLoc = (lead?.requirement?.preferredLocations && lead.requirement.preferredLocations[0]) || lead?.preferredLocation || 'Thane West';
-    const defaultBudget = lead?.requirement?.maxBudget || lead?.budget || 12500000;
-    const defaultTimeline = lead?.timeline || 'Immediate (15 Days)';
-    const defaultStage = lead?.stage || 'NEW';
-    const defaultTemp = lead?.temperature || 'HOT';
-    const defaultAgent = lead?.assignedAgentName || lead?.assignedTo || (state.user?.fullName || 'Aarav Mehta');
-    const defaultNotes = lead?.notes || '';
+    const defaultName = leadObj?.name || '';
+    const defaultPhone = leadObj?.phone || '';
+    const defaultEmail = leadObj?.email || '';
+    const defaultReq = leadObj?.requirement?.notes || leadObj?.requirement?.propertyType || (typeof leadObj?.requirement === 'string' ? leadObj.requirement : '') || '2 BHK Apartment';
+    const defaultLoc = (leadObj?.requirement?.preferredLocations && leadObj.requirement.preferredLocations[0]) || leadObj?.preferredLocation || 'Thane West';
+    const defaultBudget = leadObj?.requirement?.maxBudget || leadObj?.budget || 12500000;
+    const defaultTimeline = leadObj?.timeline || 'Immediate (15 Days)';
+    const defaultStage = leadObj?.stage || 'NEW';
+    const defaultTemp = leadObj?.temperature || 'HOT';
+    const defaultAgent = leadObj?.assignedAgentName || leadObj?.assignedTo || (state.user?.fullName || 'Aarav Mehta');
+    const defaultNotes = leadObj?.notes || '';
 
     drawer.innerHTML = `
       <div class="drawer-head">
         <div>
           <span class="badge" style="background:#eff6ff;color:#1e40af;margin-bottom:4px;font-weight:800;">CRM PIPELINE</span>
-          <h2 class="panel-title">${lead ? 'Edit Buyer Lead' : 'Add New Buyer Lead'}</h2>
+          <h2 class="panel-title">${leadObj ? 'Edit Buyer Lead' : 'Add New Buyer Lead'}</h2>
           <div class="subtle">Record buyer purchasing power, preferred localities, and deal stage.</div>
         </div>
         <button class="close">×</button>
@@ -4380,7 +4299,7 @@ Best regards,
       <div class="form-actions">
         <button class="button secondary" id="cancel-lead">Cancel</button>
         <button class="button primary" id="save-lead-btn" style="background:#15803d;font-weight:750;">
-          ${lead ? '✓ Update Buyer Lead' : '＋ Save & Add to Pipeline'}
+          ${leadObj ? '✓ Update Buyer Lead' : '＋ Save & Add to Pipeline'}
         </button>
       </div>`;
 
@@ -4413,11 +4332,11 @@ Best regards,
       const isCommercial = bhkVal === 0;
 
       const payload = {
-        id: lead?.id || Date.now(),
+        id: leadObj?.id || Date.now(),
         name,
         phone,
         email,
-        source: lead?.source || 'Direct Client Inquiry',
+        source: leadObj?.source || 'Direct Client Inquiry',
         temperature,
         stage,
         assignedAgentName: assignedTo,
@@ -4434,21 +4353,24 @@ Best regards,
           preferredLocations: [preferredLocation, 'Thane West', 'Hiranandani Estate'],
           notes: notes || `Looking for ${bhkVal ? bhkVal + ' BHK' : 'Commercial'} ${transactionType === 'BUY' ? 'to Buy' : 'for Rent'} in ${preferredLocation}`
         },
-        createdAt: lead?.createdAt || new Date().toISOString()
+        createdAt: leadObj?.createdAt || new Date().toISOString()
       };
 
       if (!state.leads || !state.leads.length) {
-        state.leads = JSON.parse(JSON.stringify(demoLeads));
+        state.leads = getStoredLeads();
       }
 
-      if (lead) {
-        const idx = state.leads.findIndex(x => x.id === lead.id);
+      if (leadObj) {
+        const idx = state.leads.findIndex(x => String(x.id) === String(leadObj.id));
         if (idx !== -1) state.leads[idx] = payload;
-        const dIdx = demoLeads.findIndex(x => x.id === lead.id);
-        if (dIdx !== -1) demoLeads[dIdx] = payload;
+        else state.leads.unshift(payload);
+        if (typeof demoLeads !== 'undefined') {
+          const dIdx = demoLeads.findIndex(x => String(x.id) === String(leadObj.id));
+          if (dIdx !== -1) demoLeads[dIdx] = payload;
+        }
       } else {
         state.leads.unshift(payload);
-        demoLeads.unshift(payload);
+        if (typeof demoLeads !== 'undefined') demoLeads.unshift(payload);
       }
 
       localStorage.setItem('brokerai.leads', JSON.stringify(state.leads));
@@ -4457,6 +4379,8 @@ Best regards,
 
       close();
       if (state.page === 'leads') leadsView();
+      else if (state.page === 'clients') clientsView();
+      else if (state.page === 'matches') matchesView();
       else if (state.page === 'dashboard') dashboard();
       else render();
     };
@@ -5255,8 +5179,9 @@ Presented by *${state.user?.fullName || 'Aarav Mehta'}*
     const tbody = document.querySelector('#properties-tbody');
 
     const renderProps = () => {
+      const currentList = (state.properties && state.properties.length) ? state.properties : list;
       const q = (searchInput?.value || '').toLowerCase().trim();
-      let filtered = list.filter(p => {
+      let filtered = currentList.filter(p => {
         if (activeTab !== 'ALL' && p.listingType !== activeTab) return false;
         if (q && !`${p.title} ${p.location} ${p.society || ''} ${p.propertyCategory || ''}`.toLowerCase().includes(q)) return false;
         return true;
@@ -5268,7 +5193,7 @@ Presented by *${state.user?.fullName || 'Aarav Mehta'}*
       }
 
       tbody.innerHTML = filtered.map(p => {
-        const photoUrl = (p.photos && p.photos.length) ? p.photos[0] : 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=120&q=80';
+        const photoUrl = (p.photos && p.photos.length) ? p.photos[0] : (p.images && p.images.length ? p.images[0] : 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=120&q=80');
         const isRent = p.listingType === 'RENT';
         const priceStr = formatPrice(p.price, p.listingType);
         const typeLabel = p.bhk ? `${p.bhk} BHK Apartment` : (p.propertyCategory || 'Residential');
@@ -5281,7 +5206,7 @@ Presented by *${state.user?.fullName || 'Aarav Mehta'}*
                 <img src="${esc(photoUrl)}" style="width:48px;height:48px;border-radius:10px;object-fit:cover;border:1px solid #e2e8f0;flex-shrink:0;" alt="Prop" onerror="this.src='https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=120&q=80'" />
                 <div>
                   <div style="font-weight:700;color:#0f172a;">${esc(p.title)}</div>
-                  <div style="font-size:12px;color:#64748b;margin-top:1px;">${p.carpetAreaSqFt ? p.carpetAreaSqFt + ' sq.ft · ' : ''}${esc(p.society || p.location)}</div>
+                  <div style="font-size:12px;color:#64748b;margin-top:1px;">${p.carpetAreaSqFt || p.area ? (p.carpetAreaSqFt || p.area) + ' sq.ft · ' : ''}${esc(p.society || p.location)}</div>
                 </div>
               </div>
             </td>
@@ -5308,14 +5233,14 @@ Presented by *${state.user?.fullName || 'Aarav Mehta'}*
 
       tbody.querySelectorAll('[data-wa-prop]').forEach(b => {
         b.onclick = () => {
-          const prop = list.find(x => x.id == b.dataset.waProp) || list[0];
+          const prop = currentList.find(x => String(x.id) === String(b.dataset.waProp)) || currentList[0];
           const lead = (state.leads && state.leads.length ? state.leads : demoLeads)[0];
           whatsAppDispatcherModal(prop, lead);
         };
       });
       tbody.querySelectorAll('[data-cost-prop]').forEach(b => {
         b.onclick = () => {
-          const prop = list.find(x => x.id == b.dataset.costProp) || list[0];
+          const prop = currentList.find(x => String(x.id) === String(b.dataset.costProp)) || currentList[0];
           costSheetDrawer(prop);
         };
       });
@@ -5936,9 +5861,10 @@ ${agencyBranding}
 
   function propertyDrawer(property = null) {
     document.querySelectorAll('.modal-backdrop, .drawer-backdrop, .spotlight-backdrop').forEach(b => b.remove());
+    const propObj = (typeof property === 'object' && property !== null) ? property : (typeof property === 'number' || typeof property === 'string') ? ((state.properties && state.properties.length ? state.properties : getStoredProperties()).find(p => String(p.id) === String(property)) || null) : null;
     const caps = getPlanCapabilities();
     const currentPropsCount = (state.properties || []).length;
-    if (!property && currentPropsCount >= caps.maxProperties) {
+    if (!propObj && currentPropsCount >= caps.maxProperties) {
       alert(`⚠️ You have reached the limit of ${caps.maxProperties} properties on the ${caps.name} tier.\n\nPlease contact Platform Owner Mohak Vaswani or view Plan Details to upgrade your package.`);
       window.location.hash = '#/pricing';
       return;
@@ -5950,8 +5876,8 @@ ${agencyBranding}
     drawer.className = 'drawer';
     drawer.style.cssText = 'width:min(680px,100vw);';
 
-    const currentCat = property?.propertyCategory || 'RESIDENTIAL';
-    const currentType = property?.propertyType || (currentCat === 'RESIDENTIAL' ? '2 BHK Apartment' : 'Commercial Office Space');
+    const currentCat = propObj?.propertyCategory || 'RESIDENTIAL';
+    const currentType = propObj?.propertyType || (currentCat === 'RESIDENTIAL' ? '2 BHK Apartment' : 'Commercial Office Space');
 
     const residentialTypes = [
       ['1 BHK Apartment', 1],
@@ -5977,7 +5903,7 @@ ${agencyBranding}
     drawer.innerHTML = `
       <div class="drawer-head">
         <div>
-          <h2 class="panel-title">${property ? 'Edit Property Listing' : 'Add Property Listing'}</h2>
+          <h2 class="panel-title">${propObj ? 'Edit Property Listing' : 'Add Property Listing'}</h2>
           <div class="subtle">Record property specifications, owner contact, and key lockbox status.</div>
         </div>
         <button class="close">×</button>
@@ -6005,13 +5931,13 @@ ${agencyBranding}
             <div class="field">
               <label>Transaction Type *</label>
               <select class="select" name="listingType">
-                <option value="SALE" ${property?.listingType === 'SALE' ? 'selected' : ''}>FOR SALE (Outright Purchase)</option>
-                <option value="RENT" ${property?.listingType === 'RENT' ? 'selected' : ''}>FOR RENT (Monthly Lease)</option>
+                <option value="SALE" ${propObj?.listingType === 'SALE' ? 'selected' : ''}>FOR SALE (Outright Purchase)</option>
+                <option value="RENT" ${propObj?.listingType === 'RENT' ? 'selected' : ''}>FOR RENT (Monthly Lease)</option>
               </select>
             </div>
             <div class="field">
               <label>Bedrooms (BHK) *</label>
-              <input class="input" id="prop-bhk-input" name="bhk" type="number" min="0" max="20" required value="${property?.bhk ?? 2}" placeholder="2" />
+              <input class="input" id="prop-bhk-input" name="bhk" type="number" min="0" max="20" required value="${propObj?.bhk ?? 2}" placeholder="2" />
             </div>
           </div>
         </div>
@@ -6024,83 +5950,83 @@ ${agencyBranding}
           <div class="form-grid">
             <div class="field full">
               <label>Listing Title *</label>
-              <input class="input" id="prop-title-input" name="title" required placeholder="e.g. Spacious 2 BHK at Rodas Enclave, Hiranandani" value="${esc(property?.title || '')}" />
+              <input class="input" id="prop-title-input" name="title" required placeholder="e.g. Spacious 2 BHK at Rodas Enclave, Hiranandani" value="${esc(propObj?.title || '')}" />
             </div>
             <div class="field">
               <label>Building / Society / Project Name *</label>
-              <input class="input" id="prop-society-input" name="society" required placeholder="e.g. Rodas Enclave, Rustomjee Urbania" value="${esc(property?.society || '')}" />
+              <input class="input" id="prop-society-input" name="society" required placeholder="e.g. Rodas Enclave, Rustomjee Urbania" value="${esc(propObj?.society || '')}" />
             </div>
             <div class="field">
               <label>Developer / Builder Name</label>
-              <input class="input" name="builderName" placeholder="e.g. Hiranandani, Lodha, Raymond, Kalpataru" value="${esc(property?.builderName || '')}" />
+              <input class="input" name="builderName" placeholder="e.g. Hiranandani, Lodha, Raymond, Kalpataru" value="${esc(propObj?.builderName || '')}" />
             </div>
             <div class="field">
               <label>MahaRERA Registration ID</label>
-              <input class="input" name="mahaReraId" placeholder="e.g. P51700028890 or OC Received" value="${esc(property?.mahaReraId || '')}" style="text-transform:uppercase;" />
+              <input class="input" name="mahaReraId" placeholder="e.g. P51700028890 or OC Received" value="${esc(propObj?.mahaReraId || '')}" style="text-transform:uppercase;" />
             </div>
             <div class="field">
               <label>Locality / Area / City *</label>
-              <input class="input" id="prop-location-input" name="location" required placeholder="e.g. Hiranandani Estate, Thane West" value="${esc(property?.location || '')}" />
+              <input class="input" id="prop-location-input" name="location" required placeholder="e.g. Hiranandani Estate, Thane West" value="${esc(propObj?.location || '')}" />
             </div>
             <div class="field">
               <label>Price (₹) *</label>
-              <input class="input" name="price" required type="number" min="1" step="50000" placeholder="e.g. 12500000 for 1.25 Cr" value="${esc(property?.price || '')}" style="font-weight:750;color:#15803d;" />
+              <input class="input" name="price" required type="number" min="1" step="50000" placeholder="e.g. 12500000 for 1.25 Cr" value="${esc(propObj?.price || '')}" style="font-weight:750;color:#15803d;" />
             </div>
             <div class="field">
               <label>Carpet Area (sq.ft) *</label>
-              <input class="input" name="area" type="number" min="1" required placeholder="e.g. 780" value="${esc(property?.area || '')}" />
+              <input class="input" name="area" type="number" min="1" required placeholder="e.g. 780" value="${esc(propObj?.area || '')}" />
             </div>
             <div class="field">
               <label>Flat Status (Ready to Move with OC / Under Construction)</label>
               <select class="select" name="possessionStatus">
-                <option value="READY_TO_MOVE" ${property?.possessionStatus === 'READY_TO_MOVE' ? 'selected' : ''}>Ready to Move (OC Received · 0% GST)</option>
-                <option value="UNDER_CONSTRUCTION" ${property?.possessionStatus === 'UNDER_CONSTRUCTION' ? 'selected' : ''}>Under Construction (5% GST)</option>
+                <option value="READY_TO_MOVE" ${propObj?.possessionStatus === 'READY_TO_MOVE' ? 'selected' : ''}>Ready to Move (OC Received · 0% GST)</option>
+                <option value="UNDER_CONSTRUCTION" ${propObj?.possessionStatus === 'UNDER_CONSTRUCTION' ? 'selected' : ''}>Under Construction (5% GST)</option>
               </select>
             </div>
             <div class="field">
               <label>Facing / View</label>
               <select class="select" name="facing">
-                <option value="EAST" ${property?.facing === 'EAST' ? 'selected' : ''}>East Facing (Morning Sun)</option>
-                <option value="WEST" ${property?.facing === 'WEST' ? 'selected' : ''}>West Facing</option>
-                <option value="GARDEN" ${property?.facing === 'GARDEN' ? 'selected' : ''}>Garden / Podium Facing</option>
-                <option value="YEOOR_HILLS" ${property?.facing === 'YEOOR_HILLS' ? 'selected' : ''}>Yeoor Hills / Green View</option>
-                <option value="CITY_VIEW" ${property?.facing === 'CITY_VIEW' ? 'selected' : ''}>Open City Skyline View</option>
+                <option value="EAST" ${propObj?.facing === 'EAST' ? 'selected' : ''}>East Facing (Morning Sun)</option>
+                <option value="WEST" ${propObj?.facing === 'WEST' ? 'selected' : ''}>West Facing</option>
+                <option value="GARDEN" ${propObj?.facing === 'GARDEN' ? 'selected' : ''}>Garden / Podium Facing</option>
+                <option value="YEOOR_HILLS" ${propObj?.facing === 'YEOOR_HILLS' ? 'selected' : ''}>Yeoor Hills / Green View</option>
+                <option value="CITY_VIEW" ${propObj?.facing === 'CITY_VIEW' ? 'selected' : ''}>Open City Skyline View</option>
               </select>
             </div>
             <div class="field">
               <label>Parking Spaces</label>
-              <input class="input" name="parking" type="number" min="0" value="${esc(property?.parking ?? 1)}" />
+              <input class="input" name="parking" type="number" min="0" value="${esc(propObj?.parking ?? 1)}" />
             </div>
             <div class="field">
               <label>Furnishing Status</label>
               <select class="select" name="furnishing">
-                <option value="SEMI_FURNISHED" ${property?.furnishing === 'SEMI_FURNISHED' ? 'selected' : ''}>SEMI FURNISHED (Modular Kitchen + Wardrobes)</option>
-                <option value="FURNISHED" ${property?.furnishing === 'FURNISHED' ? 'selected' : ''}>FULLY FURNISHED</option>
-                <option value="UNFURNISHED" ${property?.furnishing === 'UNFURNISHED' ? 'selected' : ''}>UNFURNISHED (Bare Shell)</option>
+                <option value="SEMI_FURNISHED" ${propObj?.furnishing === 'SEMI_FURNISHED' ? 'selected' : ''}>SEMI FURNISHED (Modular Kitchen + Wardrobes)</option>
+                <option value="FURNISHED" ${propObj?.furnishing === 'FURNISHED' ? 'selected' : ''}>FULLY FURNISHED</option>
+                <option value="UNFURNISHED" ${propObj?.furnishing === 'UNFURNISHED' ? 'selected' : ''}>UNFURNISHED (Bare Shell)</option>
               </select>
             </div>
             <div class="field">
               <label>Inventory Status</label>
               <select class="select" name="status">
-                <option value="AVAILABLE" ${property?.status === 'AVAILABLE' ? 'selected' : ''}>AVAILABLE (Ready to Show)</option>
-                <option value="NEGOTIATION" ${property?.status === 'NEGOTIATION' ? 'selected' : ''}>NEGOTIATION (Token in Progress)</option>
-                <option value="HOLD" ${property?.status === 'HOLD' ? 'selected' : ''}>HOLD (Client Priority)</option>
-                <option value="SOLD" ${property?.status === 'SOLD' ? 'selected' : ''}>SOLD / REGISTERED</option>
-                <option value="RENTED" ${property?.status === 'RENTED' ? 'selected' : ''}>RENTED OUT</option>
+                <option value="AVAILABLE" ${propObj?.status === 'AVAILABLE' ? 'selected' : ''}>AVAILABLE (Ready to Show)</option>
+                <option value="NEGOTIATION" ${propObj?.status === 'NEGOTIATION' ? 'selected' : ''}>NEGOTIATION (Token in Progress)</option>
+                <option value="HOLD" ${propObj?.status === 'HOLD' ? 'selected' : ''}>HOLD (Client Priority)</option>
+                <option value="SOLD" ${propObj?.status === 'SOLD' ? 'selected' : ''}>SOLD / REGISTERED</option>
+                <option value="RENTED" ${propObj?.status === 'RENTED' ? 'selected' : ''}>RENTED OUT</option>
               </select>
             </div>
             <div class="field">
               <label>🔑 Key Lockbox & Showing Custody</label>
               <select class="select" name="keyLocation">
-                <option value="🔑 Office Key Board (Hook #4)" ${property?.keyLocation?.includes('Office') ? 'selected' : ''}>🔑 Office Key Board (Hook #4)</option>
-                <option value="🛡️ Tower 2 Guard (Watchman Ramu)" ${property?.keyLocation?.includes('Guard') ? 'selected' : ''}>🛡️ Society Security Guard (Tower Guard)</option>
-                <option value="👤 In Field with Aarav Mehta" ${property?.keyLocation?.includes('Field') ? 'selected' : ''}>👤 In Field with Assigned Agent</option>
-                <option value="🏠 Owner Residing / Direct Call Req." ${property?.keyLocation?.includes('Owner') ? 'selected' : ''}>🏠 Owner Residing (Prior Notice Required)</option>
+                <option value="🔑 Office Key Board (Hook #4)" ${propObj?.keyLocation?.includes('Office') ? 'selected' : ''}>🔑 Office Key Board (Hook #4)</option>
+                <option value="🛡️ Tower 2 Guard (Watchman Ramu)" ${propObj?.keyLocation?.includes('Guard') ? 'selected' : ''}>🛡️ Society Security Guard (Tower Guard)</option>
+                <option value="👤 In Field with Aarav Mehta" ${propObj?.keyLocation?.includes('Field') ? 'selected' : ''}>👤 In Field with Assigned Agent</option>
+                <option value="🏠 Owner Residing / Direct Call Req." ${propObj?.keyLocation?.includes('Owner') ? 'selected' : ''}>🏠 Owner Residing (Prior Notice Required)</option>
               </select>
             </div>
             <div class="field full">
               <label>Amenities <span class="subtle">(comma separated)</span></label>
-              <input class="input" name="amenities" placeholder="Clubhouse, Gym, Swimming Pool, High Speed Elevators, Gated Security" value="${esc((property?.amenities || ['Clubhouse', 'Gym', 'Swimming Pool', 'Security']).join(', '))}" />
+              <input class="input" name="amenities" placeholder="Clubhouse, Gym, Swimming Pool, High Speed Elevators, Gated Security" value="${esc((propObj?.amenities || ['Clubhouse', 'Gym', 'Swimming Pool', 'Security']).join(', '))}" />
             </div>
           </div>
         </div>
@@ -6112,7 +6038,7 @@ ${agencyBranding}
               <span>📸</span> Real Flat Photos & Floor Plan
             </h3>
             <span class="badge" id="photo-count-badge" style="background:#dcfce7;color:#15803d;font-weight:700;font-size:11px;">
-              ${(property?.images?.length || 0)} Photos Attached
+              ${(propObj?.images?.length || 0)} Photos Attached
             </span>
           </div>
           <p class="subtle" style="font-size:12px;margin:0 0 12px;line-height:1.4;">
@@ -6159,24 +6085,24 @@ ${agencyBranding}
           <div class="form-grid">
             <div class="field">
               <label>Owner Full Name *</label>
-              <input class="input" name="ownerName" required placeholder="e.g. Suresh Patil" value="${esc(property?.ownerName || '')}" />
+              <input class="input" name="ownerName" required placeholder="e.g. Suresh Patil" value="${esc(propObj?.ownerName || '')}" />
             </div>
             <div class="field">
               <label>Owner Mobile (WhatsApp) *</label>
-              <input class="input" name="ownerPhone" required placeholder="+91 98210 11223" value="${esc(property?.ownerPhone || '')}" />
+              <input class="input" name="ownerPhone" required placeholder="+91 98210 11223" value="${esc(propObj?.ownerPhone || '')}" />
             </div>
           </div>
         </div>
       </form>
       <div class="form-actions">
         <button class="button secondary" id="cancel-property">Cancel</button>
-        <button class="button primary" id="save-property">${property ? 'Save Changes' : 'Add Property'}</button>
+        <button class="button primary" id="save-property">${propObj ? 'Save Changes' : 'Add Property'}</button>
       </div>`;
 
     document.body.append(backdrop, drawer);
 
-    let currentImages = property?.images ? [...property.images] : [];
-    let currentFloorPlan = property?.floorPlan || null;
+    let currentImages = propObj?.images ? [...propObj.images] : [];
+    let currentFloorPlan = propObj?.floorPlan || null;
 
     // Fast HTML5 Canvas Image Downscaler & Compressor
     function compressImageFile(file, maxWidth = 1280, maxHeight = 1280, quality = 0.8) {
@@ -6369,7 +6295,7 @@ ${agencyBranding}
       const types = isRes ? residentialTypes : commercialTypes;
 
       typeSelect.innerHTML = types.map(([tName]) => `
-        <option value="${tName}" ${(property?.propertyType === tName || currentType === tName) ? 'selected' : ''}>${tName}</option>
+        <option value="${tName}" ${(propObj?.propertyType === tName || currentType === tName) ? 'selected' : ''}>${tName}</option>
       `).join('');
 
       // Auto update BHK if not customized
@@ -6452,10 +6378,10 @@ ${agencyBranding}
       }
 
       const finalImages = currentImages.length ? currentImages : defaultImgSet;
-      const finalFloorPlan = currentFloorPlan || property?.floorPlan || 'https://images.unsplash.com/photo-1600585154526-990dced4db0d?auto=format&fit=crop&w=800&q=80';
+      const finalFloorPlan = currentFloorPlan || propObj?.floorPlan || 'https://images.unsplash.com/photo-1600585154526-990dced4db0d?auto=format&fit=crop&w=800&q=80';
 
       const payload = {
-        id: property?.id || Date.now(),
+        id: propObj?.id || Date.now(),
         title,
         society: f.get('society') || null,
         builderName: f.get('builderName') || null,
@@ -6475,23 +6401,26 @@ ${agencyBranding}
         ownerName: f.get('ownerName') || null,
         ownerPhone: f.get('ownerPhone') || null,
         status: f.get('status') || 'AVAILABLE',
-        amenities: f.get('amenities').split(',').map(x => x.trim()).filter(Boolean),
+        amenities: (f.get('amenities') || '').split(',').map(x => x.trim()).filter(Boolean),
         images: finalImages,
         floorPlan: finalFloorPlan
       };
 
       if (!state.properties || !state.properties.length) {
-        state.properties = JSON.parse(JSON.stringify(demoProperties));
+        state.properties = getStoredProperties();
       }
 
-      if (property) {
-        const idx = state.properties.findIndex(p => p.id === property.id);
+      if (propObj) {
+        const idx = state.properties.findIndex(p => String(p.id) === String(propObj.id));
         if (idx !== -1) state.properties[idx] = payload;
-        const dIdx = demoProperties.findIndex(p => p.id === property.id);
-        if (dIdx !== -1) demoProperties[dIdx] = payload;
+        else state.properties.unshift(payload);
+        if (typeof demoProperties !== 'undefined') {
+          const dIdx = demoProperties.findIndex(p => String(p.id) === String(propObj.id));
+          if (dIdx !== -1) demoProperties[dIdx] = payload;
+        }
       } else {
         state.properties.unshift(payload);
-        demoProperties.unshift(payload);
+        if (typeof demoProperties !== 'undefined') demoProperties.unshift(payload);
       }
 
       localStorage.setItem('brokerai.properties', JSON.stringify(state.properties));
@@ -6499,6 +6428,7 @@ ${agencyBranding}
 
       close();
       if (state.page === 'properties') propertiesView();
+      else if (state.page === 'matches') matchesView();
       else if (state.page === 'dashboard') dashboard();
       else render();
     };
@@ -6567,16 +6497,19 @@ ${agencyBranding}
       const type = document.querySelector('#followup-type-filter')?.value;
 
       try {
-        let list = [];
-        if (state.demo) {
-          list = demoFollowUps;
-        } else {
+        let list = (state.followUps && state.followUps.length) ? state.followUps : getStoredFollowUps();
+        state.followUps = list;
+
+        if (!state.demo && state.token) {
           try {
             const res = await request(`/follow-ups?page=0&size=100&sort=dueAt&direction=ASC`);
-            list = (res && res.content && res.content.length) ? res.content : getStoredFollowUps();
-          } catch {
-            list = getStoredFollowUps();
-          }
+            if (res && res.content && res.content.length) {
+              list = res.content;
+              state.followUps = list;
+              localStorage.setItem('brokerai.followups', JSON.stringify(list));
+              localStorage.setItem('brokerai.followUps', JSON.stringify(list));
+            }
+          } catch {}
         }
 
         const now = new Date();
@@ -6591,7 +6524,7 @@ ${agencyBranding}
         document.querySelector('#fu-stat-done').textContent = `${doneCount} Completed`;
 
         const filtered = list.filter(f => {
-          if (search && !`${f.leadName} ${f.leadPhone || ''} ${f.title} ${f.notes || ''}`.toLowerCase().includes(search)) return false;
+          if (search && !`${f.leadName || ''} ${f.leadPhone || ''} ${f.title || ''} ${f.notes || ''}`.toLowerCase().includes(search)) return false;
           if (status && f.status !== status) return false;
           if (priority && f.priority !== priority) return false;
           if (type && f.type !== type) return false;
@@ -6623,7 +6556,7 @@ ${agencyBranding}
                       <span class="badge ${pBadge}" style="font-size:10px;">${esc(f.priority)}</span>
                     </div>
                     <div style="font-size:13px;color:var(--ink);margin-top:2px;">
-                      👤 <strong>${esc(privacyName(f.leadName))}</strong> · <span class="stage">${esc(privacyPhone(f.leadPhone))}</span>
+                      👤 <strong>${esc(privacyName(f.leadName || 'Client'))}</strong> · <span class="stage">${esc(privacyPhone(f.leadPhone || '+91 98200 12345'))}</span>
                     </div>
                     ${f.notes ? `<div class="subtle" style="font-size:12px;margin-top:2px;">💡 ${esc(f.notes)}</div>` : ''}
                   </div>
@@ -6685,7 +6618,7 @@ ${agencyBranding}
                 const isOverdue = f.isOverdue || (f.status === 'PENDING' && new Date(f.dueAt) < now);
                 return `<tr>
                   <td>
-                    <div class="lead-name">${esc(privacyName(f.leadName))}</div>
+                    <div class="lead-name">${esc(privacyName(f.leadName || 'Client'))}</div>
                     <div class="lead-contact">${esc(f.leadPhone || '')}</div>
                   </td>
                   <td>
@@ -6716,33 +6649,35 @@ ${agencyBranding}
         // BIND EVENT LISTENERS
         document.querySelectorAll('[data-complete-followup-id]').forEach(btn => btn.onclick = async () => {
           const id = Number(btn.dataset.completeFollowupId);
-          if (state.demo) {
-            const item = demoFollowUps.find(x => x.id === id);
-            if (item) item.status = 'COMPLETED';
-            load();
-            return;
+          const item = (state.followUps || []).find(x => String(x.id) === String(id)) || (demoFollowUps || []).find(x => String(x.id) === String(id));
+          if (item) {
+            item.status = 'COMPLETED';
+            localStorage.setItem('brokerai.followups', JSON.stringify(state.followUps));
+            localStorage.setItem('brokerai.followUps', JSON.stringify(state.followUps));
           }
-          try {
-            await request(`/follow-ups/${id}/complete`, { method: 'POST', body: JSON.stringify({}) });
-            load();
-          } catch (e) { showToast(e.message, "error"); }
+          if (!state.demo && state.token) {
+            try {
+              await request(`/follow-ups/${id}/complete`, { method: 'POST', body: JSON.stringify({}) }).catch(() => {});
+            } catch {}
+          }
+          load();
         });
 
         document.querySelectorAll('[data-fu-wa-id]').forEach(btn => btn.onclick = () => {
           const id = Number(btn.dataset.fuWaId);
-          const item = (state.demo ? demoFollowUps : list).find(x => x.id === id);
+          const item = (state.followUps || list).find(x => String(x.id) === String(id));
           if (item) copyFollowUpWhatsApp(item);
         });
 
         document.querySelectorAll('[data-fu-call-id]').forEach(btn => btn.onclick = () => {
           const id = Number(btn.dataset.fuCallId);
-          const item = (state.demo ? demoFollowUps : list).find(x => x.id === id);
-          if (item) showToast(`📞 Calling ${item.leadName} (${item.leadPhone || 'No phone'})...`, 'info');
+          const item = (state.followUps || list).find(x => String(x.id) === String(id));
+          if (item) showToast(`📞 Calling ${item.leadName || 'Client'} (${item.leadPhone || 'No phone'})...`, 'info');
         });
 
         document.querySelectorAll('[data-edit-followup-id]').forEach(btn => btn.onclick = () => {
           const id = Number(btn.dataset.editFollowupId);
-          const item = (state.demo ? demoFollowUps : list).find(x => x.id === id);
+          const item = (state.followUps || list).find(x => String(x.id) === String(id));
           if (item) followUpDrawer(item);
         });
 
@@ -6765,7 +6700,7 @@ ${agencyBranding}
   }
 
   function copyFollowUpWhatsApp(item) {
-    const text = `*Hi ${item.leadName},*
+    const text = `*Hi ${item.leadName || 'Client'},*
 Hope you are doing well!
 
 Regarding our discussion on *${item.title}*:
@@ -6777,19 +6712,14 @@ Best regards,
 *${state.user?.fullName || 'Aarav Mehta'}* | BrokerAI`;
 
     navigator.clipboard.writeText(text).then(() => {
-      showToast(`Formatted WhatsApp follow-up for ${item.leadName} copied to clipboard!\n\nYou can now paste it directly into WhatsApp chat.`, 'success');
+      showToast(`Formatted WhatsApp follow-up for ${item.leadName || 'Client'} copied to clipboard!\n\nYou can now paste it directly into WhatsApp chat.`, 'success');
     }).catch(() => prompt("Copy WhatsApp text:", text));
   }
 
   async function followUpDrawer(followUp = null, defaultLeadId = null) {
     document.querySelectorAll('.modal-backdrop, .drawer-backdrop, .spotlight-backdrop').forEach(b => b.remove());
-    let leads = state.leads;
-    if (!leads.length && !state.demo) {
-      const page = await request('/leads?page=0&size=100').catch(() => ({ content: [] }));
-      leads = page.content || [];
-    } else if (!leads.length && state.demo) {
-      leads = demoLeads;
-    }
+    const fuObj = (typeof followUp === 'object' && followUp !== null) ? followUp : (typeof followUp === 'number' || typeof followUp === 'string') ? ((state.followUps && state.followUps.length ? state.followUps : getStoredFollowUps()).find(f => String(f.id) === String(followUp)) || null) : null;
+    const leads = (state.leads && state.leads.length) ? state.leads : getStoredLeads();
 
     const backdrop = document.createElement('div');
     backdrop.className = 'drawer-backdrop';
@@ -6798,7 +6728,7 @@ Best regards,
     drawer.innerHTML = `
       <div class="drawer-head">
         <div>
-          <h2 class="panel-title">${followUp ? 'Edit Follow-up' : 'Schedule Follow-up'}</h2>
+          <h2 class="panel-title">${fuObj ? 'Edit Follow-up' : 'Schedule Follow-up'}</h2>
           <div class="subtle">Keep deals moving with timely client contact.</div>
         </div>
         <button class="close">×</button>
@@ -6810,41 +6740,41 @@ Best regards,
           <div class="form-grid">
             <div class="field full">
               <label>Buyer Lead</label>
-              <select class="select" name="leadId" required ${followUp ? 'disabled' : ''}>
+              <select class="select" name="leadId" required ${fuObj ? 'disabled' : ''}>
                 <option value="">Select buyer lead</option>
-                ${leads.map(l => `<option value="${l.id}" ${(followUp?.leadId === l.id || defaultLeadId === l.id) ? 'selected' : ''}>${esc(l.name)} (${esc(l.phone)})</option>`).join('')}
+                ${leads.map(l => `<option value="${l.id}" ${(fuObj?.leadId === l.id || defaultLeadId === l.id) ? 'selected' : ''}>${esc(l.name)} (${esc(l.phone)})</option>`).join('')}
               </select>
             </div>
             <div class="field full">
               <label>Action / Title</label>
-              <input class="input" name="title" required placeholder="Confirm site-visit timing and parking preference" value="${esc(followUp?.title)}" />
+              <input class="input" name="title" required placeholder="Confirm site-visit timing and parking preference" value="${esc(fuObj?.title || '')}" />
             </div>
             <div class="field">
               <label>Channel / Type</label>
               <select class="select" name="type">
-                ${['CALL', 'WHATSAPP', 'MEETING', 'SITE_VISIT', 'EMAIL', 'OTHER'].map(t => `<option ${followUp?.type === t ? 'selected' : ''}>${t}</option>`).join('')}
+                ${['CALL', 'WHATSAPP', 'MEETING', 'SITE_VISIT', 'EMAIL', 'OTHER'].map(t => `<option ${fuObj?.type === t ? 'selected' : ''}>${t}</option>`).join('')}
               </select>
             </div>
             <div class="field">
               <label>Priority</label>
               <select class="select" name="priority">
-                ${['HIGH', 'MEDIUM', 'LOW'].map(p => `<option ${followUp?.priority === p ? 'selected' : ''}>${p}</option>`).join('')}
+                ${['HIGH', 'MEDIUM', 'LOW'].map(p => `<option ${(fuObj?.priority || 'HIGH') === p ? 'selected' : ''}>${p}</option>`).join('')}
               </select>
             </div>
             <div class="field full">
               <label>Due Date & Time</label>
-              <input class="input" name="dueAt" type="datetime-local" required value="${followUp?.dueAt ? followUp.dueAt.slice(0, 16) : ''}" />
+              <input class="input" name="dueAt" type="datetime-local" required value="${fuObj?.dueAt ? fuObj.dueAt.slice(0, 16) : new Date(Date.now() + 3600000).toISOString().slice(0, 16)}" />
             </div>
             <div class="field full">
               <label>Notes / Context</label>
-              <textarea class="input" name="notes" placeholder="Discuss budget range, parking needs...">${esc(followUp?.notes)}</textarea>
+              <textarea class="input" name="notes" placeholder="Discuss budget range, parking needs...">${esc(fuObj?.notes || '')}</textarea>
             </div>
           </div>
         </div>
       </form>
       <div class="form-actions">
         <button class="button secondary" id="cancel-followup">Cancel</button>
-        <button class="button primary" id="save-followup">${followUp ? 'Save changes' : 'Schedule follow-up'}</button>
+        <button class="button primary" id="save-followup">${fuObj ? 'Save changes' : 'Schedule follow-up'}</button>
       </div>`;
     document.body.append(backdrop, drawer);
     const close = () => { backdrop.remove(); drawer.remove(); };
@@ -6853,28 +6783,69 @@ Best regards,
     if (drawer.querySelector('#cancel-followup')) drawer.querySelector('#cancel-followup').onclick = close;
     if (drawer.querySelector('#save-followup')) drawer.querySelector('#save-followup').onclick = async () => {
       const form = new FormData(drawer.querySelector('#followup-form'));
-      const payload = {
-        leadId: followUp ? followUp.leadId : Number(form.get('leadId')),
-        title: form.get('title'),
-        type: form.get('type'),
-        priority: form.get('priority'),
-        dueAt: form.get('dueAt'),
-        notes: form.get('notes') || null
-      };
-      if (!payload.leadId) {
-        drawer.querySelector('#followup-notice').innerHTML = `<div class="notice error">Please select a buyer lead.</div>`;
+      const leadId = fuObj ? (fuObj.leadId || Number(form.get('leadId'))) : Number(form.get('leadId'));
+      const title = (form.get('title') || '').trim();
+      const type = form.get('type') || 'CALL';
+      const priority = form.get('priority') || 'HIGH';
+      const dueAt = form.get('dueAt') || new Date().toISOString();
+      const notes = (form.get('notes') || '').trim();
+
+      if (!leadId || !title) {
+        drawer.querySelector('#followup-notice').innerHTML = `<div class="notice error">Please select a buyer lead and enter an action/title.</div>`;
         return;
       }
-      try {
-        await request(followUp ? `/follow-ups/${followUp.id}` : '/follow-ups', {
-          method: followUp ? 'PUT' : 'POST',
-          body: JSON.stringify(payload)
-        });
-        close();
-        followUpsView();
-      } catch (err) {
-        drawer.querySelector('#followup-notice').innerHTML = `<div class="notice error">${esc(err.message)}</div>`;
+
+      const selectedLead = leads.find(l => String(l.id) === String(leadId)) || { id: leadId, name: 'Buyer Lead', phone: '+91 98200 12345' };
+
+      const payload = {
+        id: fuObj?.id || Date.now(),
+        leadId,
+        leadName: selectedLead.name,
+        leadPhone: selectedLead.phone,
+        title,
+        type,
+        priority,
+        dueAt,
+        status: fuObj?.status || 'PENDING',
+        isOverdue: new Date(dueAt) < new Date(),
+        notes: notes || null,
+        createdAt: fuObj?.createdAt || new Date().toISOString()
+      };
+
+      if (!state.followUps || !state.followUps.length) {
+        state.followUps = getStoredFollowUps();
       }
+
+      if (fuObj) {
+        const idx = state.followUps.findIndex(f => String(f.id) === String(fuObj.id));
+        if (idx !== -1) state.followUps[idx] = payload;
+        else state.followUps.unshift(payload);
+        if (typeof demoFollowUps !== 'undefined') {
+          const dIdx = demoFollowUps.findIndex(f => String(f.id) === String(fuObj.id));
+          if (dIdx !== -1) demoFollowUps[dIdx] = payload;
+        }
+      } else {
+        state.followUps.unshift(payload);
+        if (typeof demoFollowUps !== 'undefined') demoFollowUps.unshift(payload);
+      }
+
+      localStorage.setItem('brokerai.followups', JSON.stringify(state.followUps));
+      localStorage.setItem('brokerai.followUps', JSON.stringify(state.followUps));
+      showToast(`✓ Follow-up for "${esc(selectedLead.name)}" scheduled!`, 'success');
+
+      if (!state.demo && state.token) {
+        try {
+          await request(fuObj ? `/follow-ups/${fuObj.id}` : '/follow-ups', {
+            method: fuObj ? 'PUT' : 'POST',
+            body: JSON.stringify(payload)
+          }).catch(() => {});
+        } catch {}
+      }
+
+      close();
+      if (state.page === 'follow-ups' || state.page === 'followups') followUpsView();
+      else if (state.page === 'dashboard') dashboard();
+      else render();
     };
   }
 
@@ -6883,7 +6854,13 @@ Best regards,
   // --- DOCUMENT DRAWER (LEGAL VAULT UPLOAD & METADATA) ---
   function documentDrawer(doc = null) {
     document.querySelectorAll('.modal-backdrop, .drawer-backdrop, .spotlight-backdrop').forEach(b => b.remove());
-    const properties = (state.properties && state.properties.length) ? state.properties : (typeof demoProperties !== 'undefined' ? demoProperties : getStoredProperties());
+    const docObj = (typeof doc === 'object' && doc !== null)
+      ? doc
+      : (typeof doc === 'number' || typeof doc === 'string')
+        ? ((state.documents && state.documents.length ? state.documents : getStoredDocuments()).find(d => String(d.id) === String(doc)) || null)
+        : null;
+
+    const properties = (state.properties && state.properties.length) ? state.properties : getStoredProperties();
 
     const backdrop = document.createElement('div');
     backdrop.className = 'drawer-backdrop';
@@ -6891,17 +6868,17 @@ Best regards,
     drawer.className = 'drawer';
     drawer.style.cssText = 'width:min(640px,100vw);';
 
-    const defaultTitle = doc?.title || '';
-    const defaultPropId = doc?.propertyId || (properties[0]?.id || '');
-    const defaultType = doc?.documentType || '7/12 Extract & Index II';
-    const defaultNum = doc?.documentNumber || `DOC-${Math.floor(100000 + Math.random() * 900000)}`;
-    const defaultStatus = doc?.status || 'VERIFIED';
-    const defaultNotes = doc?.notes || 'Verified by legal counsel under MahaRERA guidelines.';
+    const defaultTitle = docObj?.title || '';
+    const defaultPropId = docObj?.propertyId || (properties[0]?.id || '');
+    const defaultType = docObj?.documentType || '7/12 Extract & Index II';
+    const defaultNum = docObj?.documentNumber || `DOC-${Math.floor(100000 + Math.random() * 900000)}`;
+    const defaultStatus = docObj?.status || 'VERIFIED';
+    const defaultNotes = docObj?.notes || 'Verified by legal counsel under MahaRERA guidelines.';
 
     drawer.innerHTML = `
       <div class="drawer-head">
         <div>
-          <h2 class="panel-title">${doc ? 'Edit Legal Document' : 'Upload Legal Record to Vault'}</h2>
+          <h2 class="panel-title">${docObj ? 'Edit Legal Document' : 'Upload Legal Record to Vault'}</h2>
           <div class="subtle">Securely attach MahaRERA title, sanction, and agreement records.</div>
         </div>
         <button class="close">×</button>
@@ -6965,7 +6942,7 @@ Best regards,
         </div>
         <div class="form-actions" style="margin-top:16px;">
           <button type="button" class="button secondary" id="cancel-doc-drawer">Cancel</button>
-          <button type="submit" class="button primary" style="background:#2563eb;font-weight:700;">${doc ? 'Update Document' : 'Save to Legal Vault'}</button>
+          <button type="submit" class="button primary" style="background:#2563eb;font-weight:700;">${docObj ? 'Update Document' : 'Save to Legal Vault'}</button>
         </div>
       </form>
     `;
@@ -6997,23 +6974,23 @@ Best regards,
         if (!title) return;
 
         const newDoc = {
-          id: doc?.id || `doc-${Date.now()}`,
+          id: docObj?.id || `doc-${Date.now()}`,
           title: title,
           documentType: fd.get('documentType'),
           propertyId: fd.get('propertyId') || null,
           documentNumber: fd.get('documentNumber') || `DOC-${Date.now()}`,
           status: fd.get('status') || 'VERIFIED',
           notes: fd.get('notes') || '',
-          uploadedAt: new Date().toISOString().slice(0, 10),
-          fileUrl: '#'
+          uploadedAt: docObj?.uploadedAt || new Date().toISOString().slice(0, 10),
+          fileUrl: docObj?.fileUrl || '#'
         };
 
         if (!state.documents || !state.documents.length) {
           state.documents = getStoredDocuments();
         }
 
-        if (doc) {
-          const idx = state.documents.findIndex(d => d.id === doc.id);
+        if (docObj) {
+          const idx = state.documents.findIndex(d => String(d.id) === String(docObj.id));
           if (idx !== -1) state.documents[idx] = newDoc;
           else state.documents.unshift(newDoc);
         } else {
@@ -7027,6 +7004,7 @@ Best regards,
         showToast(`✓ Document "${esc(title)}" saved to Legal Vault!`, 'success');
         close();
         if (state.page === 'documents') documentsView();
+        else if (state.page === 'dashboard') dashboard();
         else render();
       };
     }
@@ -8315,7 +8293,7 @@ Best regards,
   ];
 
   async function dealsView() {
-    let list = (state.deals && state.deals.length) ? state.deals : demoDeals;
+    let list = (state.deals && state.deals.length) ? state.deals : getStoredDeals();
     state.deals = list;
 
     const totalDeals = list.length || 5;
@@ -8429,7 +8407,8 @@ Best regards,
 
     const renderDeals = () => {
       const q = (searchInput?.value || '').toLowerCase().trim();
-      let filtered = list.filter(d => {
+      const currentList = (state.deals && state.deals.length) ? state.deals : list;
+      let filtered = currentList.filter(d => {
         if (activeFilter === 'TOKEN' && d.stage !== 'TOKEN_DEPOSIT') return false;
         if (activeFilter === 'LEGAL' && d.stage !== 'LEGAL_AND_LOAN') return false;
         if (activeFilter === 'REGISTRATION' && d.stage !== 'REGISTRATION_CLOSED') return false;
@@ -8518,8 +8497,14 @@ Best regards,
 
   function dealDrawer(deal = null) {
     document.querySelectorAll('.modal-backdrop, .drawer-backdrop, .spotlight-backdrop').forEach(b => b.remove());
-    let leads = state.leads.length ? state.leads : (state.demo ? demoLeads : []);
-    let properties = state.properties.length ? state.properties : (state.demo ? demoProperties : []);
+    const dealObj = (typeof deal === 'object' && deal !== null)
+      ? deal
+      : (typeof deal === 'number' || typeof deal === 'string')
+        ? ((state.deals && state.deals.length ? state.deals : getStoredDeals()).find(d => String(d.id) === String(deal)) || null)
+        : null;
+
+    let leads = (state.leads && state.leads.length) ? state.leads : getStoredLeads();
+    let properties = (state.properties && state.properties.length) ? state.properties : getStoredProperties();
 
     const backdrop = document.createElement('div');
     backdrop.className = 'drawer-backdrop';
@@ -8528,7 +8513,7 @@ Best regards,
     drawer.innerHTML = `
       <div class="drawer-head">
         <div>
-          <h2 class="panel-title">${deal ? 'Edit Deal Record' : 'Create New Transaction Deal'}</h2>
+          <h2 class="panel-title">${dealObj ? 'Edit Deal Record' : 'Create New Transaction Deal'}</h2>
           <div class="subtle">Pair buyer lead with inventory and track closing milestones.</div>
         </div>
         <button class="close">×</button>
@@ -8542,52 +8527,52 @@ Best regards,
               <label>Buyer Lead</label>
               <select class="select" name="leadId" required>
                 <option value="">Select Buyer Lead</option>
-                ${leads.map(l => `<option value="${l.id}" ${deal?.leadId === l.id ? 'selected' : ''}>${esc(l.name)} (${esc(l.phone)})</option>`).join('')}
+                ${leads.map(l => `<option value="${l.id}" ${(dealObj?.leadId === l.id || String(dealObj?.leadId) === String(l.id)) ? 'selected' : ''}>${esc(l.name)} (${esc(l.phone)})</option>`).join('')}
               </select>
             </div>
             <div class="field full">
               <label>Property Listing</label>
               <select class="select" name="propertyId" required>
                 <option value="">Select Property</option>
-                ${properties.map(p => `<option value="${p.id}" ${deal?.propertyId === p.id ? 'selected' : ''}>${esc(p.title)} · ${formatPrice(p.price, p.listingType)}</option>`).join('')}
+                ${properties.map(p => `<option value="${p.id}" ${(dealObj?.propertyId === p.id || String(dealObj?.propertyId) === String(p.id)) ? 'selected' : ''}>${esc(p.title)} · ${formatPrice(p.price, p.listingType)}</option>`).join('')}
               </select>
             </div>
             <div class="field">
               <label>Agreed Deal Value (₹)</label>
-              <input class="input" name="agreedPrice" type="number" required value="${deal?.agreedPrice || ''}" placeholder="e.g. 12500000" />
+              <input class="input" name="agreedPrice" type="number" required value="${dealObj?.agreedPrice || ''}" placeholder="e.g. 12500000" />
             </div>
             <div class="field">
               <label>Brokerage Rate (%)</label>
-              <input class="input" name="brokerageRate" type="number" step="0.1" value="${deal?.brokerageRate || 1.5}" placeholder="1.5" />
+              <input class="input" name="brokerageRate" type="number" step="0.1" value="${dealObj?.brokerageRate || 1.5}" placeholder="1.5" />
             </div>
             <div class="field">
               <label>Current Deal Stage</label>
               <select class="select" name="stage">
-                ${dealStages.map(s => `<option value="${s.key}" ${deal?.stage === s.key ? 'selected' : ''}>${s.label}</option>`).join('')}
+                ${dealStages.map(s => `<option value="${s.key}" ${dealObj?.stage === s.key ? 'selected' : ''}>${s.label}</option>`).join('')}
               </select>
             </div>
             <div class="field">
               <label>Target Closing Date</label>
-              <input class="input" name="targetCloseDate" type="date" value="${deal?.targetCloseDate || new Date(Date.now() + 15*86400000).toISOString().slice(0,10)}" />
+              <input class="input" name="targetCloseDate" type="date" value="${dealObj?.targetCloseDate || new Date(Date.now() + 15*86400000).toISOString().slice(0,10)}" />
             </div>
             <div class="field">
               <label>Token Amount Received (₹)</label>
-              <input class="input" name="tokenAmount" type="number" value="${deal?.tokenAmount || 0}" />
+              <input class="input" name="tokenAmount" type="number" value="${dealObj?.tokenAmount || 0}" />
             </div>
             <div class="field">
               <label>Assigned Agent</label>
-              <input class="input" name="assignedAgentName" value="${deal?.assignedAgentName || state.user?.fullName || 'Aarav Mehta'}" />
+              <input class="input" name="assignedAgentName" value="${dealObj?.assignedAgentName || state.user?.fullName || 'Aarav Mehta'}" />
             </div>
             <div class="field full">
               <label>Notes & Next Milestones</label>
-              <textarea class="input" name="notes" placeholder="e.g. Drafting agreement, waiting for society NOC and bank sanction letter...">${deal?.notes || ''}</textarea>
+              <textarea class="input" name="notes" placeholder="e.g. Drafting agreement, waiting for society NOC and bank sanction letter...">${dealObj?.notes || ''}</textarea>
             </div>
           </div>
         </div>
       </form>
       <div class="form-actions">
         <button class="button secondary" id="cancel-deal">Cancel</button>
-        <button class="button primary" id="save-deal-btn">${deal ? 'Update Deal' : 'Create Deal'}</button>
+        <button class="button primary" id="save-deal-btn">${dealObj ? 'Update Deal' : 'Create Deal'}</button>
       </div>`;
     document.body.append(backdrop, drawer);
     const close = () => { backdrop.remove(); drawer.remove(); };
@@ -8617,7 +8602,7 @@ Best regards,
       const expectedBrokerage = prop?.listingType === 'RENT' ? agreedPrice : Math.round(agreedPrice * (brokerageRate / 100));
 
       const payload = {
-        id: deal?.id || Date.now(),
+        id: dealObj?.id || Date.now(),
         leadId,
         leadName: lead?.name || 'Client',
         leadPhone: lead?.phone || '',
@@ -8632,19 +8617,34 @@ Best regards,
         targetCloseDate,
         tokenAmount,
         assignedAgentName,
-        notes
+        notes,
+        createdAt: dealObj?.createdAt || new Date().toISOString()
       };
 
-      if (state.demo) {
-        if (deal) {
-          const idx = demoDeals.findIndex(x => x.id === deal.id);
-          if (idx !== -1) demoDeals[idx] = payload;
-        } else {
-          demoDeals.unshift(payload);
-        }
+      if (!state.deals || !state.deals.length) {
+        state.deals = getStoredDeals();
       }
+
+      if (dealObj) {
+        const idx = state.deals.findIndex(x => String(x.id) === String(dealObj.id));
+        if (idx !== -1) state.deals[idx] = payload;
+        else state.deals.unshift(payload);
+        if (typeof demoDeals !== 'undefined') {
+          const dIdx = demoDeals.findIndex(x => String(x.id) === String(dealObj.id));
+          if (dIdx !== -1) demoDeals[dIdx] = payload;
+          else demoDeals.unshift(payload);
+        }
+      } else {
+        state.deals.unshift(payload);
+        if (typeof demoDeals !== 'undefined') demoDeals.unshift(payload);
+      }
+
+      localStorage.setItem('brokerai.deals', JSON.stringify(state.deals));
+      showToast(`✓ Deal for "${esc(payload.propertyTitle)}" saved!`, 'success');
       close();
-      dealsView();
+      if (state.page === 'deals') dealsView();
+      else if (state.page === 'dashboard') dashboard();
+      else render();
     };
   }
 
@@ -12683,15 +12683,10 @@ Immediate possession. Call broker: 9833445566`
     const agentFilter = document.querySelector('#comm-agent-filter');
 
     const loadCommissions = async () => {
-      let list = state.commissions;
-      if (!list.length || state.demo) {
-        list = state.demo ? demoCommissions : [];
-        if (!state.demo) {
-          const page = await request('/commissions?page=0&size=100').catch(() => ({ content: [] }));
-          list = page.content || [];
-        }
-        state.commissions = list;
-      }
+      let list = (state.commissions && state.commissions.length)
+        ? state.commissions
+        : getStoredCommissions();
+      state.commissions = list;
 
       const q = (searchInput?.value || '').toLowerCase();
       const st = statusFilter?.value || '';
@@ -12892,7 +12887,8 @@ Immediate possession. Call broker: 9833445566`
           const comm = list.find(x => x.id === cId);
           if (comm) {
             comm.status = 'RECEIVED';
-            alert(`✅ Brokerage payment of ₹${comm.grossBrokerage.toLocaleString('en-IN')} marked as RECEIVED and settled!`);
+            localStorage.setItem('brokerai.commissions', JSON.stringify(state.commissions));
+            showToast(`✅ Brokerage payment of ₹${(comm.grossBrokerage || 0).toLocaleString('en-IN')} marked as RECEIVED and settled!`, 'success');
             loadCommissions();
           }
         };
@@ -13064,7 +13060,13 @@ Best regards,
 
   function commissionDrawer(comm = null) {
     document.querySelectorAll('.modal-backdrop, .drawer-backdrop, .spotlight-backdrop').forEach(b => b.remove());
-    let deals = state.deals.length ? state.deals : (state.demo ? demoDeals : []);
+    const commObj = (typeof comm === 'object' && comm !== null)
+      ? comm
+      : (typeof comm === 'number' || typeof comm === 'string')
+        ? ((state.commissions && state.commissions.length ? state.commissions : getStoredCommissions()).find(c => String(c.id) === String(comm)) || null)
+        : null;
+
+    let deals = (state.deals && state.deals.length) ? state.deals : getStoredDeals();
 
     const backdrop = document.createElement('div');
     backdrop.className = 'drawer-backdrop';
@@ -13073,7 +13075,7 @@ Best regards,
     drawer.innerHTML = `
       <div class="drawer-head">
         <div>
-          <h2 class="panel-title">${comm ? 'Edit Commission Record' : 'Record Brokerage Commission'}</h2>
+          <h2 class="panel-title">${commObj ? 'Edit Commission Record' : 'Record Brokerage Commission'}</h2>
           <div class="subtle">Track gross brokerage, agency-agent split, and invoice details.</div>
         </div>
         <button class="close">×</button>
@@ -13087,51 +13089,51 @@ Best regards,
               <label>Associated Deal</label>
               <select class="select" name="dealId" required>
                 <option value="">Select Deal</option>
-                ${deals.map(d => `<option value="${d.id}" ${comm?.dealId === d.id ? 'selected' : ''}>${esc(d.leadName)} × ${esc(d.propertyTitle)} (${formatPrice(d.agreedPrice, d.listingType)})\</option>`).join('')}
+                ${deals.map(d => `<option value="${d.id}" ${(commObj?.dealId === d.id || String(commObj?.dealId) === String(d.id)) ? 'selected' : ''}>${esc(d.leadName)} × ${esc(d.propertyTitle)} (${formatPrice(d.agreedPrice, d.listingType)})</option>`).join('')}
               </select>
             </div>
             <div class="field">
               <label>Gross Brokerage (₹)</label>
-              <input class="input" name="grossBrokerage" type="number" required value="${comm?.grossBrokerage || ''}" placeholder="e.g. 187500" />
+              <input class="input" name="grossBrokerage" type="number" required value="${commObj?.grossBrokerage || ''}" placeholder="e.g. 187500" />
             </div>
             <div class="field">
               <label>Company Share (%)</label>
-              <input class="input" name="companySharePercent" type="number" value="${comm?.companySharePercent || 70}" />
+              <input class="input" name="companySharePercent" type="number" value="${commObj?.companySharePercent || 70}" />
             </div>
             <div class="field">
               <label>Agent Share (%)</label>
-              <input class="input" name="agentSharePercent" type="number" value="${comm?.agentSharePercent || 30}" />
+              <input class="input" name="agentSharePercent" type="number" value="${commObj?.agentSharePercent || 30}" />
             </div>
             <div class="field">
               <label>Assigned Agent Name</label>
-              <input class="input" name="agentName" value="${comm?.agentName || state.user?.fullName || 'Aarav Mehta'}" />
+              <input class="input" name="agentName" value="${commObj?.agentName || state.user?.fullName || 'Aarav Mehta'}" />
             </div>
             <div class="field">
               <label>Payment Status</label>
               <select class="select" name="status">
-                <option value="EXPECTED" ${comm?.status === 'EXPECTED' ? 'selected' : ''}>EXPECTED (In Pipeline)</option>
-                <option value="PENDING_INVOICE" ${comm?.status === 'PENDING_INVOICE' ? 'selected' : ''}>PENDING_INVOICE (Invoiced)</option>
-                <option value="RECEIVED" ${comm?.status === 'RECEIVED' ? 'selected' : ''}>RECEIVED (Settled)</option>
+                <option value="EXPECTED" ${commObj?.status === 'EXPECTED' ? 'selected' : ''}>EXPECTED (In Pipeline)</option>
+                <option value="PENDING_INVOICE" ${commObj?.status === 'PENDING_INVOICE' ? 'selected' : ''}>PENDING_INVOICE (Invoiced)</option>
+                <option value="RECEIVED" ${commObj?.status === 'RECEIVED' ? 'selected' : ''}>RECEIVED (Settled)</option>
               </select>
             </div>
             <div class="field">
               <label>Invoice Number</label>
-              <input class="input" name="invoiceNumber" value="${comm?.invoiceNumber || `INV-2026-0${Math.floor(10 + Math.random()*90)}`}" />
+              <input class="input" name="invoiceNumber" value="${commObj?.invoiceNumber || `INV-2026-0${Math.floor(10 + Math.random()*90)}`}" />
             </div>
             <div class="field">
               <label>Payment Due Date</label>
-              <input class="input" name="paymentDueDate" type="date" value="${comm?.paymentDueDate || new Date(Date.now() + 14*86400000).toISOString().slice(0,10)}" />
+              <input class="input" name="paymentDueDate" type="date" value="${commObj?.paymentDueDate || new Date(Date.now() + 14*86400000).toISOString().slice(0,10)}" />
             </div>
             <div class="field full">
               <label>Notes & Settlement Remarks</label>
-              <textarea class="input" name="notes" placeholder="e.g. Invoiced to builder, 50% on token and 50% on registration...">${comm?.notes || ''}</textarea>
+              <textarea class="input" name="notes" placeholder="e.g. Invoiced to builder, 50% on token and 50% on registration...">${commObj?.notes || ''}</textarea>
             </div>
           </div>
         </div>
       </form>
       <div class="form-actions">
         <button class="button secondary" id="cancel-comm">Cancel</button>
-        <button class="button primary" id="save-comm-btn">${comm ? 'Update Commission' : 'Save Commission'}</button>
+        <button class="button primary" id="save-comm-btn">${commObj ? 'Update Commission' : 'Save Commission'}</button>
       </div>`;
     document.body.append(backdrop, drawer);
     const close = () => { backdrop.remove(); drawer.remove(); };
@@ -13155,12 +13157,12 @@ Best regards,
         return;
       }
 
-      const deal = deals.find(d => d.id === dealId);
+      const deal = deals.find(d => Number(d.id) === dealId || String(d.id) === String(dealId));
       const companyShareAmount = Math.round(grossBrokerage * (companySharePercent / 100));
       const agentShareAmount = Math.round(grossBrokerage * (agentSharePercent / 100));
 
       const payload = {
-        id: comm?.id || Date.now(),
+        id: commObj?.id || Date.now(),
         dealId,
         dealTitle: `${deal?.leadName || 'Client'} × ${deal?.propertyTitle || 'Listing'}`,
         clientName: deal?.leadName || 'Client',
@@ -13178,21 +13180,36 @@ Best regards,
         agentName,
         status,
         invoiceNumber,
-        invoiceDate: new Date().toISOString().slice(0, 10),
+        invoiceDate: commObj?.invoiceDate || new Date().toISOString().slice(0, 10),
         paymentDueDate,
-        notes
+        notes,
+        createdAt: commObj?.createdAt || new Date().toISOString()
       };
 
-      if (state.demo) {
-        if (comm) {
-          const idx = demoCommissions.findIndex(x => x.id === comm.id);
-          if (idx !== -1) demoCommissions[idx] = payload;
-        } else {
-          demoCommissions.unshift(payload);
-        }
+      if (!state.commissions || !state.commissions.length) {
+        state.commissions = getStoredCommissions();
       }
+
+      if (commObj) {
+        const idx = state.commissions.findIndex(x => String(x.id) === String(commObj.id));
+        if (idx !== -1) state.commissions[idx] = payload;
+        else state.commissions.unshift(payload);
+        if (typeof demoCommissions !== 'undefined') {
+          const dIdx = demoCommissions.findIndex(x => String(x.id) === String(commObj.id));
+          if (dIdx !== -1) demoCommissions[dIdx] = payload;
+          else demoCommissions.unshift(payload);
+        }
+      } else {
+        state.commissions.unshift(payload);
+        if (typeof demoCommissions !== 'undefined') demoCommissions.unshift(payload);
+      }
+
+      localStorage.setItem('brokerai.commissions', JSON.stringify(state.commissions));
+      showToast(`✓ Commission record for "${esc(payload.clientName)}" saved!`, 'success');
       close();
-      commissionsView();
+      if (state.page === 'commissions') commissionsView();
+      else if (state.page === 'dashboard') dashboard();
+      else render();
     };
   }
 
