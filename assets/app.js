@@ -759,7 +759,8 @@ const demoDocuments = [
   }
 
   function getPlanCapabilities(planId) {
-    const active = planId || (typeof state !== 'undefined' && state && state.currentPlan) || 'agency';
+    const userPlan = (typeof state !== 'undefined' && state?.user?.packageTier);
+    const active = planId || (typeof state !== 'undefined' && state && (state.currentPlan || userPlan)) || 'agency';
     const raw = String(active).toLowerCase().trim();
     const pid = (raw.includes('solo') || raw.includes('starter')) ? 'starter' : ((raw.includes('agency') || raw.includes('elite')) ? 'agency' : 'pro');
 
@@ -776,8 +777,8 @@ const demoDocuments = [
         teamSeats: 1,
         aiMatching: false,
         magicWhatsAppParser: false,
-        digitalAgreements: true,
-        tokenReceipts: true,
+        digitalAgreements: false,
+        tokenReceipts: false,
         clientPresentationMode: false,
         commissionLedger: false,
         teamLeaderboard: false,
@@ -8442,7 +8443,7 @@ Best regards,
         b.onclick = () => tokenReceiptModal();
       });
       tbody.querySelectorAll('[data-agree-deal]').forEach(b => {
-        b.onclick = () => rentalAgreementDrawer();
+        b.onclick = () => rentalAgreementModal();
       });
       tbody.querySelectorAll('[data-view-deal]').forEach(b => {
         b.onclick = () => dealDrawer(Number(b.dataset.viewDeal));
@@ -10339,6 +10340,40 @@ Password: *${pass}*
   // ==========================================================================
 
   function rentalAgreementModal(property = null, lead = null) {
+    const caps = getPlanCapabilities();
+    if (caps.planId === 'starter' || !caps.digitalAgreements) {
+      document.querySelectorAll('.modal-backdrop, .drawer-backdrop, .spotlight-backdrop').forEach(b => b.remove());
+      const backdrop = document.createElement('div');
+      backdrop.className = 'modal-backdrop';
+      const modal = document.createElement('div');
+      modal.className = 'modal';
+      modal.style.cssText = 'max-width:520px;width:92vw;padding:26px;background:#ffffff;border-radius:22px;text-align:center;position:relative;box-sizing:border-box;box-shadow:0 20px 50px rgba(0,0,0,0.22);';
+      modal.innerHTML = `
+        <div style="font-size:42px;margin-bottom:12px;">📜</div>
+        <div style="display:inline-block;padding:4px 12px;border-radius:20px;background:#eff6ff;color:#2563eb;font-weight:800;font-size:11px;margin-bottom:8px;text-transform:uppercase;letter-spacing:0.5px;">Pro Closer Feature</div>
+        <h3 style="font-size:20px;font-weight:800;color:#0f172a;margin:0 0 8px;">11-Month Rental Agreements Locked</h3>
+        <p style="font-size:13.5px;color:#64748b;line-height:1.5;margin:0 0 20px;">Generating verified digital 11-Month Leave & License Agreements with touch signatures and PDF export requires an active <strong>Pro Closer</strong> or <strong>Agency Elite</strong> package. Upgrades are assigned by Platform Owner Mohak Vaswani.</p>
+        <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;">
+          <button class="button secondary" id="rental-lock-close-btn">Cancel</button>
+          <button class="button primary" id="rental-lock-upgrade-btn" style="background:#2563eb;font-weight:700;">💬 Request Upgrade via WhatsApp</button>
+        </div>
+      `;
+      backdrop.appendChild(modal);
+      document.body.appendChild(backdrop);
+      const close = () => backdrop.remove();
+      backdrop.onclick = (e) => { if (e.target === backdrop) close(); };
+      modal.querySelector('#rental-lock-close-btn').onclick = close;
+      modal.querySelector('#rental-lock-upgrade-btn').onclick = () => {
+        close();
+        if (typeof planActivationModal === 'function') {
+          planActivationModal('pro');
+        } else {
+          window.location.hash = '#/pricing';
+        }
+      };
+      return;
+    }
+
     document.querySelectorAll('.modal-backdrop, .drawer-backdrop, .spotlight-backdrop').forEach(b => b.remove());
     const allProps = (state.properties && state.properties.length) ? state.properties : demoProperties;
     const allLeads = (state.leads && state.leads.length) ? state.leads : demoLeads;
@@ -10687,6 +10722,40 @@ Password: *${pass}*
   // ==========================================================================
 
   function allotmentLetterModal(property = null, lead = null) {
+    const caps = getPlanCapabilities();
+    if (caps.planId === 'starter' || !caps.digitalAgreements) {
+      document.querySelectorAll('.modal-backdrop, .drawer-backdrop, .spotlight-backdrop').forEach(b => b.remove());
+      const backdrop = document.createElement('div');
+      backdrop.className = 'modal-backdrop';
+      const modal = document.createElement('div');
+      modal.className = 'modal';
+      modal.style.cssText = 'max-width:520px;width:92vw;padding:26px;background:#ffffff;border-radius:22px;text-align:center;position:relative;box-sizing:border-box;box-shadow:0 20px 50px rgba(0,0,0,0.22);';
+      modal.innerHTML = `
+        <div style="font-size:42px;margin-bottom:12px;">📑</div>
+        <div style="display:inline-block;padding:4px 12px;border-radius:20px;background:#eff6ff;color:#2563eb;font-weight:800;font-size:11px;margin-bottom:8px;text-transform:uppercase;letter-spacing:0.5px;">Pro Closer Feature</div>
+        <h3 style="font-size:20px;font-weight:800;color:#0f172a;margin:0 0 8px;">RERA Allotment Letters Locked</h3>
+        <p style="font-size:13.5px;color:#64748b;line-height:1.5;margin:0 0 20px;">Generating official RERA Allotment Confirmation Deeds with statutory terms requires an active <strong>Pro Closer</strong> or <strong>Agency Elite</strong> package. Upgrades are assigned by Platform Owner Mohak Vaswani.</p>
+        <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;">
+          <button class="button secondary" id="allotment-lock-close-btn">Cancel</button>
+          <button class="button primary" id="allotment-lock-upgrade-btn" style="background:#2563eb;font-weight:700;">💬 Request Upgrade via WhatsApp</button>
+        </div>
+      `;
+      backdrop.appendChild(modal);
+      document.body.appendChild(backdrop);
+      const close = () => backdrop.remove();
+      backdrop.onclick = (e) => { if (e.target === backdrop) close(); };
+      modal.querySelector('#allotment-lock-close-btn').onclick = close;
+      modal.querySelector('#allotment-lock-upgrade-btn').onclick = () => {
+        close();
+        if (typeof planActivationModal === 'function') {
+          planActivationModal('pro');
+        } else {
+          window.location.hash = '#/pricing';
+        }
+      };
+      return;
+    }
+
     document.querySelectorAll('.modal-backdrop, .drawer-backdrop, .spotlight-backdrop').forEach(b => b.remove());
     const allProps = (state.properties && state.properties.length) ? state.properties : demoProperties;
     const allLeads = (state.leads && state.leads.length) ? state.leads : demoLeads;
@@ -15326,9 +15395,11 @@ Best regards,
   window.clientMicrositeView = clientMicrositeView;
   window.stampDutyCostCalculatorModal = stampDutyCostCalculatorModal;
   window.rentalAgreementModal = rentalAgreementModal;
+  window.rentalAgreementDrawer = rentalAgreementModal;
   window.allotmentLetterModal = allotmentLetterModal;
   window.tokenReceiptModal = tokenReceiptModal;
   window.showReceiptModal = showReceiptModal;
+  window.getPlanCapabilities = getPlanCapabilities;
   window.letterheadModal = letterheadModal;
   window.magicWhatsAppParserModal = magicWhatsAppParserModal;
   window.brokerageInvoiceModal = brokerageInvoiceModal;
