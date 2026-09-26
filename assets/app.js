@@ -7190,38 +7190,50 @@ async function documentsView() {
                 </tr>
               </thead>
               <tbody>
-                ${filtered.map(d => `
-                  <tr>
-                    <td>
-                      <strong style="color:var(--ink);">${esc(d.title)}</strong>
-                      ${d.notes ? `<div class="lead-contact">${esc(d.notes)}</div>` : ''}
-                    </td>
-                    <td>
-                      <span class="stage">${(d.category || '').replaceAll('_', ' ')}</span>
-                      <div style="font-size:11.5px;color:var(--muted);font-weight:600;">${(d.documentType || '').replaceAll('_', ' ')}</div>
-                    </td>
-                    <td>
-                      ${d.propertyTitle ? `<div>🏢 ${esc(d.propertyTitle)}</div>` : ''}
-                      ${d.leadName ? `<div class="lead-contact">👤 ${esc(privacyName(d.leadName))}</div>` : ''}
-                    </td>
-                    <td>${esc(d.documentNumber || '—')}</td>
-                    <td>
-                      <span class="doc-badge ${d.status === 'VERIFIED' ? 'verified' : 'pending'}">
-                        ${d.status === 'VERIFIED' ? '✓ VERIFIED' : '⏳ PENDING'}
-                      </span>
-                    </td>
-                    <td>
-                      <div style="display:flex;gap:6px;">
-                        ${d.documentType === 'TOKEN_RECEIPT' ? `
-                          <button class="btn-act primary" data-doc-view-token="${d.id}">🧾 Receipt</button>
-                        ` : `
-                          <button class="btn-act" data-doc-inspect="${d.id}">👁️ View</button>
-                        `}
-                        <button class="btn-act wa" data-doc-kyc-wa="${d.id}">💬 WhatsApp</button>
-                      </div>
-                    </td>
-                  </tr>
-                `).join('')}
+                ${filtered.map(d => {
+                  const isLegal = d.category === 'PROPERTY_LEGAL';
+                  const isKyc = d.category === 'CLIENT_KYC';
+                  const isToken = d.category === 'DEAL_PAPERWORK' || d.documentType === 'TOKEN_RECEIPT';
+                  return `
+                    <tr>
+                      <td>
+                        <strong style="color:var(--ink);">${esc(d.title)}</strong>
+                        ${d.notes ? `<div class="lead-contact">${esc(d.notes)}</div>` : ''}
+                      </td>
+                      <td>
+                        <span class="stage">${(d.category || '').replaceAll('_', ' ')}</span>
+                        <div style="font-size:11.5px;color:var(--muted);font-weight:600;">${(d.documentType || '').replaceAll('_', ' ')}</div>
+                      </td>
+                      <td>
+                        ${d.propertyTitle ? `<div>🏢 ${esc(d.propertyTitle)}</div>` : ''}
+                        ${d.leadName ? `<div class="lead-contact">👤 ${esc(privacyName(d.leadName))}</div>` : ''}
+                      </td>
+                      <td>${esc(d.documentNumber || '—')}</td>
+                      <td>
+                        <span class="doc-badge ${d.status === 'VERIFIED' ? 'verified' : 'pending'}">
+                          ${d.status === 'VERIFIED' ? '✓ VERIFIED' : '⏳ PENDING'}
+                        </span>
+                      </td>
+                      <td>
+                        <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;">
+                          ${isToken ? `
+                            <button class="btn-act primary" data-doc-view-token="${d.id}">🧾 Receipt</button>
+                          ` : `
+                            <button class="btn-act" data-doc-inspect="${d.id}">👁️ View</button>
+                          `}
+                          ${isKyc ? `
+                            <button class="btn-act wa" data-doc-kyc-wa="${d.id}">💬 KYC WA</button>
+                          ` : isToken ? `
+                            <button class="btn-act wa" data-doc-token-wa="${d.id}">💬 Share</button>
+                          ` : `
+                            <button class="btn-act wa" data-doc-title-wa="${d.id}">💬 Share</button>
+                          `}
+                          <button class="link-button" data-doc-edit="${d.id}" style="padding:4px 8px;font-size:12px;">Edit</button>
+                        </div>
+                      </td>
+                    </tr>
+                  `;
+                }).join('')}
               </tbody>
             </table>
           </div>
@@ -7231,16 +7243,16 @@ async function documentsView() {
       // Bind button events
       feed.querySelectorAll('[data-doc-view-token]').forEach(btn => {
         btn.onclick = () => {
-          const docId = Number(btn.dataset.docViewToken);
-          const doc = list.find(x => x.id === docId);
+          const docId = btn.dataset.docViewToken;
+          const doc = list.find(x => String(x.id) === String(docId));
           if (doc) showReceiptModal(doc);
         };
       });
 
       feed.querySelectorAll('[data-doc-inspect]').forEach(btn => {
         btn.onclick = () => {
-          const docId = Number(btn.dataset.docInspect);
-          const doc = list.find(x => x.id === docId);
+          const docId = btn.dataset.docInspect;
+          const doc = list.find(x => String(x.id) === String(docId));
           if (doc) {
             showToast(`🔒 Legal Vault Inspection\n\nDocument: ${doc.title}\nType: ${doc.documentType}\nRef #: ${doc.documentNumber || 'N/A'}\nStatus: ${doc.status}\nAudit Notes: ${doc.notes || 'Verified'}`, 'info');
           }
@@ -7249,8 +7261,8 @@ async function documentsView() {
 
       feed.querySelectorAll('[data-doc-kyc-wa]').forEach(btn => {
         btn.onclick = () => {
-          const docId = Number(btn.dataset.docKycWa);
-          const doc = list.find(x => x.id === docId);
+          const docId = btn.dataset.docKycWa;
+          const doc = list.find(x => String(x.id) === String(docId));
           const lead = demoLeads.find(l => l.name === doc?.leadName) || demoLeads[0];
           copyWhatsAppKycPrompt(lead);
         };
@@ -7258,41 +7270,49 @@ async function documentsView() {
 
       feed.querySelectorAll('[data-doc-token-wa]').forEach(btn => {
         btn.onclick = () => {
-          const docId = Number(btn.dataset.docTokenWa);
-          const doc = list.find(x => x.id === docId);
+          const docId = btn.dataset.docTokenWa;
+          const doc = list.find(x => String(x.id) === String(docId));
           if (doc) {
             const text = `*🧾 Digital Token Booking Receipt*
-*Ref #:* ${doc.documentNumber}
-*Client:* ${doc.leadName || 'Rahul Sharma'}
+*Ref #:* ${doc.documentNumber || 'TR-2026'}
+*Client:* ${doc.buyerName || doc.leadName || 'Rahul Sharma'}
 *Property:* ${doc.propertyTitle || 'Spacious 2 BHK at Hiranandani Estate'}
-*Token Amount:* ₹1,00,000 (Received via UPI)
+*Token Amount:* ₹${(doc.tokenAmount || 100000).toLocaleString('en-IN')} (Received via UPI)
 *Status:* ✓ Verified & Audited
 
 Thank you for choosing BrokerAI!`;
-            navigator.clipboard.writeText(text).then(() => showToast("Token receipt summary copied to clipboard!", "success"));
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+              navigator.clipboard.writeText(text).then(() => showToast("Token receipt summary copied to clipboard!", "success")).catch(() => showToast("Token receipt summary ready!", "info"));
+            } else {
+              showToast("Token receipt summary ready!", "info");
+            }
           }
         };
       });
 
       feed.querySelectorAll('[data-doc-title-wa]').forEach(btn => {
         btn.onclick = () => {
-          const docId = Number(btn.dataset.docTitleWa);
-          const doc = list.find(x => x.id === docId);
+          const docId = btn.dataset.docTitleWa;
+          const doc = list.find(x => String(x.id) === String(docId));
           if (doc) {
             const text = `*🏢 Title Clear & Compliance Summary*
 *Property:* ${doc.propertyTitle || 'Hiranandani Estate Listing'}
 *Document:* ${doc.title} (${doc.documentNumber || 'Verified'})
 *Status:* ✓ Title Chain & OC Clear
 *Verified by:* BrokerAI Legal Vault`;
-            navigator.clipboard.writeText(text).then(() => showToast("Title summary copied to clipboard!", "success"));
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+              navigator.clipboard.writeText(text).then(() => showToast("Title summary copied to clipboard!", "success")).catch(() => showToast("Title summary ready!", "info"));
+            } else {
+              showToast("Title summary ready!", "info");
+            }
           }
         };
       });
 
       feed.querySelectorAll('[data-doc-edit]').forEach(btn => {
         btn.onclick = () => {
-          const docId = Number(btn.dataset.docEdit);
-          const doc = list.find(x => x.id === docId);
+          const docId = btn.dataset.docEdit;
+          const doc = list.find(x => String(x.id) === String(docId));
           if (doc) documentDrawer(doc);
         };
       });
@@ -11106,6 +11126,247 @@ Password: *${pass}*
       if (state.page === 'documents') documentsView();
       showReceiptModal(doc);
     };
+  }
+
+  // --- OFFICIAL TOKEN BOOKING RECEIPT MODAL (PREVIEW, PRINT & SHARE) ---
+  function showReceiptModal(doc) {
+    if (!doc) return;
+    document.querySelectorAll('.modal-backdrop, .drawer-backdrop, .spotlight-backdrop').forEach(b => b.remove());
+    const s = state.agencySettings || defaultAgencySettings || {};
+
+    const receiptNum = doc.documentNumber || `TR-${new Date().getFullYear()}-${String(doc.id || Date.now()).slice(-5)}`;
+    const buyerName = doc.buyerName || doc.leadName || 'Rahul Sharma';
+    const buyerPhone = doc.buyerPhone || '+91 98765 43210';
+    const buyerEmail = doc.buyerEmail || `${buyerName.toLowerCase().replace(/\s+/g, '.')}@example.com`;
+    const buyerPan = doc.buyerPan || 'ABCPS1234F';
+    const buyerAddress = doc.buyerAddress || 'Flat 602, Eden Woods, Gladys Alwares Road, Thane West';
+
+    const propertyTitle = doc.propertyTitle || 'Spacious 2 BHK at Hiranandani Estate';
+    const unitNo = doc.unitNo || (propertyTitle.includes('Unit') ? propertyTitle.split(',')[0] : 'Unit #1402, Wing-B');
+    const societyName = doc.societyName || (propertyTitle.includes(' at ') ? propertyTitle.split(' at ').pop() : propertyTitle);
+
+    let tokenAmount = doc.tokenAmount;
+    let agreedValue = doc.agreedTotalDealValue;
+    let paymentMode = doc.paymentMode;
+    let txRef = doc.transactionReference;
+    let receiptDate = doc.receiptDate || (doc.verifiedAt ? doc.verifiedAt.slice(0, 10) : new Date().toISOString().slice(0, 10));
+
+    if (doc.notes) {
+      if (!tokenAmount && doc.notes.includes('Token')) {
+        const m = doc.notes.match(/Token(?:\s*Amount)?:\s*₹?([\d,]+)/i);
+        if (m) tokenAmount = Number(m[1].replace(/,/g, ''));
+      }
+      if (!agreedValue && doc.notes.includes('Deal Value')) {
+        const m = doc.notes.match(/(?:Agreed\s*)?Deal Value:\s*₹?([\d,]+)/i);
+        if (m) agreedValue = Number(m[1].replace(/,/g, ''));
+      } else if (!agreedValue && doc.notes.includes('Consideration')) {
+        const m = doc.notes.match(/Consideration:\s*₹?([\d,]+)/i);
+        if (m) agreedValue = Number(m[1].replace(/,/g, ''));
+      }
+      if (!txRef && doc.notes.includes('Ref:')) {
+        const m = doc.notes.match(/Ref:\s*([^\s|]+)/i);
+        if (m) txRef = m[1].trim();
+      }
+      if (!paymentMode && doc.notes.includes('Mode:')) {
+        const m = doc.notes.match(/Mode:\s*([^|]+)/i);
+        if (m) paymentMode = m[1].trim();
+      }
+    }
+
+    tokenAmount = Number(tokenAmount) || 100000;
+    agreedValue = Number(agreedValue) || 12500000;
+    paymentMode = paymentMode || 'UPI / Google Pay (Digital Escrow)';
+    txRef = txRef || `UPI-${Date.now().toString().slice(-10)}`;
+
+    const agentName = doc.agentName || state.user?.fullName || 'Mohak Vaswani';
+    const agentPhone = doc.agentPhone || '+91 98765 43210';
+    const agentRera = doc.agentRera || s.reraNumber || 'A51700012345';
+    const agencyName = s.agencyName || 'Prime Realty Advisors';
+    const officeAddress = s.officeAddress || 'Hiranandani Estate, Ghodbunder Road, Thane West';
+    const agencyEmail = s.contactEmail || 'contact@brokerai.in';
+    const agencyPhone = s.contactPhone || '+91 98200 12345';
+    const balanceDue = (agreedValue - tokenAmount > 0) ? (agreedValue - tokenAmount) : 0;
+
+    const backdrop = document.createElement('div');
+    backdrop.className = 'modal-backdrop';
+    const modal = document.createElement('div');
+    modal.className = 'modal';
+    modal.style.cssText = 'max-width:740px;width:95vw;max-height:92vh;overflow-y:auto;background:#ffffff;padding:28px;border-radius:24px;box-shadow:0 25px 60px rgba(0,0,0,0.35);position:relative;box-sizing:border-box;color:#0f172a;font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","SF Pro Display","Segoe UI",Roboto,Helvetica,Arial,sans-serif;';
+
+    modal.innerHTML = `
+      <!-- Top Action Bar -->
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+          <span style="background:#ecfdf5;color:#047857;border:1px solid #a7f3d0;font-size:11px;font-weight:800;padding:4px 10px;border-radius:20px;text-transform:uppercase;letter-spacing:0.5px;">✓ Tripartite Legal Instrument</span>
+          <span style="background:#eff6ff;color:#1d4ed8;border:1px solid #bfdbfe;font-size:11px;font-weight:700;padding:4px 10px;border-radius:20px;">MahaRERA: ${esc(agentRera)}</span>
+        </div>
+        <button class="close" id="close-receipt-modal-x" style="font-size:24px;border:none;background:transparent;cursor:pointer;color:#64748b;line-height:1;padding:4px 8px;">×</button>
+      </div>
+
+      <!-- Letterhead Header -->
+      <div style="border-bottom:2px solid #0f172a;padding-bottom:16px;margin-bottom:20px;display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:12px;">
+        <div>
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">
+            <div style="width:32px;height:32px;border-radius:8px;background:#165dff;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:16px;">🏢</div>
+            <h2 style="font-size:22px;font-weight:800;color:#0f172a;margin:0;letter-spacing:-0.4px;">${esc(agencyName)}</h2>
+          </div>
+          <div style="font-size:12px;color:#475569;font-weight:600;">Institutional Real Estate Advisory & Certified RERA Brokerage</div>
+          <div style="font-size:11.5px;color:#64748b;margin-top:4px;">📍 ${esc(officeAddress)}</div>
+        </div>
+        <div style="text-align:right;font-size:11.5px;color:#475569;">
+          <div style="font-weight:700;color:#0f172a;">Ref #: <span style="font-family:monospace;color:#165dff;font-size:13px;">${esc(receiptNum)}</span></div>
+          <div style="margin-top:2px;">Date: <strong style="color:#0f172a;">${esc(receiptDate)}</strong></div>
+          <div style="margin-top:2px;">Email: ${esc(agencyEmail)}</div>
+          <div style="margin-top:2px;">Phone: ${esc(agencyPhone)}</div>
+        </div>
+      </div>
+
+      <!-- Receipt Title Banner -->
+      <div style="text-align:center;background:#f8fafc;border:1px solid #e2e8f0;padding:12px 16px;border-radius:12px;margin-bottom:20px;">
+        <h3 style="font-size:16px;font-weight:800;color:#0f172a;letter-spacing:0.5px;margin:0 0 4px;text-transform:uppercase;">Official Token Booking Advance Receipt</h3>
+        <div style="font-size:12px;color:#64748b;">Issued under Maharashtra Real Estate (Regulation and Development) Act, 2016</div>
+      </div>
+
+      <!-- Highlighted Amount Banner -->
+      <div style="background:linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);border:1.5px solid #86efac;border-radius:16px;padding:18px 20px;margin-bottom:24px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;">
+        <div>
+          <div style="font-size:12px;font-weight:700;color:#15803d;text-transform:uppercase;letter-spacing:0.5px;">Token Deposit Received</div>
+          <div style="font-size:30px;font-weight:900;color:#14532d;letter-spacing:-0.5px;line-height:1.2;">₹${tokenAmount.toLocaleString('en-IN')}</div>
+          <div style="font-size:12px;color:#166534;font-weight:600;margin-top:2px;">Mode: ${esc(paymentMode)} · Ref: <span style="font-family:monospace;">${esc(txRef)}</span></div>
+        </div>
+        <div style="text-align:right;">
+          <span style="display:inline-block;background:#15803d;color:#ffffff;font-size:12px;font-weight:800;padding:6px 14px;border-radius:20px;box-shadow:0 4px 12px rgba(21,128,61,0.25);">✓ PAYMENT CONFIRMED</span>
+          <div style="font-size:11.5px;color:#15803d;margin-top:6px;font-weight:600;">Status: Escrow Acknowledged</div>
+        </div>
+      </div>
+
+      <!-- 2-Column Info Grid -->
+      <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(280px, 1fr));gap:16px;margin-bottom:24px;">
+        <!-- Buyer Information -->
+        <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:14px;padding:16px;">
+          <div style="display:flex;align-items:center;gap:6px;font-size:13px;font-weight:800;color:#1e40af;margin-bottom:12px;text-transform:uppercase;letter-spacing:0.5px;">
+            <span>👤</span> Buyer (Client) Details
+          </div>
+          <div style="display:flex;flex-direction:column;gap:8px;font-size:12.5px;color:#334155;">
+            <div><span style="color:#64748b;font-size:11.5px;display:block;">Full Name</span><strong style="color:#0f172a;font-size:13.5px;">${esc(buyerName)}</strong></div>
+            <div><span style="color:#64748b;font-size:11.5px;display:block;">Mobile / WhatsApp</span><strong style="color:#0f172a;">${esc(buyerPhone)}</strong></div>
+            ${buyerEmail ? `<div><span style="color:#64748b;font-size:11.5px;display:block;">Email Address</span><span>${esc(buyerEmail)}</span></div>` : ''}
+            ${buyerPan ? `<div><span style="color:#64748b;font-size:11.5px;display:block;">PAN / ID Card</span><span style="font-family:monospace;font-weight:700;color:#0f172a;">${esc(buyerPan)}</span></div>` : ''}
+            ${buyerAddress ? `<div><span style="color:#64748b;font-size:11.5px;display:block;">Residential Address</span><span>${esc(buyerAddress)}</span></div>` : ''}
+          </div>
+        </div>
+
+        <!-- Property & Deal Details -->
+        <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:14px;padding:16px;">
+          <div style="display:flex;align-items:center;gap:6px;font-size:13px;font-weight:800;color:#1e40af;margin-bottom:12px;text-transform:uppercase;letter-spacing:0.5px;">
+            <span>🏡</span> Property & Consideration
+          </div>
+          <div style="display:flex;flex-direction:column;gap:8px;font-size:12.5px;color:#334155;">
+            <div><span style="color:#64748b;font-size:11.5px;display:block;">Unit / Flat No.</span><strong style="color:#0f172a;font-size:13.5px;">${esc(unitNo)}</strong></div>
+            <div><span style="color:#64748b;font-size:11.5px;display:block;">Building / Society / Project</span><strong style="color:#0f172a;">${esc(societyName || propertyTitle)}</strong></div>
+            <div><span style="color:#64748b;font-size:11.5px;display:block;">Agreed Total Deal Consideration</span><strong style="color:#0f172a;font-size:14px;">₹${agreedValue.toLocaleString('en-IN')}</strong> <span style="color:#64748b;font-size:12px;">(${formatPrice(agreedValue, 'SALE')})</span></div>
+            <div><span style="color:#64748b;font-size:11.5px;display:block;">Balance Consideration on Agreement</span><strong style="color:#2563eb;">₹${balanceDue.toLocaleString('en-IN')}</strong></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Terms & Regulatory Notes -->
+      <div style="background:#fffbeb;border:1px solid #fef3c7;border-radius:14px;padding:14px 16px;margin-bottom:24px;">
+        <div style="font-size:12px;font-weight:800;color:#92400e;margin-bottom:6px;text-transform:uppercase;letter-spacing:0.5px;">⚖️ Terms of Booking & MahaRERA Statutory Notice</div>
+        <div style="font-size:12px;color:#78350f;line-height:1.5;">
+          ${doc.notes ? `<p style="margin:0 0 6px;"><strong>Specific Notes:</strong> ${esc(doc.notes)}</p>` : ''}
+          <p style="margin:0;">1. This earnest token deposit acknowledges booking intent and blocks the property from general marketing for 15 days.</p>
+          <p style="margin:4px 0 0;">2. Balance consideration and stamp duty registration shall be executed as per standard registered Agreement for Sale in accordance with MahaRERA guidelines.</p>
+        </div>
+      </div>
+
+      <!-- Agent Signatory & Digital Seal -->
+      <div style="border-top:1px solid #e2e8f0;padding-top:16px;margin-bottom:24px;display:flex;justify-content:space-between;align-items:flex-end;flex-wrap:wrap;gap:16px;">
+        <div>
+          <div style="font-size:11.5px;color:#64748b;">Closing Executive / Authorized Broker:</div>
+          <div style="font-size:14px;font-weight:800;color:#0f172a;margin-top:2px;">${esc(agentName)}</div>
+          <div style="font-size:12px;color:#475569;">Mobile: ${esc(agentPhone)} · MahaRERA: <strong style="color:#047857;">${esc(agentRera)}</strong></div>
+        </div>
+        <div style="text-align:right;">
+          <div style="display:inline-flex;align-items:center;gap:6px;background:#f1f5f9;border:1px solid #cbd5e1;padding:6px 12px;border-radius:10px;">
+            <span style="font-size:14px;">🔒</span>
+            <div style="text-align:left;">
+              <div style="font-size:10.5px;font-weight:800;color:#334155;text-transform:uppercase;">Tamper-Proof Digital Seal</div>
+              <div style="font-size:10px;color:#64748b;">Vault Verified: ${formatDateTime(doc.verifiedAt || new Date().toISOString())}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Footer Action Buttons -->
+      <div style="border-top:1px solid #e2e8f0;padding-top:20px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;">
+        <button class="button secondary" id="close-receipt-modal-btn">Close</button>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;">
+          <button class="button secondary" id="copy-receipt-text-btn">📋 Copy Summary</button>
+          <button class="button secondary" id="wa-share-receipt-btn" style="background:#25d366;color:#ffffff;border:none;font-weight:700;">💬 Share WhatsApp</button>
+          <button class="button primary" id="print-receipt-btn" style="background:#165dff;">🖨️ Print / PDF</button>
+        </div>
+      </div>
+    `;
+
+    backdrop.appendChild(modal);
+    document.body.appendChild(backdrop);
+
+    const close = () => backdrop.remove();
+    backdrop.onclick = (e) => { if (e.target === backdrop) close(); };
+    modal.onclick = (e) => e.stopPropagation();
+
+    if (modal.querySelector('#close-receipt-modal-x')) modal.querySelector('#close-receipt-modal-x').onclick = close;
+    if (modal.querySelector('#close-receipt-modal-btn')) modal.querySelector('#close-receipt-modal-btn').onclick = close;
+    if (modal.querySelector('#print-receipt-btn')) modal.querySelector('#print-receipt-btn').onclick = () => window.print();
+
+    const receiptSummaryText = `*🧾 OFFICIAL DIGITAL TOKEN BOOKING RECEIPT*
+*Receipt Ref #:* ${receiptNum}
+*Date:* ${receiptDate}
+*Agency:* ${agencyName} (MahaRERA: ${agentRera})
+
+👤 *Buyer Details:*
+• Name: ${buyerName}
+• Phone: ${buyerPhone}
+• PAN: ${buyerPan}
+
+🏡 *Property & Unit Details:*
+• Unit: ${unitNo}
+• Society / Project: ${societyName || propertyTitle}
+• Agreed Total Consideration: ₹${agreedValue.toLocaleString('en-IN')}
+
+💰 *Token Deposit Payment:*
+• Token Amount Received: *₹${tokenAmount.toLocaleString('en-IN')}*
+• Payment Mode: ${paymentMode}
+• Transaction / UTR Ref: ${txRef}
+• Balance Consideration: ₹${balanceDue.toLocaleString('en-IN')}
+
+🤝 *Executive Closing Agent:*
+• ${agentName} (${agentPhone})
+
+🔒 *Status:* Verified & Timestamped in Legal Vault`;
+
+    if (modal.querySelector('#copy-receipt-text-btn')) {
+      modal.querySelector('#copy-receipt-text-btn').onclick = () => {
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard.writeText(receiptSummaryText).then(() => {
+            showToast("✓ Receipt summary copied to clipboard!", "success");
+          }).catch(() => {
+            showToast("Receipt summary copied!", "info");
+          });
+        } else {
+          showToast("✓ Token receipt summary ready.", "success");
+        }
+      };
+    }
+
+    if (modal.querySelector('#wa-share-receipt-btn')) {
+      modal.querySelector('#wa-share-receipt-btn').onclick = () => {
+        const cleanPhone = buyerPhone.replace(/[^0-9]/g, '');
+        const waUrl = `https://api.whatsapp.com/send?phone=${encodeURIComponent(cleanPhone)}&text=${encodeURIComponent(receiptSummaryText)}`;
+        window.open(waUrl, '_blank');
+      };
+    }
   }
 
 
@@ -15067,6 +15328,7 @@ Best regards,
   window.rentalAgreementModal = rentalAgreementModal;
   window.allotmentLetterModal = allotmentLetterModal;
   window.tokenReceiptModal = tokenReceiptModal;
+  window.showReceiptModal = showReceiptModal;
   window.letterheadModal = letterheadModal;
   window.magicWhatsAppParserModal = magicWhatsAppParserModal;
   window.brokerageInvoiceModal = brokerageInvoiceModal;
