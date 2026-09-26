@@ -9445,11 +9445,17 @@ Password: *${pass}*
 
     // Mobile Hamburger & Drawer triggers
     const openMobileMenu = (e) => {
-      if (e) e.preventDefault();
+      if (e) {
+        e.preventDefault();
+        e.stopPropagation();
+      }
       if (typeof mobileMenuModal === 'function') mobileMenuModal();
     };
     const hambTop = document.querySelector('#topbar-hamburger-btn');
-    if (hambTop) hambTop.onclick = openMobileMenu;
+    if (hambTop) {
+      hambTop.onclick = openMobileMenu;
+      hambTop.ontouchstart = (e) => { e.stopPropagation(); };
+    }
     const hambMob = document.querySelector('#mobile-hamburger-btn');
     if (hambMob) hambMob.onclick = openMobileMenu;
     const hambMore = document.querySelector('#mobile-more-tab-btn');
@@ -9458,6 +9464,18 @@ Password: *${pass}*
     if (hambNav) hambNav.onclick = openMobileMenu;
     const hambBtm = document.querySelector('#bottom-menu-toggle-btn');
     if (hambBtm) hambBtm.onclick = openMobileMenu;
+
+    if (!window.__globalHamburgerBound) {
+      window.__globalHamburgerBound = true;
+      document.addEventListener('click', (e) => {
+        const btn = e.target.closest('#topbar-hamburger-btn, .topbar-hamburger-btn, #mobile-hamburger-btn, #mobile-more-tab-btn, #mob-nav-menu, #bottom-menu-toggle-btn');
+        if (btn) {
+          e.preventDefault();
+          e.stopPropagation();
+          if (typeof mobileMenuModal === 'function') mobileMenuModal();
+        }
+      });
+    }
 
     // Sidebar & Navigation links
     document.querySelectorAll('[data-page]').forEach(button => {
