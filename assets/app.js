@@ -9444,12 +9444,20 @@ Password: *${pass}*
     }
 
     // Mobile Hamburger & Drawer triggers
-    const openMobileMenu = () => { if (typeof mobileMenuModal === 'function') mobileMenuModal(); };
-    document.querySelector('#topbar-hamburger-btn')?.addEventListener('click', openMobileMenu);
-    document.querySelector('#mobile-hamburger-btn')?.addEventListener('click', openMobileMenu);
-    document.querySelector('#mobile-more-tab-btn')?.addEventListener('click', openMobileMenu);
-    document.querySelector('#mob-nav-menu')?.addEventListener('click', openMobileMenu);
-    document.querySelector('#bottom-menu-toggle-btn')?.addEventListener('click', openMobileMenu);
+    const openMobileMenu = (e) => {
+      if (e) e.preventDefault();
+      if (typeof mobileMenuModal === 'function') mobileMenuModal();
+    };
+    const hambTop = document.querySelector('#topbar-hamburger-btn');
+    if (hambTop) hambTop.onclick = openMobileMenu;
+    const hambMob = document.querySelector('#mobile-hamburger-btn');
+    if (hambMob) hambMob.onclick = openMobileMenu;
+    const hambMore = document.querySelector('#mobile-more-tab-btn');
+    if (hambMore) hambMore.onclick = openMobileMenu;
+    const hambNav = document.querySelector('#mob-nav-menu');
+    if (hambNav) hambNav.onclick = openMobileMenu;
+    const hambBtm = document.querySelector('#bottom-menu-toggle-btn');
+    if (hambBtm) hambBtm.onclick = openMobileMenu;
 
     // Sidebar & Navigation links
     document.querySelectorAll('[data-page]').forEach(button => {
@@ -9470,55 +9478,60 @@ Password: *${pass}*
       if (e) e.preventDefault();
       window.location.hash = '#/pricing';
     };
-    document.querySelector('#topbar-plan-pill')?.addEventListener('click', openPlanDetails);
-    document.querySelectorAll('.plan-indicator-badge').forEach(btn => btn.addEventListener('click', openPlanDetails));
-    document.querySelector('#sidebar-plan-switch-btn')?.addEventListener('click', openPlanDetails);
-    document.querySelector('#sidebar-plan-badge')?.addEventListener('click', openPlanDetails);
-    document.querySelector('#dashboard-plan-sim-btn')?.addEventListener('click', openPlanDetails);
+    const planPill = document.querySelector('#topbar-plan-pill');
+    if (planPill) planPill.onclick = openPlanDetails;
+    document.querySelectorAll('.plan-indicator-badge').forEach(btn => { btn.onclick = openPlanDetails; });
+    const sbPlanBtn = document.querySelector('#sidebar-plan-switch-btn');
+    if (sbPlanBtn) sbPlanBtn.onclick = openPlanDetails;
+    const sbPlanBdg = document.querySelector('#sidebar-plan-badge');
+    if (sbPlanBdg) sbPlanBdg.onclick = openPlanDetails;
+    const dashPlanSim = document.querySelector('#dashboard-plan-sim-btn');
+    if (dashPlanSim) dashPlanSim.onclick = openPlanDetails;
 
     // Topbar Action & Tool Buttons
-    document.querySelector('#topbar-magic-parser-btn')?.addEventListener('click', (e) => {
-      if (e) e.preventDefault();
+    const magicBtn = document.querySelector('#topbar-magic-parser-btn');
+    if (magicBtn) magicBtn.onclick = (e) => {
+      e.preventDefault();
       if (typeof magicWhatsAppParserModal === 'function') magicWhatsAppParserModal();
-    });
-    document.querySelector('#topbar-cost-calc-btn')?.addEventListener('click', (e) => {
-      if (e) e.preventDefault();
+    };
+    const costBtn = document.querySelector('#topbar-cost-calc-btn');
+    if (costBtn) costBtn.onclick = (e) => {
+      e.preventDefault();
       if (typeof costSheetModal === 'function') costSheetModal();
-    });
-    document.querySelector('#topbar-cost-sheet-btn')?.addEventListener('click', (e) => {
-      if (e) e.preventDefault();
+    };
+    const costSheetBtn = document.querySelector('#topbar-cost-sheet-btn');
+    if (costSheetBtn) costSheetBtn.onclick = (e) => {
+      e.preventDefault();
       if (typeof costSheetModal === 'function') costSheetModal();
-    });
-    document.querySelector('#topbar-sales-demo-btn')?.addEventListener('click', (e) => {
-      if (e) e.preventDefault();
+    };
+    const salesDemoBtn = document.querySelector('#topbar-sales-demo-btn');
+    if (salesDemoBtn) salesDemoBtn.onclick = (e) => {
+      e.preventDefault();
       if (typeof salesDemoGeneratorModal === 'function') salesDemoGeneratorModal();
-    });
-    document.querySelector('#topbar-notif-bell')?.addEventListener('click', (e) => {
-      if (e) e.preventDefault();
+    };
+    const notifBell = document.querySelector('#topbar-notif-bell');
+    if (notifBell) notifBell.onclick = (e) => {
+      e.preventDefault();
       state.page = 'notifications';
-      if (window.location.hash !== '#/notifications') {
-        window.location.hash = '#/notifications';
-      } else {
-        render();
-      }
-    });
-    document.querySelector('#topbar-avatar-btn')?.addEventListener('click', (e) => {
-      if (e) e.preventDefault();
+      if (window.location.hash !== '#/notifications') window.location.hash = '#/notifications';
+      else render();
+    };
+    const avatarBtn = document.querySelector('#topbar-avatar-btn');
+    if (avatarBtn) avatarBtn.onclick = (e) => {
+      e.preventDefault();
       state.page = 'settings';
-      if (window.location.hash !== '#/settings') {
-        window.location.hash = '#/settings';
-      } else {
-        render();
-      }
-    });
+      if (window.location.hash !== '#/settings') window.location.hash = '#/settings';
+      else render();
+    };
 
     // Client Presentation Mode Banner Exit
-    document.querySelector('#exit-client-banner-btn')?.addEventListener('click', () => {
+    const exitBanner = document.querySelector('#exit-client-banner-btn');
+    if (exitBanner) exitBanner.onclick = () => {
       state.clientMode = false;
       try { localStorage.setItem('brokerai.clientMode', 'false'); } catch (e) {}
       if (typeof toast === 'function') toast('Client Presentation Mode exited.', 'info');
       render();
-    });
+    };
 
     // Mobile Floating Action Button (FAB) Speed Dial
     const fabBtn = document.querySelector('#mobile-fab-btn');
@@ -9528,28 +9541,25 @@ Password: *${pass}*
         e.stopPropagation();
         fabSheet.style.display = (fabSheet.style.display === 'none' || !fabSheet.style.display) ? 'grid' : 'none';
       };
-      document.addEventListener('click', (e) => {
-        if (!fabBtn.contains(e.target) && !fabSheet.contains(e.target)) {
-          fabSheet.style.display = 'none';
-        }
-      });
+      if (!window.__fabDocClickBound) {
+        window.__fabDocClickBound = true;
+        document.addEventListener('click', (e) => {
+          const fs = document.querySelector('#mobile-fab-sheet');
+          const fb = document.querySelector('#mobile-fab-btn');
+          if (fs && fs.style.display !== 'none' && fb && !fb.contains(e.target) && !fs.contains(e.target)) {
+            fs.style.display = 'none';
+          }
+        }, { passive: true });
+      }
     }
-    document.querySelector('#fab-action-lead')?.addEventListener('click', () => {
-      if (fabSheet) fabSheet.style.display = 'none';
-      if (typeof leadDrawer === 'function') leadDrawer();
-    });
-    document.querySelector('#fab-action-prop')?.addEventListener('click', () => {
-      if (fabSheet) fabSheet.style.display = 'none';
-      if (typeof propertyDrawer === 'function') propertyDrawer();
-    });
-    document.querySelector('#fab-action-visit')?.addEventListener('click', () => {
-      if (fabSheet) fabSheet.style.display = 'none';
-      if (typeof siteVisitDrawer === 'function') siteVisitDrawer();
-    });
-    document.querySelector('#fab-action-wa')?.addEventListener('click', () => {
-      if (fabSheet) fabSheet.style.display = 'none';
-      if (typeof magicWhatsAppParserModal === 'function') magicWhatsAppParserModal();
-    });
+    const fabLead = document.querySelector('#fab-action-lead');
+    if (fabLead) fabLead.onclick = () => { if (fabSheet) fabSheet.style.display = 'none'; if (typeof leadDrawer === 'function') leadDrawer(); };
+    const fabProp = document.querySelector('#fab-action-prop');
+    if (fabProp) fabProp.onclick = () => { if (fabSheet) fabSheet.style.display = 'none'; if (typeof propertyDrawer === 'function') propertyDrawer(); };
+    const fabVisit = document.querySelector('#fab-action-visit');
+    if (fabVisit) fabVisit.onclick = () => { if (fabSheet) fabSheet.style.display = 'none'; if (typeof siteVisitDrawer === 'function') siteVisitDrawer(); };
+    const fabWa = document.querySelector('#fab-action-wa');
+    if (fabWa) fabWa.onclick = () => { if (fabSheet) fabSheet.style.display = 'none'; if (typeof magicWhatsAppParserModal === 'function') magicWhatsAppParserModal(); };
 
     // Signout Handlers
     const handleSignOut = () => {
