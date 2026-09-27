@@ -10521,7 +10521,7 @@ Password: *${pass}*
               <input class="input" id="agree-address" value="Flat No. ${prop.keyLocation?.includes('1402') ? '1402' : '604'}, ${esc(prop.society || 'Rodas Enclave')}, ${esc(prop.location || 'Hiranandani Estate, Thane West - 400607')}" />
             </div>
             <div class="field">
-              <label>Monthly License Fee (Rent ₹) *</label>
+              <label>Monthly License Fee (Lease ₹) *</label>
               <input class="input" id="agree-rent" type="number" value="${rentAmount}" style="font-weight:800;color:#15803d;" />
             </div>
             <div class="field">
@@ -10854,7 +10854,7 @@ Password: *${pass}*
         propertyId: prop.id,
         propertyTitle: prop.title,
         documentNumber: `LL-${Date.now().toString().slice(-6)}`,
-        notes: `Monthly Rent: ₹${drawer.querySelector('#agree-rent').value} | Deposit: ₹${drawer.querySelector('#agree-deposit').value} | Period: ${duration} Months`,
+        notes: `Monthly License Fee (Lease): ₹${drawer.querySelector('#agree-rent').value} | Deposit: ₹${drawer.querySelector('#agree-deposit').value} | Period: ${duration} Months`,
         verifiedAt: new Date().toISOString()
       };
       state.documents.unshift(doc);

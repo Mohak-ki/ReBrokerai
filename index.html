@@ -19,16 +19,16 @@
     <link rel="icon" type="image/svg+xml" href="assets/icon-192.svg" />
 
     <title>BrokerAI — Institutional Brokerage OS</title>
-    <link rel="stylesheet" href="assets/styles.css?v=178" />
+    <link rel="stylesheet" href="assets/styles.css?v=179" />
   </head>
   <body>
     <div id="app"></div>
-    <script src="config.js?v=178"></script>
-    <script src="assets/app.js?v=178"></script>
+    <script src="config.js?v=179"></script>
+    <script src="assets/app.js?v=179"></script>
     <script>
       if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
-          navigator.serviceWorker.register('./sw.js?v=178')
+          navigator.serviceWorker.register('./sw.js?v=179')
             .then(reg => {
               console.log('✅ BrokerAI PWA ServiceWorker Registered:', reg.scope);
               reg.update();
