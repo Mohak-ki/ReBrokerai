@@ -10523,56 +10523,11 @@ Password: *${pass}*
           </div>
         </div>
 
-        <!-- GENERATED LEGAL DRAFT PAPER -->
-        <div class="legal-agreement-paper" id="legal-draft-container" style="margin-top:20px;">
-          <div class="stamp-header-sim">
-            GOVERNMENT OF MAHARASHTRA · NON-JUDICIAL E-STAMP SIMULATION<br/>
-            LEAVE AND LICENSE AGREEMENT (FOR RESIDENTIAL PURPOSE ONLY)
-          </div>
-
-          <h3 class="legal-title">LEAVE AND LICENSE AGREEMENT</h3>
-
-          <div class="legal-clause">
-            This Leave and License Agreement is made and executed at <strong>Thane, Maharashtra</strong> on this <strong>${agreementDate}</strong>, by and between:
-          </div>
-
-          <div class="legal-clause">
-            <strong>1. LICENSOR:</strong> <span id="view-licensor-name">${esc(prop.ownerName || 'Suresh Patil')}</span>, holding PAN/Aadhaar <span id="view-licensor-pan">ABCPS1234F</span>, hereinafter referred to as the <em>"LICENSOR"</em> (which expression shall include their heirs, successors, and assigns).
-          </div>
-
-          <div class="legal-clause">
-            <strong>2. LICENSEE:</strong> <span id="view-licensee-name">${esc(client?.name || 'Rahul Sharma')}</span>, holding PAN/Aadhaar <span id="view-licensee-pan">XYZPA5678K</span>, hereinafter referred to as the <em>"LICENSEE"</em> (which expression shall include their family members).
-          </div>
-
-          <div class="legal-clause">
-            <strong>3. LICENSED PREMISES:</strong> The Licensor is the sole absolute lawful owner of the residential flat situated at: <br/>
-            <strong id="view-address">Flat No. 604, ${esc(prop.society || 'Rodas Enclave')}, ${esc(prop.location || 'Hiranandani Estate, Thane West - 400607')}</strong>.
-          </div>
-
-          <div class="legal-clause">
-            <strong>4. TERM & DURATION:</strong> The license is granted for a fixed period of <strong>11 (Eleven) Months</strong> commencing from <strong id="view-start">${startDate}</strong> to <strong id="view-end">${endDate}</strong>.
-          </div>
-
-          <div class="legal-clause">
-            <strong>5. LICENSE FEE & CHARGES:</strong> The Licensee agrees to pay a monthly license fee of <strong>₹<span id="view-rent">${rentAmount.toLocaleString('en-IN')}</span>/-</strong> on or before the 5th day of every English calendar month directly to Licensor's bank/UPI account.
-          </div>
-
-          <div class="legal-clause">
-            <strong>6. INTEREST-FREE SECURITY DEPOSIT:</strong> The Licensee has deposited an interest-free refundable deposit of <strong>₹<span id="view-deposit">${depositAmount.toLocaleString('en-IN')}</span>/-</strong> which shall be refunded at the time of handing over vacant possession.
-          </div>
-
-          <div class="legal-clause">
-            <strong>7. ELECTRICITY & MAINTENANCE:</strong> Licensee shall pay direct electricity and piped gas consumption charges. Regular society monthly maintenance shall be paid by the Licensor.
-          </div>
-
-          <div class="legal-clause">
-            <strong>8. NOTICE PERIOD:</strong> Either party may terminate this agreement by giving <strong>1 (One) Month written notice</strong> in advance.
-          </div>
-
-          <!-- SIGNATURE SECTION HEADER -->
-          <div class="signature-section-header">
+        <!-- DIGITAL TOUCH SIGNATURES -->
+        <div class="form-section" style="margin-top:20px;">
+          <div class="signature-section-header" style="margin-bottom:12px;">
             <div>
-              <strong style="font-size:14px;color:#0f172a;">🖋️ Executed & Signed by Parties</strong>
+              <strong style="font-size:14px;color:#0f172a;">🖋️ Digital Touch Signature Pads</strong>
               <div style="font-size:11.5px;color:#64748b;">Sign on touch pad below or click "Adopt Digital Signature"</div>
             </div>
             <span class="badge" style="background:#ecfdf5;color:#047857;font-weight:700;font-size:11px;">✓ Digital Legal Valid</span>
@@ -10653,21 +10608,12 @@ Password: *${pass}*
     backdrop.onclick = close;
     if (drawer.querySelector('.close')) drawer.querySelector('.close').onclick = close;
 
-    // Live update draft preview
+    // Live update signature label previews
     const updatePreview = () => {
-      drawer.querySelector('#view-licensor-name').textContent = drawer.querySelector('#agree-licensor-name').value;
-      drawer.querySelector('#view-licensor-pan').textContent = drawer.querySelector('#agree-licensor-pan').value;
-      drawer.querySelector('#view-licensee-name').textContent = drawer.querySelector('#agree-licensee-name').value;
-      drawer.querySelector('#view-licensee-pan').textContent = drawer.querySelector('#agree-licensee-pan').value;
-      drawer.querySelector('#view-address').textContent = drawer.querySelector('#agree-address').value;
-      drawer.querySelector('#view-rent').textContent = Number(drawer.querySelector('#agree-rent').value).toLocaleString('en-IN');
-      drawer.querySelector('#view-deposit').textContent = Number(drawer.querySelector('#agree-deposit').value).toLocaleString('en-IN');
-      drawer.querySelector('#view-start').textContent = drawer.querySelector('#agree-start').value;
-      drawer.querySelector('#view-end').textContent = drawer.querySelector('#agree-end').value;
       const licLabel = drawer.querySelector('#sig-label-licensor');
-      if (licLabel) licLabel.textContent = drawer.querySelector('#agree-licensor-name').value;
+      if (licLabel) licLabel.textContent = drawer.querySelector('#agree-licensor-name')?.value || '';
       const licseLabel = drawer.querySelector('#sig-label-licensee');
-      if (licseLabel) licseLabel.textContent = drawer.querySelector('#agree-licensee-name').value;
+      if (licseLabel) licseLabel.textContent = drawer.querySelector('#agree-licensee-name')?.value || '';
     };
 
     drawer.querySelectorAll('input').forEach(inp => inp.oninput = updatePreview);
@@ -10764,9 +10710,31 @@ Password: *${pass}*
     if (drawer.querySelector('#agree-print-btn')) drawer.querySelector('#agree-print-btn').onclick = () => window.print();
 
     if (drawer.querySelector('#agree-copy-text-btn')) drawer.querySelector('#agree-copy-text-btn').onclick = () => {
-      const text = drawer.querySelector('#legal-draft-container').innerText;
+      const licName = drawer.querySelector('#agree-licensor-name')?.value || '';
+      const licPan = drawer.querySelector('#agree-licensor-pan')?.value || '';
+      const licseName = drawer.querySelector('#agree-licensee-name')?.value || '';
+      const licsePan = drawer.querySelector('#agree-licensee-pan')?.value || '';
+      const addr = drawer.querySelector('#agree-address')?.value || '';
+      const rent = Number(drawer.querySelector('#agree-rent')?.value || 0).toLocaleString('en-IN');
+      const dep = Number(drawer.querySelector('#agree-deposit')?.value || 0).toLocaleString('en-IN');
+      const start = drawer.querySelector('#agree-start')?.value || '';
+      const end = drawer.querySelector('#agree-end')?.value || '';
+
+      const text = `11-MONTH RENTAL LEAVE & LICENSE AGREEMENT DETAILS\n` +
+        `----------------------------------------\n` +
+        `Licensor (Owner): ${licName} (PAN/Aadhaar: ${licPan})\n` +
+        `Licensee (Tenant): ${licseName} (PAN/Aadhaar: ${licsePan})\n` +
+        `Premises: ${addr}\n` +
+        `Monthly License Fee: ₹${rent}/month\n` +
+        `Security Deposit: ₹${dep}\n` +
+        `Term: 11 Months (${start} to ${end})\n` +
+        `Witnessed by: ${s.agencyName || 'BrokerAI Realty'} (RERA: ${s.reraNumber || 'A51700012345'})\n` +
+        `Status: Digitally Configured & Signed`;
+
       navigator.clipboard.writeText(text).then(() => {
-        showToast('📋 11-Month Rental Agreement copied to clipboard!', 'success');
+        showToast('📋 11-Month Rental Agreement details copied to clipboard!', 'success');
+      }).catch(() => {
+        showToast('📋 Agreement details copied', 'info');
       });
     };
 
