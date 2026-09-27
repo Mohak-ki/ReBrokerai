@@ -977,7 +977,7 @@ const demoDocuments = [
           <div style="display:flex;align-items:flex-start;gap:12px;">
             <span style="background:#8b5cf6;color:#fff;width:28px;height:28px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;flex-shrink:0;">3</span>
             <div>
-              <div style="font-weight:700;font-size:14px;color:#f8fafc;">📜 11-Month Maharashtra Rental Agreement</div>
+              <div style="font-weight:700;font-size:14px;color:#f8fafc;">📜 Rental Leave & License Agreement</div>
               <div style="font-size:12px;color:#94a3b8;margin-top:2px;">Model Tenancy Act compliant draft with deposit clauses, lock-in terms, and clean printable layout.</div>
             </div>
           </div>
@@ -1580,7 +1580,7 @@ const demoDocuments = [
         <div class="spotlight-item" data-action="rent-agreement">
           <div style="display:flex;align-items:center;gap:10px;">
             <span style="font-size:18px;">📜</span>
-            <span><strong>11-Month Rental Agreement Generator</strong> · Touch signatures & PDF draft</span>
+            <span><strong>Rental Leave & License Agreement Generator</strong> · Touch signatures & PDF draft</span>
           </div>
           <span class="spotlight-shortcut-badge">📜 Agreement</span>
         </div>
@@ -2181,7 +2181,7 @@ const demoDocuments = [
             <div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:14px;padding:16px;">
               <div style="font-size:22px;margin-bottom:6px;">📜</div>
               <strong style="font-size:13.5px;color:#f8fafc;display:block;margin-bottom:4px;">MahaRERA Suite</strong>
-              <div style="font-size:11.5px;color:#94a3b8;line-height:1.45;">Digital 11-month rental contracts, token receipts & letterheads.</div>
+              <div style="font-size:11.5px;color:#94a3b8;line-height:1.45;">Digital rental leave & license contracts, token receipts & letterheads.</div>
             </div>
             <div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:14px;padding:16px;">
               <div style="font-size:22px;margin-bottom:6px;">🏛️</div>
@@ -6902,7 +6902,7 @@ Best regards,
                 <option value="Occupancy Certificate (OC)" ${defaultType.includes('Occupancy') ? 'selected' : ''}>Occupancy Certificate (OC)</option>
                 <option value="Commencement Certificate (CC)" ${defaultType.includes('Commencement') ? 'selected' : ''}>Commencement Certificate (CC)</option>
                 <option value="Bank Tripartite APF Letter" ${defaultType.includes('Bank') ? 'selected' : ''}>Bank Tripartite APF Letter</option>
-                <option value="11-Month Registered Rent Agreement" ${defaultType.includes('Rent') ? 'selected' : ''}>11-Month Registered Rent Agreement</option>
+                <option value="Registered Leave & License Agreement" ${defaultType.includes('Rent') || defaultType.includes('License') ? 'selected' : ''}>Registered Leave & License Agreement</option>
                 <option value="RERA Token Advance Receipt" ${defaultType.includes('Token') ? 'selected' : ''}>RERA Token Advance Receipt</option>
               </select>
             </div>
@@ -7019,13 +7019,13 @@ async function documentsView() {
       return;
     }
 
-    app.innerHTML = layout(`${pageHeader('Agreements, Stamp Duty & Receipts', state.demo ? 'Demo preview — 11-month rent agreements, stamp duty cost sheets, and RERA token receipts.' : 'Generate ready-to-print 11-Month Rent Agreements with touch signatures, Stamp Duty cost sheets, and RERA Token receipts.', `
+    app.innerHTML = layout(`${pageHeader('Agreements, Stamp Duty & Receipts', state.demo ? 'Demo preview — rental leave & license agreements, stamp duty cost sheets, and RERA token receipts.' : 'Generate ready-to-print Rental Leave & License Agreements with touch signatures, Stamp Duty cost sheets, and RERA Token receipts.', `
       <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
         <div class="view-switcher">
           <button class="view-btn ${state.docsViewMode === 'cards' ? 'active' : ''}" id="docs-mode-cards-btn">⊞ Vault Cards</button>
           <button class="view-btn ${state.docsViewMode === 'table' ? 'active' : ''}" id="docs-mode-table-btn">☰ Table</button>
         </div>
-        <button class="button hero-btn" id="gen-rental-agreement-btn" style="background:#047857;color:#fff;font-weight:700;">📜 11-Month Rent Agreement</button>
+        <button class="button hero-btn" id="gen-rental-agreement-btn" style="background:#047857;color:#fff;font-weight:700;">📜 Rental Agreement</button>
         <button class="button hero-btn" id="gen-token-receipt-btn" style="background:#165dff;color:#fff;font-weight:700;">🧾 Issue Token Receipt</button>
         <button class="button secondary" id="doc-stamp-calc-btn" style="font-weight:700;">🧮 Cost & Stamp Duty</button>
         <button class="button primary" id="add-doc-btn">＋ Upload Document</button>
@@ -8308,7 +8308,7 @@ Best regards,
           <p class="page-sub" style="font-size:13.5px;color:#64748b;margin:0;">Track ongoing deals from token advance to final agreement registration.</p>
         </div>
         <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
-          <button class="button hero-btn" id="deals-rental-btn" style="background:#ecfdf5;color:#047857;border:1.5px solid #a7f3d0;font-weight:750;">📜 11-Month Agreement</button>
+          <button class="button hero-btn" id="deals-rental-btn" style="background:#ecfdf5;color:#047857;border:1.5px solid #a7f3d0;font-weight:750;">📜 Rental Agreement</button>
           <button class="button hero-btn" id="deals-token-btn" style="background:#eff6ff;color:#2563eb;border-color:#dbeafe;font-weight:700;">🧾 Token Receipt</button>
           <button class="button primary" id="add-deal-btn" style="background:#2563eb;font-weight:600;padding:8px 16px;border-radius:9px;">＋ Create Deal</button>
         </div>
@@ -9281,7 +9281,7 @@ Password: *${pass}*
         <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:18px;">
           <button class="drawer-tool-btn" id="drawer-rental-agreement-btn" style="display:flex;align-items:center;gap:10px;padding:11px 14px;border-radius:10px;border:1.5px solid #a7f3d0;background:#f0fdf4;color:#000000;font-size:14px;font-weight:800;cursor:pointer;text-align:left;">
             <span style="font-size:18px;">📜</span>
-            <span style="color:#000000;font-weight:800;">11-Month Rental Agreement</span>
+            <span style="color:#000000;font-weight:800;">Rental Leave & License Agreement</span>
           </button>
           <button class="drawer-tool-btn" id="drawer-token-receipt-btn" style="display:flex;align-items:center;gap:10px;padding:11px 14px;border-radius:10px;border:1.5px solid #bfdbfe;background:#eff6ff;color:#000000;font-size:14px;font-weight:800;cursor:pointer;text-align:left;">
             <span style="font-size:18px;">🧾</span>
@@ -10411,7 +10411,7 @@ Password: *${pass}*
   }
 
   // ==========================================================================
-  // MODULE 3: 11-MONTH RENTAL LEAVE & LICENSE AGREEMENT GENERATOR
+  // MODULE 3: RENTAL LEAVE & LICENSE AGREEMENT GENERATOR
   // ==========================================================================
 
   function rentalAgreementModal(property = null, lead = null) {
@@ -10426,8 +10426,8 @@ Password: *${pass}*
       modal.innerHTML = `
         <div style="font-size:42px;margin-bottom:12px;">📜</div>
         <div style="display:inline-block;padding:4px 12px;border-radius:20px;background:#eff6ff;color:#2563eb;font-weight:800;font-size:11px;margin-bottom:8px;text-transform:uppercase;letter-spacing:0.5px;">Pro Closer Feature</div>
-        <h3 style="font-size:20px;font-weight:800;color:#0f172a;margin:0 0 8px;">11-Month Rental Agreements Locked</h3>
-        <p style="font-size:13.5px;color:#64748b;line-height:1.5;margin:0 0 20px;">Generating verified digital 11-Month Leave & License Agreements with touch signatures and PDF export requires an active <strong>Pro Closer</strong> or <strong>Agency Elite</strong> package. Upgrades are assigned by Platform Owner Mohak Vaswani.</p>
+        <h3 style="font-size:20px;font-weight:800;color:#0f172a;margin:0 0 8px;">Rental Agreements Locked</h3>
+        <p style="font-size:13.5px;color:#64748b;line-height:1.5;margin:0 0 20px;">Generating verified digital Leave & License Agreements with touch signatures and PDF export requires an active <strong>Pro Closer</strong> or <strong>Agency Elite</strong> package. Upgrades are assigned by Platform Owner Mohak Vaswani.</p>
         <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;">
           <button class="button secondary" id="rental-lock-close-btn">Cancel</button>
           <button class="button primary" id="rental-lock-upgrade-btn" style="background:#2563eb;font-weight:700;">💬 Request Upgrade via WhatsApp</button>
@@ -10464,8 +10464,24 @@ Password: *${pass}*
     drawer.style.cssText = 'width:min(820px, 100vw);';
 
     const agreementDate = new Date().toISOString().slice(0, 10);
-    const startDate = new Date(Date.now() + 7 * 86400000).toISOString().slice(0, 10);
-    const endDate = new Date(Date.now() + 342 * 86400000).toISOString().slice(0, 10);
+    const startDateObj = new Date(Date.now() + 7 * 86400000);
+    const startDate = startDateObj.toISOString().slice(0, 10);
+    const defaultDuration = 11;
+
+    const calcEndFromStart = (sDateStr, months) => {
+      if (!sDateStr || isNaN(months) || months < 1) return '';
+      const parts = sDateStr.split('-');
+      if (parts.length !== 3) return '';
+      const year = parseInt(parts[0], 10);
+      const month = parseInt(parts[1], 10) - 1;
+      const day = parseInt(parts[2], 10);
+      const target = new Date(year, month + months, day - 1);
+      const y = target.getFullYear();
+      const m = String(target.getMonth() + 1).padStart(2, '0');
+      const d = String(target.getDate()).padStart(2, '0');
+      return `${y}-${m}-${d}`;
+    };
+    const endDate = calcEndFromStart(startDate, defaultDuration);
     const rentAmount = prop.price || 38000;
     const depositAmount = rentAmount * 4;
 
@@ -10473,8 +10489,8 @@ Password: *${pass}*
       <div class="drawer-head">
         <div>
           <span class="badge" style="background:#dcfce7;color:#15803d;font-weight:800;margin-bottom:4px;">MAHARASHTRA MODEL TEMPLATE</span>
-          <h2 class="panel-title">11-Month Rental Leave & License Agreement</h2>
-          <div class="subtle">Standard statutory draft with Licensor, Licensee, and Broker digital touch signature pads.</div>
+          <h2 class="panel-title">Rental Leave & License Agreement</h2>
+          <div class="subtle">Standard statutory draft with customizable tenure, touch signatures, and photo gallery uploads.</div>
         </div>
         <button class="close">×</button>
       </div>
@@ -10513,11 +10529,15 @@ Password: *${pass}*
               <input class="input" id="agree-deposit" type="number" value="${depositAmount}" style="font-weight:800;color:#2563eb;" />
             </div>
             <div class="field">
+              <label>Agreement Tenure (Number of Months) *</label>
+              <input class="input" id="agree-duration" type="number" min="1" max="120" value="${defaultDuration}" style="font-weight:800;color:#1e40af;" placeholder="e.g. 11, 22, 24, 36" />
+            </div>
+            <div class="field">
               <label>Agreement Start Date</label>
               <input class="input" id="agree-start" type="date" value="${startDate}" />
             </div>
             <div class="field">
-              <label>Agreement End Date (11 Mos)</label>
+              <label>Agreement End Date</label>
               <input class="input" id="agree-end" type="date" value="${endDate}" />
             </div>
           </div>
@@ -10628,7 +10648,25 @@ Password: *${pass}*
       if (licseLabel) licseLabel.textContent = drawer.querySelector('#agree-licensee-name')?.value || '';
     };
 
-    drawer.querySelectorAll('input').forEach(inp => inp.oninput = updatePreview);
+    const autoSyncEndDate = () => {
+      const sVal = drawer.querySelector('#agree-start')?.value;
+      const mVal = parseInt(drawer.querySelector('#agree-duration')?.value, 10);
+      if (sVal && !isNaN(mVal) && mVal > 0) {
+        const calculatedEnd = calcEndFromStart(sVal, mVal);
+        if (calculatedEnd && drawer.querySelector('#agree-end')) {
+          drawer.querySelector('#agree-end').value = calculatedEnd;
+        }
+      }
+    };
+
+    drawer.querySelectorAll('input').forEach(inp => {
+      inp.oninput = () => {
+        if (inp.id === 'agree-duration' || inp.id === 'agree-start') {
+          autoSyncEndDate();
+        }
+        updatePreview();
+      };
+    });
 
     // Signature Canvas setup with high-DPI drawing, adoption & gallery file upload
     const setupSignaturePad = (canvasId, hintId, clearBtnId, adoptBtnId, uploadBtnId, fileInputId, nameInputId) => {
@@ -10782,22 +10820,23 @@ Password: *${pass}*
       const addr = drawer.querySelector('#agree-address')?.value || '';
       const rent = Number(drawer.querySelector('#agree-rent')?.value || 0).toLocaleString('en-IN');
       const dep = Number(drawer.querySelector('#agree-deposit')?.value || 0).toLocaleString('en-IN');
+      const duration = drawer.querySelector('#agree-duration')?.value || '11';
       const start = drawer.querySelector('#agree-start')?.value || '';
       const end = drawer.querySelector('#agree-end')?.value || '';
 
-      const text = `11-MONTH RENTAL LEAVE & LICENSE AGREEMENT DETAILS\n` +
+      const text = `RENTAL LEAVE & LICENSE AGREEMENT DETAILS\n` +
         `----------------------------------------\n` +
         `Licensor (Owner): ${licName} (PAN/Aadhaar: ${licPan})\n` +
         `Licensee (Tenant): ${licseName} (PAN/Aadhaar: ${licsePan})\n` +
         `Premises: ${addr}\n` +
         `Monthly License Fee: ₹${rent}/month\n` +
         `Security Deposit: ₹${dep}\n` +
-        `Term: 11 Months (${start} to ${end})\n` +
+        `Term: ${duration} Months (${start} to ${end})\n` +
         `Witnessed by: ${s.agencyName || 'BrokerAI Realty'} (RERA: ${s.reraNumber || 'A51700012345'})\n` +
         `Status: Digitally Configured & Signed`;
 
       navigator.clipboard.writeText(text).then(() => {
-        showToast('📋 11-Month Rental Agreement details copied to clipboard!', 'success');
+        showToast('📋 Rental Agreement details copied to clipboard!', 'success');
       }).catch(() => {
         showToast('📋 Agreement details copied', 'info');
       });
@@ -10805,21 +10844,22 @@ Password: *${pass}*
 
     if (drawer.querySelector('#agree-save-vault-btn')) drawer.querySelector('#agree-save-vault-btn').onclick = () => {
       if (!state.documents) state.documents = getStoredDocuments();
+      const duration = drawer.querySelector('#agree-duration')?.value || '11';
       const doc = {
         id: Date.now(),
-        title: `11-Month Leave & License Agreement - ${drawer.querySelector('#agree-licensor-name').value} / ${drawer.querySelector('#agree-licensee-name').value}`,
+        title: `Rental Leave & License Agreement (${duration} Mos) - ${drawer.querySelector('#agree-licensor-name').value} / ${drawer.querySelector('#agree-licensee-name').value}`,
         category: 'DEAL_PAPERWORK',
         documentType: 'RENTAL_AGREEMENT',
         status: 'VERIFIED',
         propertyId: prop.id,
         propertyTitle: prop.title,
         documentNumber: `LL-${Date.now().toString().slice(-6)}`,
-        notes: `Monthly Rent: ₹${drawer.querySelector('#agree-rent').value} | Deposit: ₹${drawer.querySelector('#agree-deposit').value} | Period: 11 Months`,
+        notes: `Monthly Rent: ₹${drawer.querySelector('#agree-rent').value} | Deposit: ₹${drawer.querySelector('#agree-deposit').value} | Period: ${duration} Months`,
         verifiedAt: new Date().toISOString()
       };
       state.documents.unshift(doc);
       localStorage.setItem('brokerai.documents', JSON.stringify(state.documents));
-      showToast('📥 11-Month Rental Agreement saved in Legal Vault!', 'success');
+      showToast('📥 Rental Agreement saved in Legal Vault!', 'success');
       close();
       if (state.page === 'documents') documentsView();
     };
@@ -13955,7 +13995,7 @@ Best regards,
       excluded: [
         'AI Buyer-Property Matchmaking',
         'Magic WhatsApp Raw Text Parser',
-        '11-Month Digital Rental Agreements',
+        'Digital Rental Agreements',
         'Tripartite Token Booking Receipts',
         'Client Presentation Privacy Mode',
         'Multi-Agent Commission Split Ledger'
@@ -13972,7 +14012,7 @@ Best regards,
       features: [
         '⚡ AI Smart 2-Way Buyer ↔ Property Matchmaking',
         '⚡ Magic WhatsApp Raw Chat & Broadcast AI Parser',
-        '⚡ 11-Month Digital Rental Agreement with Touch Signatures',
+        '⚡ Digital Rental Leave & License Agreement with Touch Signatures',
         '⚡ Tripartite MahaRERA Token Advance Booking Receipts',
         '⚡ Client Presentation Privacy Mode (Hides Margins)',
         '⚡ Custom MahaRERA Luxury Property Microsites',
