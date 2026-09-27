@@ -1977,13 +1977,19 @@ const demoDocuments = [
             </button>
 
             <!-- BRAND BADGE & PAGE TITLE -->
-            <div class="topbar-brand-wrap" style="display:flex;align-items:center;gap:8px;cursor:pointer;" onclick="window.location.hash='#/dashboard'" title="Go to Dashboard">
-              <span class="mark" style="width:30px;height:30px;border-radius:8px;">
-                <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" style="width:16px;height:16px;"><path d="M4 20V10l8-6 8 6v10"/><path d="M9 20v-6h6v6"/></svg>
+            <div class="topbar-brand-wrap" style="display:flex;align-items:center;gap:10px;cursor:pointer;" onclick="window.location.hash='#/dashboard'" title="Go to Dashboard">
+              <span class="mark" style="width:34px;height:34px;border-radius:10px;background:#2563eb;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 10px rgba(37,99,235,0.35);flex-shrink:0;">
+                <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" style="width:18px;height:18px;"><path d="M4 20V10l8-6 8 6v10"/><path d="M9 20v-6h6v6"/></svg>
               </span>
-              <div class="topbar-title-block" style="display:flex;flex-direction:column;">
-                <span style="font-size:14.5px;font-weight:800;color:#0f172a;letter-spacing:-0.02em;line-height:1.2;">${esc(state.agencySettings?.agencyName || 'BrokerAI')}</span>
-                <span style="font-size:11px;font-weight:700;color:#2563eb;text-transform:uppercase;letter-spacing:0.04em;">${esc(currentPage.toUpperCase())}</span>
+              <div class="topbar-title-block" style="display:flex;flex-direction:column;min-width:0;">
+                <span style="font-size:15px;font-weight:850;color:#0f172a;letter-spacing:-0.02em;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
+                  ${esc(state.agencySettings?.agencyName || state.user?.agencyName || 'BrokerAI')}
+                </span>
+                <span style="font-size:11.5px;font-weight:650;color:#64748b;display:flex;align-items:center;gap:5px;margin-top:1px;">
+                  <span style="color:#0f172a;font-weight:750;">👤 ${esc(state.user?.fullName || 'Principal Broker')}</span>
+                  <span style="color:#cbd5e1;">•</span>
+                  <span style="color:${cap.color};font-weight:800;">${esc(cap.badge)}</span>
+                </span>
               </div>
             </div>
 
@@ -2011,8 +2017,8 @@ const demoDocuments = [
                 👑 Owner Desk
               </a>
             ` : ''}
-            <a href="#/pricing" class="plan-indicator-badge" id="topbar-plan-pill" style="text-decoration:none;cursor:pointer;display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:750;padding:5px 12px;border-radius:20px;border:1px solid rgba(255,255,255,0.2);background:${cap.color};color:#ffffff;" title="View Plan Details">
-              <span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:#ffffff;"></span>
+            <a href="#/pricing" class="plan-indicator-badge" id="topbar-plan-pill" style="text-decoration:none;cursor:pointer;display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:800;padding:6px 14px;border-radius:20px;border:1px solid rgba(255,255,255,0.25);background:${cap.color};color:#ffffff;box-shadow:0 2px 8px rgba(0,0,0,0.15);" title="Active Package: ${cap.name} (Click to manage)">
+              <span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:#ffffff;box-shadow:0 0 8px #ffffff;"></span>
               <span>${cap.badge}</span>
             </a>
 
@@ -2328,6 +2334,148 @@ const demoDocuments = [
   function authView(mode = 'login', error = '') {
     const app = document.getElementById('app') || document.querySelector('#app');
     document.querySelectorAll('.modal-backdrop, .drawer-backdrop, .spotlight-backdrop').forEach(b => b.remove());
+    
+    // -------------------------------------------------------------
+    // STEP 3: WORKSPACE ONBOARDING & PACKAGE CONFIRMATION
+    // -------------------------------------------------------------
+    if (state.authStep === 'ONBOARDING') {
+      const displayPhone = state.authPhone || '9820012345';
+      const formattedPhone = '+91 ' + displayPhone.slice(0, 5) + ' ' + displayPhone.slice(5);
+
+      app.innerHTML = `<main class="auth">
+        <section class="otp-auth-card" style="max-width:460px;">
+          <div class="otp-brand">
+            <span class="otp-brand-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" style="width:20px;height:20px;"><path d="M4 20V10l8-6 8 6v10"/><path d="M9 20v-6h6v6"/></svg>
+            </span>
+            <span>BrokerAI</span>
+          </div>
+
+          <div style="display:inline-flex;align-items:center;gap:6px;padding:4px 12px;background:#eff6ff;border:1px solid #bfdbfe;border-radius:20px;font-size:12px;font-weight:750;color:#1d4ed8;margin-bottom:12px;">
+            <span style="width:6px;height:6px;border-radius:50%;background:#2563eb;"></span>
+            <span>Verified: ${esc(formattedPhone)}</span>
+          </div>
+
+          <h1 style="font-size:22px;font-weight:800;color:#0f172a;margin:0 0 4px;letter-spacing:-0.02em;">Setup Brokerage Cockpit</h1>
+          <p style="color:#64748b;font-size:13.5px;margin:0 0 18px;">Customize your agency branding and confirm your package access</p>
+
+          <form id="onboard-profile-form" style="text-align:left;">
+            <div class="field" style="margin-bottom:14px;">
+              <label style="font-size:12px;font-weight:750;color:#334155;margin-bottom:4px;display:block;">Principal Broker / Owner Full Name *</label>
+              <input class="input" id="onboard-owner-name" type="text" required placeholder="e.g. Aarav Mehta" value="Aarav Mehta" autofocus style="font-size:14.5px;font-weight:600;" />
+            </div>
+
+            <div class="field" style="margin-bottom:14px;">
+              <label style="font-size:12px;font-weight:750;color:#334155;margin-bottom:4px;display:block;">Agency / Firm Name *</label>
+              <input class="input" id="onboard-agency-name" type="text" required placeholder="e.g. Mehta Prime Realty" value="Mehta Prime Realty" style="font-size:14.5px;font-weight:600;" />
+            </div>
+
+            <div class="field" style="margin-bottom:14px;">
+              <label style="font-size:12px;font-weight:750;color:#334155;margin-bottom:4px;display:block;">Agency MahaRERA Number</label>
+              <input class="input" id="onboard-rera-number" type="text" placeholder="e.g. A51700012345" value="A51700012345" style="font-size:13.5px;" />
+            </div>
+
+            <div class="field" style="margin-bottom:18px;">
+              <label style="font-size:12px;font-weight:750;color:#334155;margin-bottom:4px;display:block;">Subscription Package (Assigned Tier) *</label>
+              <select class="select" id="onboard-plan-select" style="font-size:13.5px;font-weight:750;color:#1e293b;border-color:#2563eb;background:#f8faff;">
+                <option value="pro" selected>⚡ Pro Closer (₹1,200/mo · AI Matchmaker · Touch Signatures · Recommended)</option>
+                <option value="agency">💎 Agency Elite (₹3,000/mo · 20 Seats · Multi-Branch · Invoicing)</option>
+                <option value="starter">✦ Starter Solo (₹600/mo · 1 Seat · Basic Stock)</option>
+              </select>
+            </div>
+
+            <button class="button primary" id="launch-cockpit-btn" type="submit" style="width:100%;justify-content:center;padding:12px;font-size:14.5px;font-weight:750;background:linear-gradient(135deg,#2563eb,#1d4ed8);border-radius:12px;box-shadow:0 4px 14px rgba(37,99,235,0.35);">
+              🚀 Launch Pro Closer Workspace
+            </button>
+          </form>
+
+          <div style="margin-top:16px;text-align:center;">
+            <button id="onboard-back-btn" style="background:none;border:none;color:#64748b;font-weight:600;font-size:12.5px;cursor:pointer;">
+              ← Back to Mobile Entry
+            </button>
+          </div>
+        </section>
+      </main>`;
+
+      const onboardForm = document.querySelector('#onboard-profile-form');
+      if (onboardForm) {
+        onboardForm.onsubmit = (e) => {
+          e.preventDefault();
+          const ownerName = (document.querySelector('#onboard-owner-name')?.value || '').trim() || 'Aarav Mehta';
+          const agencyName = (document.querySelector('#onboard-agency-name')?.value || '').trim() || 'Mehta Prime Realty';
+          const reraNumber = (document.querySelector('#onboard-rera-number')?.value || '').trim() || 'A51700012345';
+          const chosenPlan = document.querySelector('#onboard-plan-select')?.value || 'pro';
+
+          state.isOwnerAuthenticated = false;
+          localStorage.removeItem('brokerai.owner_auth');
+          state.currentPlan = chosenPlan;
+          localStorage.setItem('brokerai.currentPlan', chosenPlan);
+
+          state.user = {
+            fullName: ownerName,
+            role: 'PRINCIPAL_BROKER',
+            email: `${ownerName.toLowerCase().replace(/[^a-z]/g, '')}@${agencyName.toLowerCase().replace(/[^a-z]/g, '') || 'agency'}.in`,
+            phone: formattedPhone,
+            agencyName: agencyName,
+            packageTier: chosenPlan
+          };
+          state.token = 'tenant-token-' + Date.now();
+          localStorage.setItem('brokerai.token', state.token);
+          localStorage.setItem('brokerai.user', JSON.stringify(state.user));
+
+          state.agencySettings = {
+            ...state.agencySettings,
+            agencyName: agencyName,
+            contactPhone: formattedPhone,
+            contactEmail: state.user.email,
+            reraNumber: reraNumber,
+            officeAddress: 'Thane West, MMR, Maharashtra'
+          };
+          localStorage.setItem('brokerai.agencySettings', JSON.stringify(state.agencySettings));
+
+          // Save/Update in Master Agencies
+          const agencies = getStoredAgencies();
+          const existingIdx = agencies.findIndex(a => (a.phone || '').replace(/[^0-9]/g, '').slice(-10) === displayPhone);
+          const tenantRecord = {
+            id: existingIdx >= 0 ? agencies[existingIdx].id : `tenant-${Date.now()}`,
+            agencyName: agencyName,
+            ownerName: ownerName,
+            phone: formattedPhone,
+            email: state.user.email,
+            reraNumber: reraNumber,
+            city: 'Thane / Mumbai MMR',
+            plan: chosenPlan,
+            monthlyFee: chosenPlan === 'agency' ? 3000 : (chosenPlan === 'pro' ? 1200 : 600),
+            status: 'ACTIVE',
+            joinedDate: new Date().toISOString().slice(0, 10),
+            expiresAt: new Date(Date.now() + 365 * 86400000).toISOString().slice(0, 10),
+            totalLeads: 0,
+            totalProperties: 0,
+            totalDealsValue: 0
+          };
+          if (existingIdx >= 0) agencies[existingIdx] = tenantRecord;
+          else agencies.unshift(tenantRecord);
+          localStorage.setItem('brokerai.masterAgencies', JSON.stringify(agencies));
+
+          state.authStep = 'PHONE';
+          state.page = 'dashboard';
+          window.location.hash = '#/dashboard';
+          const cap = getPlanCapabilities();
+          showToast(`✓ Welcome, ${ownerName}! Your ${cap.name} workspace for ${agencyName} is live.`, 'success');
+          render();
+        };
+      }
+
+      const backBtn = document.querySelector('#onboard-back-btn');
+      if (backBtn) {
+        backBtn.onclick = () => {
+          state.authStep = 'PHONE';
+          authView('login');
+        };
+      }
+      return;
+    }
+
     const isOtpStep = (state.authStep === 'OTP');
 
     if (!isOtpStep) {
@@ -2369,34 +2517,26 @@ const demoDocuments = [
           <div style="margin-top:22px;border-top:1px solid #f1f5f9;padding-top:16px;">
             <div style="font-size:11px;font-weight:750;color:#94a3b8;text-transform:uppercase;letter-spacing:0.04em;margin-bottom:10px;text-align:left;">Quick Test Logins (1-Click Evaluation)</div>
             <div style="display:flex;flex-direction:column;gap:7px;">
-              <button class="role-demo-pill" data-fill-phone="9137000000" data-role-type="OWNER" title="Sign in as Platform Owner & Super Admin">
+              <button class="role-demo-pill" data-fill-phone="9811122334" data-role-type="PRO" title="Sign in as Pro Closer (₹1,200/mo · Aarav Mehta)">
                 <div>
-                  <div style="font-weight:750;color:#0f172a;font-size:12.5px;">👑 Platform Owner (Mohak Vaswani)</div>
-                  <div style="font-size:11px;color:#64748b;">Full Super Admin Access · All Superpowers Unlocked</div>
+                  <div style="font-weight:750;color:#0f172a;font-size:12.5px;">⚡ Pro Closer (Aarav Mehta)</div>
+                  <div style="font-size:11px;color:#64748b;">Mehta Prime Realty · Unlimited AI Matching · ₹1,200/mo</div>
                 </div>
                 <span style="font-size:11px;font-weight:750;color:#2563eb;background:#eff6ff;padding:3px 8px;border-radius:6px;">Use →</span>
               </button>
 
               <button class="role-demo-pill" data-fill-phone="9820012345" data-role-type="AGENCY" title="Sign in as Agency Elite (₹3,000/mo · 20 Seats)">
                 <div>
-                  <div style="font-weight:750;color:#0f172a;font-size:12.5px;">💎 Agency Elite (Aarav Mehta)</div>
-                  <div style="font-size:11px;color:#64748b;">Mehta Prime Realty · 20 Seats · ₹3,000/mo Tier</div>
+                  <div style="font-weight:750;color:#0f172a;font-size:12.5px;">💎 Agency Elite (Rajesh Gupta)</div>
+                  <div style="font-size:11px;color:#64748b;">Gupta Realty Advisors · 20 Seats · ₹3,000/mo Tier</div>
                 </div>
                 <span style="font-size:11px;font-weight:750;color:#2563eb;background:#eff6ff;padding:3px 8px;border-radius:6px;">Use →</span>
               </button>
 
-              <button class="role-demo-pill" data-fill-phone="9811122334" data-role-type="PRO" title="Sign in as Pro Closer (₹1,200/mo · 3 Seats)">
+              <button class="role-demo-pill" data-fill-phone="9137000000" data-role-type="OWNER" title="Sign in as Platform Owner & Super Admin">
                 <div>
-                  <div style="font-weight:750;color:#0f172a;font-size:12.5px;">⚡ Pro Closer (Rohit Sharma)</div>
-                  <div style="font-size:11px;color:#64748b;">Unlimited AI Matching · ₹1,200/mo Tier</div>
-                </div>
-                <span style="font-size:11px;font-weight:750;color:#2563eb;background:#eff6ff;padding:3px 8px;border-radius:6px;">Use →</span>
-              </button>
-
-              <button class="role-demo-pill" data-fill-phone="9876543210" data-role-type="STARTER" title="Sign in as Starter Solo (₹600/mo · 1 Seat)">
-                <div>
-                  <div style="font-weight:750;color:#0f172a;font-size:12.5px;">✦ Starter Solo (Vikram Singh)</div>
-                  <div style="font-size:11px;color:#64748b;">Local Micro-market CRM · ₹600/mo Tier</div>
+                  <div style="font-weight:750;color:#0f172a;font-size:12.5px;">👑 Platform Owner (Mohak Vaswani)</div>
+                  <div style="font-size:11px;color:#64748b;">Full Super Admin Access · All Superpowers Unlocked</div>
                 </div>
                 <span style="font-size:11px;font-weight:750;color:#2563eb;background:#eff6ff;padding:3px 8px;border-radius:6px;">Use →</span>
               </button>
@@ -2517,7 +2657,9 @@ const demoDocuments = [
           fullName: 'Mohak Vaswani',
           role: 'SUPER_ADMIN',
           email: 'mohakvaswani7@gmail.com',
-          phone: '+91 91370 00000'
+          phone: '+91 91370 00000',
+          agencyName: 'BrokerAI HQ',
+          packageTier: 'agency'
         };
         state.currentPlan = 'agency';
         state.token = 'owner-token-' + Date.now();
@@ -2551,7 +2693,8 @@ const demoDocuments = [
           role: 'PRINCIPAL_BROKER',
           email: match.email || `${match.ownerName.toLowerCase().replace(/[^a-z]/g, '')}@agency.in`,
           phone: match.phone,
-          agencyName: match.agencyName
+          agencyName: match.agencyName,
+          packageTier: pCode
         };
         state.token = 'tenant-token-' + Date.now();
         localStorage.setItem('brokerai.token', state.token);
@@ -2561,6 +2704,7 @@ const demoDocuments = [
           ...state.agencySettings,
           agencyName: match.agencyName,
           contactPhone: match.phone,
+          contactEmail: state.user.email,
           reraNumber: match.reraNumber || 'A51700012345',
           officeAddress: `${match.city || 'Thane'}, Maharashtra`
         };
@@ -2569,58 +2713,15 @@ const demoDocuments = [
         state.authStep = 'PHONE';
         state.page = 'dashboard';
         window.location.hash = '#/dashboard';
-        showToast(`✓ Welcome back, ${match.ownerName}! (${match.agencyName})`, 'success');
+        const cap = getPlanCapabilities();
+        showToast(`✓ Welcome back, ${match.ownerName}! (${match.agencyName} · ${cap.badge})`, 'success');
         render();
         return;
       }
 
-      // New Broker Number -> Auto Onboard with Starter Solo
-      state.isOwnerAuthenticated = false;
-      localStorage.removeItem('brokerai.owner_auth');
-      state.currentPlan = 'starter';
-      localStorage.setItem('brokerai.currentPlan', 'starter');
-
-      const newAgentName = 'Broker Partner';
-      const newAgencyName = 'My Realty Advisory';
-      const formattedPhone = '+91 ' + ph.slice(0, 5) + ' ' + ph.slice(5);
-
-      state.user = {
-        fullName: newAgentName,
-        role: 'PRINCIPAL_BROKER',
-        email: `broker.${ph.slice(-4)}@brokerai.in`,
-        phone: formattedPhone,
-        agencyName: newAgencyName
-      };
-      state.token = 'new-tenant-token-' + Date.now();
-      localStorage.setItem('brokerai.token', state.token);
-      localStorage.setItem('brokerai.user', JSON.stringify(state.user));
-
-      // Add to Master Agencies List for Owner's Visibility
-      const newRecord = {
-        id: `tenant-${Date.now()}`,
-        agencyName: newAgencyName,
-        ownerName: newAgentName,
-        phone: formattedPhone,
-        email: `broker.${ph.slice(-4)}@brokerai.in`,
-        reraNumber: 'A517000' + Math.floor(10000 + Math.random() * 90000),
-        city: 'Mumbai / MMR',
-        plan: 'starter',
-        monthlyFee: 600,
-        status: 'ACTIVE',
-        joinedDate: new Date().toISOString().slice(0, 10),
-        expiresAt: new Date(Date.now() + 30 * 86400000).toISOString().slice(0, 10),
-        totalLeads: 0,
-        totalProperties: 0,
-        totalDealsValue: 0
-      };
-      agencies.unshift(newRecord);
-      localStorage.setItem('brokerai.masterAgencies', JSON.stringify(agencies));
-
-      state.authStep = 'PHONE';
-      state.page = 'dashboard';
-      window.location.hash = '#/dashboard';
-      showToast('✓ Welcome to BrokerAI! Your Starter Solo workspace is ready.', 'success');
-      render();
+      // First-time Phone Number -> Route to Onboarding Step
+      state.authStep = 'ONBOARDING';
+      authView('onboarding');
     };
 
     boxes.forEach((box, i) => {
@@ -9531,11 +9632,11 @@ Password: *${pass}*
       <!-- DRAWER HEADER -->
       <div class="drawer-header-brand" style="background:#0f172a;color:#ffffff;padding:18px 20px;border-bottom:1px solid rgba(255,255,255,0.1);display:flex;align-items:center;justify-content:space-between;">
         <div style="display:flex;align-items:center;gap:12px;">
-          <span class="mark" style="width:36px;height:36px;border-radius:10px;background:#2563eb;box-shadow:0 2px 10px rgba(37,99,235,0.4);">
+          <span class="mark" style="width:36px;height:36px;border-radius:10px;background:#2563eb;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 10px rgba(37,99,235,0.4);flex-shrink:0;">
             <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" style="width:18px;height:18px;"><path d="M4 20V10l8-6 8 6v10"/><path d="M9 20v-6h6v6"/></svg>
           </span>
           <div>
-            <div style="font-size:16px;font-weight:850;color:#ffffff;letter-spacing:-0.015em;">${esc(s.agencyName || 'BrokerAI')}</div>
+            <div style="font-size:16px;font-weight:850;color:#ffffff;letter-spacing:-0.015em;">${esc(s.agencyName || state.user?.agencyName || 'BrokerAI')}</div>
             <div style="font-size:12px;color:#34d399;font-weight:750;">● MahaRERA: ${esc(s.reraNumber || 'A51700012345')}</div>
           </div>
         </div>
@@ -9546,10 +9647,15 @@ Password: *${pass}*
       <div class="drawer-body" style="padding:18px 16px;display:flex;flex-direction:column;flex:1;overflow-y:auto;background:#ffffff;color:#000000;">
         <!-- USER PROFILE CARD -->
         <div style="background:#f8fafc;border:1.5px solid #cbd5e1;border-radius:14px;padding:12px 14px;display:flex;align-items:center;gap:12px;margin-bottom:16px;">
-          <span class="account-avatar" style="width:40px;height:40px;font-size:14px;font-weight:850;background:#2563eb;color:#ffffff;border:none;">${userInit}</span>
+          <span class="account-avatar" style="width:42px;height:42px;font-size:14px;font-weight:850;background:#2563eb;color:#ffffff;border:none;flex-shrink:0;">${userInit}</span>
           <div style="flex:1;min-width:0;">
-            <div style="font-size:15px;font-weight:850;color:#000000;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${esc(userName)}</div>
-            <div style="font-size:12.5px;font-weight:700;color:#1e293b;">${esc(userRole)}</div>
+            <div style="font-size:15px;font-weight:850;color:#0f172a;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${esc(userName)}</div>
+            <div style="font-size:12.5px;font-weight:700;color:#334155;display:flex;align-items:center;gap:6px;margin-top:2px;">
+              <span>${esc(userRole)}</span>
+              <span style="color:#cbd5e1;">•</span>
+              <span style="color:${cap.color};font-weight:800;">${cap.badge}</span>
+            </div>
+            <div style="font-size:11.5px;color:#64748b;margin-top:2px;">${esc(state.user?.phone || '+91 98200 12345')}</div>
           </div>
         </div>
 
@@ -12186,13 +12292,18 @@ Password: *${pass}*
 
       <!-- APPLE PROFILE OVERVIEW CARD -->
       <div class="apple-card" style="display:flex;align-items:center;gap:20px;margin-bottom:24px;">
-        <div class="account-avatar" style="width:64px;height:64px;font-size:22px;border-radius:18px;background:#eff6ff;color:#2563eb;border:1px solid #dbeafe;">${initials(state.user?.fullName || 'Mohak Vaswani')}</div>
+        <div class="account-avatar" style="width:64px;height:64px;font-size:22px;border-radius:18px;background:#eff6ff;color:#2563eb;border:1px solid #dbeafe;flex-shrink:0;">${initials(state.user?.fullName || 'Mohak Vaswani')}</div>
         <div style="flex:1;">
-          <h2 style="font-size:18px;font-weight:800;color:#0f172a;margin:0 0 4px;">${esc(state.user?.fullName || 'Mohak Vaswani')}</h2>
-          <div style="font-size:13px;color:#64748b;">${esc((state.user?.role || '').replaceAll('_', ' ') || 'Real Estate Broker')} · <strong>${esc(s.agencyName || 'Prime Realty Advisors')}</strong></div>
+          <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+            <h2 style="font-size:18px;font-weight:800;color:#0f172a;margin:0;">${esc(state.user?.fullName || 'Mohak Vaswani')}</h2>
+            <span style="display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:800;color:#ffffff;background:${getPlanCapabilities().color};padding:3px 10px;border-radius:14px;">
+              ${getPlanCapabilities().badge}
+            </span>
+          </div>
+          <div style="font-size:13px;color:#64748b;margin-top:4px;">${esc((state.user?.role || '').replaceAll('_', ' ') || 'Real Estate Broker')} · <strong>${esc(s.agencyName || 'Prime Realty Advisors')}</strong></div>
           <div style="display:flex;gap:16px;margin-top:8px;font-size:12px;color:#64748b;flex-wrap:wrap;">
-            <span>📧 ${esc(s.contactEmail || 'mohak@brokerai.in')}</span>
-            <span>📞 ${esc(s.contactPhone || '+91 98765 43210')}</span>
+            <span>📧 ${esc(s.contactEmail || state.user?.email || 'broker@brokerai.in')}</span>
+            <span>📞 ${esc(s.contactPhone || state.user?.phone || '+91 98765 43210')}</span>
             <span>🏛️ MahaRERA: <strong>${esc(s.reraNumber || 'A51700012345')}</strong></span>
           </div>
         </div>
@@ -12223,7 +12334,11 @@ Password: *${pass}*
             <p class="settings-group-desc">This branding appears on official client token receipts, WhatsApp pitches, and tax invoices.</p>
             <div class="settings-form-grid">
               <div class="field full">
-                <label>Agency Legal Name</label>
+                <label>Principal Broker / Owner Full Name *</label>
+                <input class="input" name="ownerFullName" required value="${esc(state.user?.fullName || '')}" placeholder="e.g. Aarav Mehta" />
+              </div>
+              <div class="field full">
+                <label>Agency Legal Name *</label>
                 <input class="input" name="agencyName" required value="${esc(s.agencyName)}" placeholder="BrokerAI Realty Advisors Pvt Ltd" />
               </div>
               <div class="field full">
@@ -12786,8 +12901,11 @@ Password: *${pass}*
     // Save All Settings
     if (document.querySelector('#save-all-settings-btn')) document.querySelector('#save-all-settings-btn').onclick = () => {
       const form = new FormData(document.querySelector('#agency-settings-form'));
+      const ownerFullName = (form.get('ownerFullName') || '').trim();
+      const updatedAgencyName = form.get('agencyName') || 'BrokerAI Realty';
+
       const updated = {
-        agencyName: form.get('agencyName') || 'BrokerAI Realty',
+        agencyName: updatedAgencyName,
         brandTagline: form.get('brandTagline') || '',
         reraNumber: form.get('reraNumber') || 'A51700012345',
         tradeLicense: form.get('tradeLicense') || '',
@@ -12816,9 +12934,20 @@ Password: *${pass}*
       state.agencySettings = updated;
       localStorage.setItem('brokerai.agencySettings', JSON.stringify(updated));
 
+      if (ownerFullName) {
+        state.user = {
+          ...(state.user || {}),
+          fullName: ownerFullName,
+          agencyName: updatedAgencyName
+        };
+        localStorage.setItem('brokerai.user', JSON.stringify(state.user));
+      }
+
       const notice = document.querySelector('#settings-save-notice');
-      notice.innerHTML = `<div class="notice success" style="margin-bottom:16px;">✓ Agency Settings & RERA Compliance updated successfully!</div>`;
+      notice.innerHTML = `<div class="notice success" style="margin-bottom:16px;">✓ Agency Profile (${updatedAgencyName}) & Owner Settings updated successfully!</div>`;
       setTimeout(() => notice.innerHTML = '', 3500);
+      showToast(`✓ Profile & Agency details updated successfully!`, 'success');
+      render();
     };
 
     // Letterhead Preview
