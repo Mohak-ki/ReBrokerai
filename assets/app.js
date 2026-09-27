@@ -10527,13 +10527,13 @@ Password: *${pass}*
         <div class="form-section" style="margin-top:20px;">
           <div class="signature-section-header" style="margin-bottom:12px;">
             <div>
-              <strong style="font-size:14px;color:#0f172a;">🖋️ Digital Touch Signature Pads</strong>
-              <div style="font-size:11.5px;color:#64748b;">Sign on touch pad below or click "Adopt Digital Signature"</div>
+              <strong style="font-size:14px;color:#0f172a;">🖋️ Digital Touch & Photo Signature Pads</strong>
+              <div style="font-size:11.5px;color:#64748b;">Sign directly on touch pad, auto-adopt digital cursive signature, or upload photo from device gallery.</div>
             </div>
             <span class="badge" style="background:#ecfdf5;color:#047857;font-weight:700;font-size:11px;">✓ Digital Legal Valid</span>
           </div>
 
-          <!-- SIGNATURE BLOCKS WITH TOUCH CANVASES & CLEAR / ADOPT BUTTONS -->
+          <!-- SIGNATURE BLOCKS WITH TOUCH CANVASES, CLEAR, ADOPT & GALLERY UPLOAD BUTTONS -->
           <div class="signature-blocks-grid">
             <!-- 1. LICENSOR SIGNATURE -->
             <div class="signature-box">
@@ -10545,7 +10545,11 @@ Password: *${pass}*
                 <canvas class="signature-canvas" id="canvas-licensor" width="220" height="90"></canvas>
                 <div class="signature-sign-hint" id="hint-licensor">Sign Here (Touch / Mouse)</div>
               </div>
-              <button class="sig-adopt-btn" id="adopt-sig-licensor" type="button">⚡ Adopt Digital Signature</button>
+              <div class="sig-action-row">
+                <button class="sig-adopt-btn" id="adopt-sig-licensor" type="button" title="Adopt auto-generated cursive signature">⚡ Adopt</button>
+                <button class="sig-upload-btn" id="upload-sig-licensor" type="button" title="Upload signature image from gallery or device">📁 Gallery / File</button>
+                <input type="file" id="file-sig-licensor" accept="image/*" style="display:none;" />
+              </div>
               <div class="signature-box-footer">
                 <div class="signature-party-name" id="sig-label-licensor">${esc(prop.ownerName || 'Suresh Patil')}</div>
                 <small>(Landlord / Licensor)</small>
@@ -10562,7 +10566,11 @@ Password: *${pass}*
                 <canvas class="signature-canvas" id="canvas-licensee" width="220" height="90"></canvas>
                 <div class="signature-sign-hint" id="hint-licensee">Sign Here (Touch / Mouse)</div>
               </div>
-              <button class="sig-adopt-btn" id="adopt-sig-licensee" type="button">⚡ Adopt Digital Signature</button>
+              <div class="sig-action-row">
+                <button class="sig-adopt-btn" id="adopt-sig-licensee" type="button" title="Adopt auto-generated cursive signature">⚡ Adopt</button>
+                <button class="sig-upload-btn" id="upload-sig-licensee" type="button" title="Upload signature image from gallery or device">📁 Gallery / File</button>
+                <input type="file" id="file-sig-licensee" accept="image/*" style="display:none;" />
+              </div>
               <div class="signature-box-footer">
                 <div class="signature-party-name" id="sig-label-licensee">${esc(client?.name || 'Rahul Sharma')}</div>
                 <small>(Tenant / Licensee)</small>
@@ -10579,7 +10587,11 @@ Password: *${pass}*
                 <canvas class="signature-canvas" id="canvas-broker" width="220" height="90"></canvas>
                 <div class="signature-sign-hint" id="hint-broker">Sign Here (Touch / Mouse)</div>
               </div>
-              <button class="sig-adopt-btn" id="adopt-sig-broker" type="button">⚡ Adopt Digital Signature</button>
+              <div class="sig-action-row">
+                <button class="sig-adopt-btn" id="adopt-sig-broker" type="button" title="Adopt auto-generated cursive signature">⚡ Adopt</button>
+                <button class="sig-upload-btn" id="upload-sig-broker" type="button" title="Upload signature image from gallery or device">📁 Gallery / File</button>
+                <input type="file" id="file-sig-broker" accept="image/*" style="display:none;" />
+              </div>
               <div class="signature-box-footer">
                 <div class="signature-party-name">${esc(s.agencyName || 'BrokerAI Realty')}</div>
                 <small>RERA: ${esc(s.reraNumber || 'A51700012345')}</small>
@@ -10618,12 +10630,14 @@ Password: *${pass}*
 
     drawer.querySelectorAll('input').forEach(inp => inp.oninput = updatePreview);
 
-    // Signature Canvas setup with high-DPI drawing & adoption
-    const setupSignaturePad = (canvasId, hintId, clearBtnId, adoptBtnId, nameInputId) => {
+    // Signature Canvas setup with high-DPI drawing, adoption & gallery file upload
+    const setupSignaturePad = (canvasId, hintId, clearBtnId, adoptBtnId, uploadBtnId, fileInputId, nameInputId) => {
       const canvas = drawer.querySelector('#' + canvasId);
       const hint = drawer.querySelector('#' + hintId);
       const clearBtn = drawer.querySelector('#' + clearBtnId);
       const adoptBtn = drawer.querySelector('#' + adoptBtnId);
+      const uploadBtn = uploadBtnId ? drawer.querySelector('#' + uploadBtnId) : null;
+      const fileInput = fileInputId ? drawer.querySelector('#' + fileInputId) : null;
       if (!canvas) return;
 
       if (typeof canvas.getContext !== 'function') return;
@@ -10674,6 +10688,7 @@ Password: *${pass}*
           e.preventDefault();
           ctx.clearRect(0, 0, canvas.width, canvas.height);
           if (hint) hint.style.display = 'block';
+          if (fileInput) fileInput.value = '';
         };
       }
 
@@ -10682,6 +10697,7 @@ Password: *${pass}*
           e.preventDefault();
           ctx.clearRect(0, 0, canvas.width, canvas.height);
           if (hint) hint.style.display = 'none';
+          if (fileInput) fileInput.value = '';
           
           let signText = 'Signature';
           if (nameInputId) {
@@ -10701,11 +10717,60 @@ Password: *${pass}*
           ctx.restore();
         };
       }
+
+      if (uploadBtn && fileInput) {
+        uploadBtn.onclick = (e) => {
+          e.preventDefault();
+          fileInput.click();
+        };
+
+        fileInput.onchange = (e) => {
+          const file = e.target.files && e.target.files[0];
+          if (!file) return;
+
+          if (!file.type || !file.type.startsWith('image/')) {
+            showToast('Please choose an image file (PNG, JPG, JPEG, WEBP)', 'error');
+            return;
+          }
+
+          const reader = new FileReader();
+          reader.onload = (loadEvt) => {
+            const img = new Image();
+            img.onload = () => {
+              ctx.clearRect(0, 0, canvas.width, canvas.height);
+              if (hint) hint.style.display = 'none';
+
+              // Fit image proportionally within canvas bounds with padding
+              const pad = 6;
+              const maxW = canvas.width - pad * 2;
+              const maxH = canvas.height - pad * 2;
+
+              let drawW = img.width || maxW;
+              let drawH = img.height || maxH;
+              const ratio = Math.min(maxW / drawW, maxH / drawH);
+
+              drawW = drawW * ratio;
+              drawH = drawH * ratio;
+
+              const drawX = (canvas.width - drawW) / 2;
+              const drawY = (canvas.height - drawH) / 2;
+
+              ctx.drawImage(img, drawX, drawY, drawW, drawH);
+              showToast('📷 Signature added from device gallery!', 'success');
+            };
+            img.onerror = () => {
+              showToast('Failed to load image file', 'error');
+            };
+            img.src = loadEvt.target.result;
+          };
+          reader.readAsDataURL(file);
+        };
+      }
     };
 
-    setupSignaturePad('canvas-licensor', 'hint-licensor', 'clear-sig-licensor', 'adopt-sig-licensor', 'agree-licensor-name');
-    setupSignaturePad('canvas-licensee', 'hint-licensee', 'clear-sig-licensee', 'adopt-sig-licensee', 'agree-licensee-name');
-    setupSignaturePad('canvas-broker', 'hint-broker', 'clear-sig-broker', 'adopt-sig-broker', null);
+    setupSignaturePad('canvas-licensor', 'hint-licensor', 'clear-sig-licensor', 'adopt-sig-licensor', 'upload-sig-licensor', 'file-sig-licensor', 'agree-licensor-name');
+    setupSignaturePad('canvas-licensee', 'hint-licensee', 'clear-sig-licensee', 'adopt-sig-licensee', 'upload-sig-licensee', 'file-sig-licensee', 'agree-licensee-name');
+    setupSignaturePad('canvas-broker', 'hint-broker', 'clear-sig-broker', 'adopt-sig-broker', 'upload-sig-broker', 'file-sig-broker', null);
 
     if (drawer.querySelector('#agree-print-btn')) drawer.querySelector('#agree-print-btn').onclick = () => window.print();
 
