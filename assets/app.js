@@ -583,6 +583,22 @@ const demoDocuments = [
 
 
   
+  // Clear any stale demo sessions so OTP login is 100% strictly enforced
+  try {
+    if (localStorage.getItem('brokerai.v182CleanAuth') !== 'true') {
+      localStorage.removeItem('brokerai.token');
+      localStorage.removeItem('brokerai.user');
+      localStorage.removeItem('brokerai.owner_auth');
+      localStorage.removeItem('brokerai.activeLicense');
+      localStorage.setItem('brokerai.v182CleanAuth', 'true');
+    }
+    if (window.location.hash === '#/login' || window.location.hash === '#login' || window.location.search.includes('logout=true') || window.location.search.includes('clean=true') || window.location.search.includes('auth=otp')) {
+      localStorage.removeItem('brokerai.token');
+      localStorage.removeItem('brokerai.user');
+      localStorage.removeItem('brokerai.owner_auth');
+    }
+  } catch (e) {}
+
   let parsedUser = null;
   let storedToken = null;
   let isOwnerAuth = false;
