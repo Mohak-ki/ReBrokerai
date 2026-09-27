@@ -584,59 +584,52 @@ const demoDocuments = [
 
   
   let parsedUser = null;
+  let storedToken = null;
+  let isOwnerAuth = false;
   try {
+    storedToken = localStorage.getItem('brokerai.token') || null;
+    isOwnerAuth = localStorage.getItem('brokerai.owner_auth') === 'true';
     const storedUser = localStorage.getItem('brokerai.user');
     if (storedUser) parsedUser = JSON.parse(storedUser);
   } catch (e) {}
 
-  const isOwnerAuth = (typeof localStorage !== 'undefined' && localStorage.getItem('brokerai.owner_auth') === 'true');
-
-  const initialUser = {
-    fullName: isOwnerAuth ? 'Mohak Vaswani' : (parsedUser?.fullName || 'Mohak Vaswani'),
-    role: isOwnerAuth ? 'SUPER_ADMIN' : ((parsedUser?.role && parsedUser.role !== 'SUPER_ADMIN') ? parsedUser.role : 'PRINCIPAL_BROKER'),
-    email: isOwnerAuth ? 'mohakvaswani7@gmail.com' : (parsedUser?.email || 'mohakvaswani7@gmail.com'),
-    phone: isOwnerAuth ? '+91 91370 00000' : (parsedUser?.phone || '+91 91370 00000'),
-    ...(parsedUser || {})
-  };
-  if (isOwnerAuth) {
-    initialUser.role = 'SUPER_ADMIN';
-    initialUser.fullName = 'Mohak Vaswani';
-    initialUser.email = 'mohakvaswani7@gmail.com';
-  } else if (initialUser.role === 'SUPER_ADMIN') {
-    initialUser.role = 'PRINCIPAL_BROKER';
-    try { localStorage.setItem('brokerai.user', JSON.stringify(initialUser)); } catch (e) {}
-  }
+  const initialUser = (storedToken && parsedUser) ? parsedUser : (isOwnerAuth && storedToken ? {
+    fullName: 'Mohak Vaswani',
+    role: 'SUPER_ADMIN',
+    email: 'mohakvaswani7@gmail.com',
+    phone: '+91 91370 00000'
+  } : null);
 
   const state = {
     demo: true,
-    isOwnerAuthenticated: isOwnerAuth,
+    isOwnerAuthenticated: isOwnerAuth && Boolean(storedToken),
     authStep: 'PHONE', // 'PHONE' | 'OTP'
     authPhone: '',
     authGeneratedOtp: '849201',
     authRolePreset: null,
-    clientMode: localStorage.getItem("brokerai.clientMode") === "true" || false,
-    token: localStorage.getItem('brokerai.token') || 'live-session-token-2026',
-    currentPlan: localStorage.getItem('brokerai.currentPlan') || 'elite',
+    clientMode: (typeof localStorage !== 'undefined' && localStorage.getItem("brokerai.clientMode") === "true") || false,
+    token: storedToken,
+    currentPlan: (typeof localStorage !== 'undefined' && localStorage.getItem('brokerai.currentPlan')) || 'starter',
     user: initialUser,
-    activeLicense: JSON.parse(localStorage.getItem('brokerai.activeLicense') || 'null') || null,
-    page: (window.location.hash || '').replace(/^#\/?/, '').split('?')[0] || 'dashboard',
-    leadsViewMode: localStorage.getItem('brokerai.leadsViewMode') || 'table',
-    propertiesViewMode: localStorage.getItem('brokerai.propertiesViewMode') || 'grid',
-    followUpsViewMode: localStorage.getItem('brokerai.followUpsViewMode') || 'agenda',
-    visitsViewMode: localStorage.getItem('brokerai.visitsViewMode') || 'agenda',
+    activeLicense: (typeof localStorage !== 'undefined' && JSON.parse(localStorage.getItem('brokerai.activeLicense') || 'null')) || null,
+    page: storedToken ? ((window.location.hash || '').replace(/^#\/?/, '').split('?')[0] || 'dashboard') : 'login',
+    leadsViewMode: (typeof localStorage !== 'undefined' && localStorage.getItem('brokerai.leadsViewMode')) || 'table',
+    propertiesViewMode: (typeof localStorage !== 'undefined' && localStorage.getItem('brokerai.propertiesViewMode')) || 'grid',
+    followUpsViewMode: (typeof localStorage !== 'undefined' && localStorage.getItem('brokerai.followUpsViewMode')) || 'agenda',
+    visitsViewMode: (typeof localStorage !== 'undefined' && localStorage.getItem('brokerai.visitsViewMode')) || 'agenda',
     leads: getStoredLeads(),
     properties: getStoredProperties(),
     documents: getStoredDocuments(),
     visits: getStoredVisits(),
     deals: getStoredDeals(),
-    commissionsViewMode: localStorage.getItem('brokerai.commissionsViewMode') || 'cards',
+    commissionsViewMode: (typeof localStorage !== 'undefined' && localStorage.getItem('brokerai.commissionsViewMode')) || 'cards',
     commissionsCategory: 'ALL',
     commissions: getStoredCommissions(),
-    settingsTab: localStorage.getItem('brokerai.settingsTab') || 'AGENCY_RERA',
-    agencySettings: JSON.parse(localStorage.getItem('brokerai.agencySettings') || 'null') || {
-      agencyName: 'Mehta Prime Realty',
-      contactPhone: '+91 98200 12345',
-      whatsappSupport: '+91 98200 12345',
+    settingsTab: (typeof localStorage !== 'undefined' && localStorage.getItem('brokerai.settingsTab')) || 'AGENCY_RERA',
+    agencySettings: (typeof localStorage !== 'undefined' && JSON.parse(localStorage.getItem('brokerai.agencySettings') || 'null')) || {
+      agencyName: initialUser?.agencyName || 'BrokerAI Realty',
+      contactPhone: initialUser?.phone || '+91 98200 12345',
+      whatsappSupport: initialUser?.phone || '+91 98200 12345',
       reraNumber: 'A51700012345',
       gstin: '27AABCB1234F1Z8',
       officeAddress: 'Hiranandani Estate, Thane West - 400607'
