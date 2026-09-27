@@ -2794,8 +2794,22 @@ const demoDocuments = [
     const mapsLink = `https://maps.google.com/?q=${mapQuery}`;
     const cleanPhone = (v.leadPhone || '').replace(/[^0-9]/g, '');
     const waPhone = cleanPhone.length === 10 ? `91${cleanPhone}` : cleanPhone;
+    const isComm = v.propertyCategory === 'COMMERCIAL';
 
-    const text = `*📍 Showing Confirmation & Location Pin — ${s.agencyName || 'BrokerAI'}*
+    const text = isComm ? `*🏢 Commercial Inspection & Site Walkthrough — ${s.agencyName || 'BrokerAI'}*
+
+Dear *${v.leadName}*,
+We have coordinated your commercial facility inspection for:
+
+🏢 *Asset / Facility:* ${v.propertyTitle}
+📍 *Location:* ${v.propertyLocation || 'Thane'}
+⏰ *Inspection Time:* ${formatDateTime(v.scheduledAt)}
+🗺️ *Google Maps Pin:* ${mapsLink}
+${v.showingFocus ? `📋 *Inspection Focus:* ${v.showingFocus}\n` : ''}🔑 *Meeting Point:* Commercial Reception / Security Desk
+🏢 *Visitor Pass / Note:* "${v.notes || `Facility walkthrough with ${s.agencyName || 'BrokerAI'}`}"
+
+_Feel free to reach our corporate team at ${state.user?.fullName ? `${state.user.fullName} (${s.supportPhone || '+91 98765 43210'})` : '+91 98765 43210'} if you need live assistance._`
+      : `*📍 Showing Confirmation & Location Pin — ${s.agencyName || 'BrokerAI'}*
 
 Dear *${v.leadName}*,
 We look forward to meeting you for your scheduled property walkthrough:
@@ -2804,13 +2818,13 @@ We look forward to meeting you for your scheduled property walkthrough:
 📍 *Location:* ${v.propertyLocation || 'Thane'}
 ⏰ *Showing Time:* ${formatDateTime(v.scheduledAt)}
 🗺️ *Google Maps Pin:* ${mapsLink}
-🔑 *Meeting Point:* Main Society Security Gate / Reception Desk
-🏢 *Gate Pass Code / Instruction:* "Visiting Flat with ${s.agencyName || 'BrokerAI'}"
+${v.showingFocus ? `📋 *Focus Highlights:* ${v.showingFocus}\n` : ''}🔑 *Meeting Point:* Main Society Security Gate / Reception Desk
+🏢 *Gate Pass Code / Instruction:* "${v.notes || `Visiting Flat with ${s.agencyName || 'BrokerAI'}`}"
 
 _Feel free to reach our team at ${state.user?.fullName ? `${state.user.fullName} (${s.supportPhone || '+91 98765 43210'})` : '+91 98765 43210'} if you need live directions._`;
 
     navigator.clipboard.writeText(text).then(() => {
-      showToast(`✓ Formatted WhatsApp location pin & gate instructions copied!\n\nLaunching WhatsApp...`, 'success');
+      showToast(`✓ Formatted WhatsApp location pin & ${isComm ? 'commercial inspection' : 'showing'} instructions copied!\n\nLaunching WhatsApp...`, 'success');
     }).catch(() => {
       prompt("Copy WhatsApp Showing Details:", text);
     });
@@ -2839,7 +2853,7 @@ _Feel free to reach our team at ${state.user?.fullName ? `${state.user.fullName}
       <div class="drawer-head">
         <div>
           <h2 class="panel-title">Schedule Site Visit</h2>
-          <div class="subtle">Coordinate a property showing for a buyer.</div>
+          <div class="subtle">Coordinate a property showing or facility inspection.</div>
         </div>
         <button class="close">×</button>
       </div>
@@ -2849,22 +2863,49 @@ _Feel free to reach our team at ${state.user?.fullName ? `${state.user.fullName}
           <h3>Visit Details</h3>
           <div class="form-grid">
             <div class="field full">
-              <label>Buyer lead</label>
+              <label>Buyer / Client Lead</label>
               <select class="select" name="leadId" required>
-                <option value="">Select buyer lead</option>
+                <option value="">Select client lead</option>
                 ${leads.map(l => `<option value="${l.id}" ${(defaultLeadId && String(defaultLeadId) === String(l.id)) ? 'selected' : ''}>${esc(l.name)} (${esc(l.phone)})</option>`).join('')}
               </select>
             </div>
             <div class="field full">
-              <label>Property</label>
-              <select class="select" name="propertyId" required>
+              <label>Property Listing</label>
+              <select class="select" id="visit-prop-select" name="propertyId" required>
                 <option value="">Select property listing</option>
-                ${properties.map(p => `<option value="${p.id}" ${(defaultPropertyId && String(defaultPropertyId) === String(p.id)) ? 'selected' : ''}>${esc(p.title)} · ${esc(p.location)} (${formatPrice(p.price, p.listingType)})</option>`).join('')}
+                ${properties.map(p => `<option value="${p.id}" data-category="${p.category || (p.propertyType === 'COMMERCIAL' ? 'COMMERCIAL' : 'RESIDENTIAL')}" ${(defaultPropertyId && String(defaultPropertyId) === String(p.id)) ? 'selected' : ''}>${esc(p.title)} · ${esc(p.location)} (${formatPrice(p.price, p.listingType)})</option>`).join('')}
               </select>
             </div>
+
+            <!-- SHOWING CATEGORY TOGGLE -->
+            <div class="field full">
+              <label>Showing Category</label>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:4px;">
+                <button type="button" class="button primary" id="visit-cat-resi-btn" style="padding:9px;font-size:13px;font-weight:750;border-radius:10px;">
+                  🏡 Residential Walkthrough
+                </button>
+                <button type="button" class="button secondary" id="visit-cat-comm-btn" style="padding:9px;font-size:13px;font-weight:750;border-radius:10px;">
+                  🏢 Commercial Inspection
+                </button>
+              </div>
+              <input type="hidden" name="propertyCategory" id="visit-prop-category" value="RESIDENTIAL" />
+            </div>
+
+            <!-- RESIDENTIAL FOCUS POINTS -->
+            <div class="field full" id="visit-resi-focus-wrap">
+              <label>Residential Focus Highlights</label>
+              <input class="input" name="resiFocus" id="visit-resi-focus" placeholder="e.g. Natural light, balcony view, master bedroom dimensions, clubhouse access" value="Natural light, balcony view, parking slot allocation" />
+            </div>
+
+            <!-- COMMERCIAL FOCUS POINTS -->
+            <div class="field full" id="visit-comm-focus-wrap" style="display:none;">
+              <label>Commercial Inspection Focus</label>
+              <input class="input" name="commFocus" id="visit-comm-focus" placeholder="e.g. Floor plate layout, power load & DG backup, freight lift, front road signage" value="Floor plate layout, power load & DG backup, parking bays" />
+            </div>
+
             <div class="field">
               <label>Date & Time</label>
-              <input class="input" name="scheduledAt" type="datetime-local" required />
+              <input class="input" name="scheduledAt" type="datetime-local" required value="${new Date(Date.now() + 86400000).toISOString().slice(0, 16)}" />
             </div>
             <div class="field">
               <label>Status</label>
@@ -2875,7 +2916,7 @@ _Feel free to reach our team at ${state.user?.fullName ? `${state.user.fullName}
             </div>
             <div class="field full">
               <label>Gate Pass / Key Instructions</label>
-              <textarea class="input" name="notes" placeholder="Key with society office, visitor pass registered at main gate…"></textarea>
+              <textarea class="input" name="notes" placeholder="Key with society office, visitor pass registered at main gate…">Key with building security / reception desk. Mention BrokerAI showing.</textarea>
             </div>
           </div>
         </div>
@@ -2889,22 +2930,58 @@ _Feel free to reach our team at ${state.user?.fullName ? `${state.user.fullName}
     backdrop.onclick = close;
     if (drawer.querySelector('.close')) drawer.querySelector('.close').onclick = close;
     if (drawer.querySelector('#cancel-visit')) drawer.querySelector('#cancel-visit').onclick = close;
+
+    const btnResi = drawer.querySelector('#visit-cat-resi-btn');
+    const btnComm = drawer.querySelector('#visit-cat-comm-btn');
+    const inputCat = drawer.querySelector('#visit-prop-category');
+    const resiFocusWrap = drawer.querySelector('#visit-resi-focus-wrap');
+    const commFocusWrap = drawer.querySelector('#visit-comm-focus-wrap');
+
+    const setVisitCategory = (cat) => {
+      inputCat.value = cat;
+      if (cat === 'COMMERCIAL') {
+        btnComm.className = 'button primary';
+        btnResi.className = 'button secondary';
+        commFocusWrap.style.display = 'block';
+        resiFocusWrap.style.display = 'none';
+      } else {
+        btnResi.className = 'button primary';
+        btnComm.className = 'button secondary';
+        resiFocusWrap.style.display = 'block';
+        commFocusWrap.style.display = 'none';
+      }
+    };
+
+    if (btnResi) btnResi.onclick = () => setVisitCategory('RESIDENTIAL');
+    if (btnComm) btnComm.onclick = () => setVisitCategory('COMMERCIAL');
+
+    const propSelect = drawer.querySelector('#visit-prop-select');
+    if (propSelect) {
+      propSelect.onchange = () => {
+        const selOpt = propSelect.options[propSelect.selectedIndex];
+        const propCat = selOpt?.dataset?.category;
+        if (propCat) setVisitCategory(propCat === 'COMMERCIAL' ? 'COMMERCIAL' : 'RESIDENTIAL');
+      };
+    }
+
     if (drawer.querySelector('#save-visit')) drawer.querySelector('#save-visit').onclick = async () => {
       const form = new FormData(drawer.querySelector('#visit-form'));
-      const payload = {
-        leadId: Number(form.get('leadId')),
-        propertyId: Number(form.get('propertyId')),
-        scheduledAt: form.get('scheduledAt'),
-        status: form.get('status'),
-        notes: form.get('notes') || null
-      };
-      if (!payload.leadId || !payload.propertyId) {
+      const leadId = Number(form.get('leadId'));
+      const propertyId = Number(form.get('propertyId'));
+      const scheduledAt = form.get('scheduledAt');
+      const status = form.get('status') || 'SCHEDULED';
+      const notes = form.get('notes') || null;
+      const propertyCategory = form.get('propertyCategory') || 'RESIDENTIAL';
+      const isComm = propertyCategory === 'COMMERCIAL';
+      const showingFocus = isComm ? (form.get('commFocus') || 'Floor plate layout, power load') : (form.get('resiFocus') || 'Natural light, parking slot');
+
+      if (!leadId || !propertyId) {
         drawer.querySelector('#visit-notice').innerHTML = `<div class="notice error">Please select both a lead and a property.</div>`;
         return;
       }
       try {
-        const l = (state.leads || demoLeads).find(x => String(x.id) === String(payload.leadId)) || { id: payload.leadId, name: 'Client', phone: '+91 98765 43210' };
-        const p = (state.properties || demoProperties).find(x => String(x.id) === String(payload.propertyId)) || { id: payload.propertyId, title: 'Property', location: 'Thane', price: 12500000 };
+        const l = (state.leads || demoLeads).find(x => String(x.id) === String(leadId)) || { id: leadId, name: 'Client', phone: '+91 98765 43210' };
+        const p = (state.properties || demoProperties).find(x => String(x.id) === String(propertyId)) || { id: propertyId, title: 'Property', location: 'Thane', price: 12500000 };
 
         const newVisit = {
           id: Date.now(),
@@ -2915,11 +2992,13 @@ _Feel free to reach our team at ${state.user?.fullName ? `${state.user.fullName}
           propertyTitle: p.title,
           propertyLocation: p.location,
           propertyPrice: p.price,
-          scheduledAt: payload.scheduledAt || new Date().toISOString(),
-          status: payload.status || 'SCHEDULED',
+          propertyCategory,
+          showingFocus,
+          scheduledAt: scheduledAt || new Date().toISOString(),
+          status: status,
           interestLevel: null,
           feedback: null,
-          notes: payload.notes || 'Key with society security guard / main desk'
+          notes: notes || (isComm ? 'Key with corporate reception desk' : 'Key with society security guard / main desk')
         };
 
         if (!state.visits || !state.visits.length) {
@@ -2936,18 +3015,19 @@ _Feel free to reach our team at ${state.user?.fullName ? `${state.user.fullName}
           leadId: l.id,
           leadName: l.name,
           leadPhone: l.phone,
-          title: `Showing for ${p.title} scheduled on ${new Date(payload.scheduledAt).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })}`,
+          title: `${isComm ? 'Commercial Inspection' : 'Showing'} for ${p.title} scheduled on ${new Date(scheduledAt).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })}`,
           type: 'SITE_VISIT',
+          propertyCategory,
           priority: 'HIGH',
           status: 'PENDING',
-          dueAt: payload.scheduledAt,
+          dueAt: scheduledAt,
           isOverdue: false,
-          notes: payload.notes || 'Confirm gate pass 30 mins prior'
+          notes: `${showingFocus ? `Focus: ${showingFocus} | ` : ''}${notes || 'Confirm gate pass 30 mins prior'}`
         });
         localStorage.setItem('brokerai.followups', JSON.stringify(state.followUps));
         localStorage.setItem('brokerai.followUps', JSON.stringify(state.followUps));
 
-        showToast(`✓ Site showing for ${esc(l.name)} scheduled successfully!`, 'success');
+        showToast(`✓ ${isComm ? 'Commercial site inspection' : 'Site showing'} for ${esc(l.name)} scheduled successfully!`, 'success');
 
         close();
         if (state.page === 'visits' || state.page === 'site-visits' || state.page === 'calendar') siteVisitsView();
@@ -4639,21 +4719,24 @@ Presented by *${state.user?.fullName || 'Aarav Mehta'}*
 
     const s = state.agencySettings || defaultAgencySettings;
     const isSale = prop.listingType === 'SALE';
-    const stampDuty = isSale ? Math.round(prop.price * 0.07) : Math.round(prop.price * 0.05);
+    const isComm = prop.category === 'COMMERCIAL' || prop.propertyType === 'COMMERCIAL' || prop.propertyCategory === 'COMMERCIAL';
+    const stampDuty = isSale ? Math.round(prop.price * (isComm ? 0.06 : 0.07)) : Math.round(prop.price * 0.05);
     const regFee = isSale ? (prop.price > 3000000 ? 30000 : Math.round(prop.price * 0.01)) : 1000;
     const onRoadTotal = prop.price + stampDuty + regFee;
 
     modal.innerHTML = `
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;border-bottom:1px solid #e2e8f0;padding-bottom:10px;">
         <div>
-          <span class="badge" style="background:#ecfdf5;color:#047857;font-weight:800;font-size:11px;">📄 INSTITUTIONAL PROPERTY FLYER</span>
+          <span class="badge" style="background:${isComm ? '#f0fdf4' : '#ecfdf5'};color:${isComm ? '#166534' : '#047857'};font-weight:800;font-size:11px;">
+            ${isComm ? '🏢 COMMERCIAL ASSET FLYER' : '📄 INSTITUTIONAL RESIDENTIAL FLYER'}
+          </span>
           <h3 style="margin:2px 0 0;font-size:17px;font-weight:800;color:#0f172a;">WhatsApp PDF Brochure</h3>
         </div>
         <button class="close" id="close-brochure-modal" style="background:#f1f5f9;border:1px solid #e2e8f0;border-radius:8px;font-size:16px;cursor:pointer;width:32px;height:32px;display:grid;place-items:center;">✕</button>
       </div>
 
       <!-- PRINTABLE FLYER SHEET -->
-      <div class="brochure-sheet" id="printable-brochure-flyer" style="background:#fff;border:1px solid #e2e8f0;border-radius:14px;padding:20px;margin-bottom:16px;">
+      <div class="brochure-sheet" id="printable-brochure-flyer" style="background:#fff;border:1px solid #e2e8f0;border-radius:14px;padding:20px;margin-bottom:16px;font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text','SF Pro Display','Inter','Segoe UI',Roboto,sans-serif;">
         <div class="brochure-header" style="display:flex;justify-content:space-between;align-items:flex-start;border-bottom:2px solid #0f172a;padding-bottom:12px;margin-bottom:14px;">
           <div>
             ${s.logoUrl ? `<img src="${esc(s.logoUrl)}" style="height:36px;max-width:140px;object-fit:contain;margin-bottom:4px;" alt="Logo" />` : ''}
@@ -4662,12 +4745,12 @@ Presented by *${state.user?.fullName || 'Aarav Mehta'}*
           </div>
           <div style="text-align:right;">
             <div style="font-size:11px;color:#64748b;font-weight:700;">BROCHURE REF</div>
-            <div style="font-size:13px;font-weight:800;color:#0f172a;">#THN-PROP-${prop.id}</div>
+            <div style="font-size:13px;font-weight:800;color:#0f172a;">#${isComm ? 'COMM' : 'RESI'}-${prop.id}</div>
           </div>
         </div>
 
         <div style="display:flex;gap:12px;margin-bottom:14px;">
-          <img src="${prop.images?.[0] || 'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?auto=format&fit=crop&w=800&q=80'}" style="width:140px;height:105px;object-fit:cover;border-radius:10px;" alt="${esc(prop.title)}" />
+          <img src="${prop.images?.[0] || (isComm ? 'https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&w=800&q=80' : 'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?auto=format&fit=crop&w=800&q=80')}" style="width:140px;height:105px;object-fit:cover;border-radius:10px;" alt="${esc(prop.title)}" />
           <div>
             <h2 style="font-size:18px;font-weight:850;color:#0f172a;margin:0 0 4px;line-height:1.2;">${esc(prop.title)}</h2>
             <div style="font-size:12.5px;color:#475569;font-weight:600;">📍 ${esc(prop.location)} ${prop.society ? `· ${esc(prop.society)}` : ''}</div>
@@ -4678,49 +4761,76 @@ Presented by *${state.user?.fullName || 'Aarav Mehta'}*
         </div>
 
         <div class="brochure-grid-specs" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:12px;margin-bottom:12px;">
-          <div class="brochure-spec-item">
-            <span class="brochure-spec-label" style="font-size:11px;color:#64748b;display:block;">Configuration</span>
-            <span class="brochure-spec-val" style="font-size:13px;font-weight:750;color:#0f172a;">${prop.bhk ? `${prop.bhk} BHK Luxury` : esc(prop.propertyType)}</span>
-          </div>
-          <div class="brochure-spec-item">
-            <span class="brochure-spec-label" style="font-size:11px;color:#64748b;display:block;">Carpet Area</span>
-            <span class="brochure-spec-val" style="font-size:13px;font-weight:750;color:#0f172a;">${prop.area || 780} sq.ft (RERA)</span>
-          </div>
-          <div class="brochure-spec-item">
-            <span class="brochure-spec-label" style="font-size:11px;color:#64748b;display:block;">Parking & Floor</span>
-            <span class="brochure-spec-val" style="font-size:13px;font-weight:750;color:#0f172a;">${prop.parking || 1} Covered Car Park</span>
-          </div>
-          <div class="brochure-spec-item">
-            <span class="brochure-spec-label" style="font-size:11px;color:#64748b;display:block;">Furnishing</span>
-            <span class="brochure-spec-val" style="font-size:13px;font-weight:750;color:#0f172a;">${esc((prop.furnishing || 'SEMI_FURNISHED').replaceAll('_', ' '))}</span>
-          </div>
-          <div class="brochure-spec-item">
-            <span class="brochure-spec-label" style="font-size:11px;color:#64748b;display:block;">Possession</span>
-            <span class="brochure-spec-val" style="font-size:13px;font-weight:750;color:#0f172a;">Ready to Move</span>
-          </div>
-          <div class="brochure-spec-item">
-            <span class="brochure-spec-label" style="font-size:11px;color:#64748b;display:block;">Estimated Stamp Duty</span>
-            <span class="brochure-spec-val" style="font-size:13px;font-weight:750;color:#0f172a;">7% (TMC Schedule)</span>
-          </div>
+          ${isComm ? `
+            <div class="brochure-spec-item">
+              <span class="brochure-spec-label" style="font-size:11px;color:#64748b;display:block;">Commercial Type</span>
+              <span class="brochure-spec-val" style="font-size:13px;font-weight:750;color:#0f172a;">${esc(prop.propertyType || 'Office Space')}</span>
+            </div>
+            <div class="brochure-spec-item">
+              <span class="brochure-spec-label" style="font-size:11px;color:#64748b;display:block;">Super Built-up Area</span>
+              <span class="brochure-spec-val" style="font-size:13px;font-weight:750;color:#0f172a;">${prop.area || 1250} sq.ft</span>
+            </div>
+            <div class="brochure-spec-item">
+              <span class="brochure-spec-label" style="font-size:11px;color:#64748b;display:block;">Power & DG Backup</span>
+              <span class="brochure-spec-val" style="font-size:13px;font-weight:750;color:#0f172a;">100% DG Backup</span>
+            </div>
+            <div class="brochure-spec-item">
+              <span class="brochure-spec-label" style="font-size:11px;color:#64748b;display:block;">Parking & Bays</span>
+              <span class="brochure-spec-val" style="font-size:13px;font-weight:750;color:#0f172a;">${prop.parking || 'Reserved Basement Bays'}</span>
+            </div>
+            <div class="brochure-spec-item">
+              <span class="brochure-spec-label" style="font-size:11px;color:#64748b;display:block;">Fit-out Status</span>
+              <span class="brochure-spec-val" style="font-size:13px;font-weight:750;color:#0f172a;">${esc((prop.furnishing || 'WARM_SHELL').replaceAll('_', ' '))}</span>
+            </div>
+            <div class="brochure-spec-item">
+              <span class="brochure-spec-label" style="font-size:11px;color:#64748b;display:block;">Occupancy Status</span>
+              <span class="brochure-spec-val" style="font-size:13px;font-weight:750;color:#0f172a;">Immediate / OC Ready</span>
+            </div>
+          ` : `
+            <div class="brochure-spec-item">
+              <span class="brochure-spec-label" style="font-size:11px;color:#64748b;display:block;">Configuration</span>
+              <span class="brochure-spec-val" style="font-size:13px;font-weight:750;color:#0f172a;">${prop.bhk ? `${prop.bhk} BHK Luxury` : esc(prop.propertyType)}</span>
+            </div>
+            <div class="brochure-spec-item">
+              <span class="brochure-spec-label" style="font-size:11px;color:#64748b;display:block;">Carpet Area</span>
+              <span class="brochure-spec-val" style="font-size:13px;font-weight:750;color:#0f172a;">${prop.area || 780} sq.ft (RERA)</span>
+            </div>
+            <div class="brochure-spec-item">
+              <span class="brochure-spec-label" style="font-size:11px;color:#64748b;display:block;">Parking & Floor</span>
+              <span class="brochure-spec-val" style="font-size:13px;font-weight:750;color:#0f172a;">${prop.parking || 1} Covered Car Park</span>
+            </div>
+            <div class="brochure-spec-item">
+              <span class="brochure-spec-label" style="font-size:11px;color:#64748b;display:block;">Furnishing</span>
+              <span class="brochure-spec-val" style="font-size:13px;font-weight:750;color:#0f172a;">${esc((prop.furnishing || 'SEMI_FURNISHED').replaceAll('_', ' '))}</span>
+            </div>
+            <div class="brochure-spec-item">
+              <span class="brochure-spec-label" style="font-size:11px;color:#64748b;display:block;">Possession</span>
+              <span class="brochure-spec-val" style="font-size:13px;font-weight:750;color:#0f172a;">Ready to Move</span>
+            </div>
+            <div class="brochure-spec-item">
+              <span class="brochure-spec-label" style="font-size:11px;color:#64748b;display:block;">Estimated Stamp Duty</span>
+              <span class="brochure-spec-val" style="font-size:13px;font-weight:750;color:#0f172a;">7% (TMC Schedule)</span>
+            </div>
+          `}
         </div>
 
         <!-- ON ROAD COST SUMMARY -->
         <div style="background:#f1f5f9;border:1px solid #cbd5e1;border-radius:10px;padding:10px 14px;margin-bottom:14px;display:flex;justify-content:space-between;align-items:center;">
           <div>
-            <div style="font-size:11px;color:#64748b;font-weight:700;">ESTIMATED ON-ROAD ACQUISITION COST</div>
+            <div style="font-size:11px;color:#64748b;font-weight:700;">ESTIMATED TOTAL ${isComm ? 'ACQUISITION / LEASE VALUE' : 'ON-ROAD COST'}</div>
             <div style="font-size:15px;font-weight:850;color:#0f172a;">${formatPrice(onRoadTotal, prop.listingType)}</div>
           </div>
           <div style="font-size:11px;color:#475569;text-align:right;">
             Base: ${formatPrice(prop.price, prop.listingType)}<br/>
-            + 7% Stamp Duty + ₹30k Reg.
+            + ${isComm ? '6%' : '7%'} Stamp Duty + Registration
           </div>
         </div>
 
         <!-- AMENITIES -->
         <div style="margin-bottom:14px;">
-          <div style="font-size:11px;font-weight:800;color:#64748b;text-transform:uppercase;margin-bottom:6px;">Key Society Amenities</div>
+          <div style="font-size:11px;font-weight:800;color:#64748b;text-transform:uppercase;margin-bottom:6px;">${isComm ? 'Corporate & Building Infrastructure' : 'Key Society Amenities'}</div>
           <div style="display:flex;flex-wrap:wrap;gap:6px;">
-            ${(prop.amenities || ['Clubhouse', 'Swimming Pool', 'Gym', '24/7 Security']).map(a => `
+            ${(prop.amenities || (isComm ? ['100% DG Power Backup', 'High-Speed Elevators', 'Fire NOC Compliant', 'Visitor Lobby Desk', 'Basement Parking'] : ['Clubhouse', 'Swimming Pool', 'Gym', '24/7 Security'])).map(a => `
               <span class="badge" style="background:#e2e8f0;color:#1e293b;font-size:11px;font-weight:700;">✓ ${esc(a)}</span>
             `).join('')}
           </div>
@@ -6700,7 +6810,18 @@ ${agencyBranding}
   }
 
   function copyFollowUpWhatsApp(item) {
-    const text = `*Hi ${item.leadName || 'Client'},*
+    const isComm = item.propertyCategory === 'COMMERCIAL';
+    const text = isComm ? `*Hi ${item.leadName || 'Client'},*
+Hope you are having a productive day!
+
+Regarding our commercial requirement discussion on *${item.title}*:
+We wanted to check if you had a chance to evaluate the commercial terms, floor plate layout, power load, or if you would like to arrange a site inspection with the owner/developer.
+
+Please let us know what time works best for a quick discussion today.
+
+Best regards,
+*${state.user?.fullName || 'Aarav Mehta'}* | BrokerAI Commercial Desk`
+      : `*Hi ${item.leadName || 'Client'},*
 Hope you are doing well!
 
 Regarding our discussion on *${item.title}*:
@@ -6720,6 +6841,7 @@ Best regards,
     document.querySelectorAll('.modal-backdrop, .drawer-backdrop, .spotlight-backdrop').forEach(b => b.remove());
     const fuObj = (typeof followUp === 'object' && followUp !== null) ? followUp : (typeof followUp === 'number' || typeof followUp === 'string') ? ((state.followUps && state.followUps.length ? state.followUps : getStoredFollowUps()).find(f => String(f.id) === String(followUp)) || null) : null;
     const leads = (state.leads && state.leads.length) ? state.leads : getStoredLeads();
+    const defaultCat = fuObj?.propertyCategory || 'RESIDENTIAL';
 
     const backdrop = document.createElement('div');
     backdrop.className = 'drawer-backdrop';
@@ -6739,15 +6861,27 @@ Best regards,
           <h3>Follow-up details</h3>
           <div class="form-grid">
             <div class="field full">
-              <label>Buyer Lead</label>
+              <label>Client Lead</label>
               <select class="select" name="leadId" required ${fuObj ? 'disabled' : ''}>
-                <option value="">Select buyer lead</option>
+                <option value="">Select client lead</option>
                 ${leads.map(l => `<option value="${l.id}" ${(fuObj?.leadId === l.id || defaultLeadId === l.id) ? 'selected' : ''}>${esc(l.name)} (${esc(l.phone)})</option>`).join('')}
               </select>
             </div>
             <div class="field full">
+              <label>Client Category</label>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+                <button type="button" class="button ${defaultCat === 'RESIDENTIAL' ? 'primary' : 'secondary'}" id="fu-cat-resi-btn" style="padding:9px;font-size:13px;font-weight:750;border-radius:10px;">
+                  🏡 Residential Client
+                </button>
+                <button type="button" class="button ${defaultCat === 'COMMERCIAL' ? 'primary' : 'secondary'}" id="fu-cat-comm-btn" style="padding:9px;font-size:13px;font-weight:750;border-radius:10px;">
+                  🏢 Commercial Client
+                </button>
+              </div>
+              <input type="hidden" name="propertyCategory" id="fu-prop-category" value="${defaultCat}" />
+            </div>
+            <div class="field full">
               <label>Action / Title</label>
-              <input class="input" name="title" required placeholder="Confirm site-visit timing and parking preference" value="${esc(fuObj?.title || '')}" />
+              <input class="input" name="title" required placeholder="Confirm site-visit timing and preference" value="${esc(fuObj?.title || '')}" />
             </div>
             <div class="field">
               <label>Channel / Type</label>
@@ -6767,7 +6901,7 @@ Best regards,
             </div>
             <div class="field full">
               <label>Notes / Context</label>
-              <textarea class="input" name="notes" placeholder="Discuss budget range, parking needs...">${esc(fuObj?.notes || '')}</textarea>
+              <textarea class="input" name="notes" placeholder="Discuss budget range, parking needs, lease terms...">${esc(fuObj?.notes || '')}</textarea>
             </div>
           </div>
         </div>
@@ -6781,6 +6915,22 @@ Best regards,
     backdrop.onclick = close;
     if (drawer.querySelector('.close')) drawer.querySelector('.close').onclick = close;
     if (drawer.querySelector('#cancel-followup')) drawer.querySelector('#cancel-followup').onclick = close;
+
+    const btnResi = drawer.querySelector('#fu-cat-resi-btn');
+    const btnComm = drawer.querySelector('#fu-cat-comm-btn');
+    const inputCat = drawer.querySelector('#fu-prop-category');
+
+    if (btnResi) btnResi.onclick = () => {
+      inputCat.value = 'RESIDENTIAL';
+      btnResi.className = 'button primary';
+      btnComm.className = 'button secondary';
+    };
+    if (btnComm) btnComm.onclick = () => {
+      inputCat.value = 'COMMERCIAL';
+      btnComm.className = 'button primary';
+      btnResi.className = 'button secondary';
+    };
+
     if (drawer.querySelector('#save-followup')) drawer.querySelector('#save-followup').onclick = async () => {
       const form = new FormData(drawer.querySelector('#followup-form'));
       const leadId = fuObj ? (fuObj.leadId || Number(form.get('leadId'))) : Number(form.get('leadId'));
@@ -6789,6 +6939,7 @@ Best regards,
       const priority = form.get('priority') || 'HIGH';
       const dueAt = form.get('dueAt') || new Date().toISOString();
       const notes = (form.get('notes') || '').trim();
+      const propertyCategory = form.get('propertyCategory') || 'RESIDENTIAL';
 
       if (!leadId || !title) {
         drawer.querySelector('#followup-notice').innerHTML = `<div class="notice error">Please select a buyer lead and enter an action/title.</div>`;
@@ -6806,6 +6957,7 @@ Best regards,
         type,
         priority,
         dueAt,
+        propertyCategory,
         status: fuObj?.status || 'PENDING',
         isOverdue: new Date(dueAt) < new Date(),
         notes: notes || null,
@@ -8478,13 +8630,16 @@ Best regards,
 
   function copyDealWhatsAppUpdate(deal) {
     const stageObj = dealStages.find(s => s.key === deal.stage);
+    const isComm = deal.propertyCategory === 'COMMERCIAL';
+    const catLabel = isComm ? '🏢 Commercial Asset Deal' : '🏡 Residential Property Deal';
     const text = `*Hi ${deal.leadName},*
-Here is the latest progress update on your property deal for *${deal.propertyTitle}*:
+Here is the latest progress update on your ${isComm ? 'commercial' : 'residential'} transaction for *${deal.propertyTitle}*:
 
-📋 *Deal Status:* ${stageObj?.label || deal.stage}
+📋 *Deal Stage:* ${stageObj?.label || deal.stage}
+🏷️ *Category:* ${catLabel}
 💰 *Agreed Value:* ${formatPrice(deal.agreedPrice, deal.listingType)} (${deal.listingType})
-📅 *Target Registration / Handover:* ${deal.targetCloseDate || 'Within 30 Days'}
-${deal.tokenAmount ? `🧾 *Token Deposit:* ₹${deal.tokenAmount.toLocaleString('en-IN')} (Confirmed)\n` : ''}${deal.notes ? `📝 *Next Action / Remarks:* ${deal.notes}\n` : ''}
+${isComm && deal.subType ? `🏢 *Asset Type:* ${deal.subType}\n` : ''}${isComm && deal.camAmount ? `🧹 *CAM Charges:* ₹${Number(deal.camAmount).toLocaleString('en-IN')}/month\n` : ''}${isComm && deal.lockInPeriod ? `🔒 *Lock-in Period:* ${deal.lockInPeriod}\n` : ''}${isComm && deal.gstApplicable ? `📑 *GST:* ${deal.gstApplicable}\n` : ''}${!isComm && deal.resiConfig ? `🏠 *Configuration:* ${deal.resiConfig}\n` : ''}${deal.tokenAmount ? `🧾 *Token Deposit:* ₹${deal.tokenAmount.toLocaleString('en-IN')} (Confirmed)\n` : ''}📅 *Target Registration / Handover:* ${deal.targetCloseDate || 'Within 30 Days'}
+${deal.notes ? `📝 *Next Action / Remarks:* ${deal.notes}\n` : ''}
 Please let us know if you have any questions or require document assistance.
 
 Best regards,
@@ -8505,6 +8660,7 @@ Best regards,
 
     let leads = (state.leads && state.leads.length) ? state.leads : getStoredLeads();
     let properties = (state.properties && state.properties.length) ? state.properties : getStoredProperties();
+    let defaultCat = dealObj?.propertyCategory || 'RESIDENTIAL';
 
     const backdrop = document.createElement('div');
     backdrop.className = 'drawer-backdrop';
@@ -8532,11 +8688,86 @@ Best regards,
             </div>
             <div class="field full">
               <label>Property Listing</label>
-              <select class="select" name="propertyId" required>
+              <select class="select" id="deal-prop-select" name="propertyId" required>
                 <option value="">Select Property</option>
-                ${properties.map(p => `<option value="${p.id}" ${(dealObj?.propertyId === p.id || String(dealObj?.propertyId) === String(p.id)) ? 'selected' : ''}>${esc(p.title)} · ${formatPrice(p.price, p.listingType)}</option>`).join('')}
+                ${properties.map(p => `<option value="${p.id}" data-category="${p.category || (p.propertyType === 'COMMERCIAL' ? 'COMMERCIAL' : 'RESIDENTIAL')}" ${(dealObj?.propertyId === p.id || String(dealObj?.propertyId) === String(p.id)) ? 'selected' : ''}>${esc(p.title)} · ${formatPrice(p.price, p.listingType)}</option>`).join('')}
               </select>
             </div>
+
+            <!-- RESIDENTIAL VS COMMERCIAL CATEGORY TOGGLE -->
+            <div class="field full">
+              <label style="display:flex;justify-content:space-between;align-items:center;">
+                <span>Transaction Category</span>
+                <span style="font-size:11.5px;color:#64748b;font-weight:normal;">Tailors transaction milestones and terms</span>
+              </label>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:4px;">
+                <button type="button" class="button ${defaultCat === 'RESIDENTIAL' ? 'primary' : 'secondary'}" id="deal-cat-resi-btn" style="padding:9px;font-size:13px;font-weight:750;border-radius:10px;">
+                  🏡 Residential Deal
+                </button>
+                <button type="button" class="button ${defaultCat === 'COMMERCIAL' ? 'primary' : 'secondary'}" id="deal-cat-comm-btn" style="padding:9px;font-size:13px;font-weight:750;border-radius:10px;">
+                  🏢 Commercial Deal
+                </button>
+              </div>
+              <input type="hidden" name="propertyCategory" id="deal-prop-category" value="${defaultCat}" />
+            </div>
+
+            <!-- RESIDENTIAL PARAMETERS -->
+            <div id="deal-resi-section" class="field full" style="display:${defaultCat === 'RESIDENTIAL' ? 'grid' : 'none'};grid-template-columns:1fr 1fr;gap:12px;background:#f8fafc;padding:14px;border-radius:12px;border:1px solid #e2e8f0;">
+              <div>
+                <label style="font-size:12px;font-weight:700;color:#334155;">Configuration</label>
+                <select class="select" name="resiConfig" id="deal-resi-config" style="font-size:12.5px;">
+                  <option value="1 BHK Apartment" ${dealObj?.resiConfig === '1 BHK Apartment' ? 'selected' : ''}>1 BHK Apartment</option>
+                  <option value="2 BHK Apartment" ${(!dealObj?.resiConfig || dealObj?.resiConfig === '2 BHK Apartment') ? 'selected' : ''}>2 BHK Apartment</option>
+                  <option value="3 BHK Luxury Flat" ${dealObj?.resiConfig === '3 BHK Luxury Flat' ? 'selected' : ''}>3 BHK Luxury Flat</option>
+                  <option value="4+ BHK Penthouse" ${dealObj?.resiConfig === '4+ BHK Penthouse' ? 'selected' : ''}>4+ BHK Penthouse</option>
+                  <option value="Independent Villa" ${dealObj?.resiConfig === 'Independent Villa' ? 'selected' : ''}>Independent Villa</option>
+                </select>
+              </div>
+              <div>
+                <label style="font-size:12px;font-weight:700;color:#334155;">Society Maintenance</label>
+                <select class="select" name="resiMaint" style="font-size:12.5px;">
+                  <option value="Included in Agreed Value" ${(!dealObj?.resiMaint || dealObj?.resiMaint === 'Included in Agreed Value') ? 'selected' : ''}>Included in Value</option>
+                  <option value="Payable Extra Monthly" ${dealObj?.resiMaint === 'Payable Extra Monthly' ? 'selected' : ''}>Payable Extra Monthly</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- COMMERCIAL PARAMETERS -->
+            <div id="deal-comm-section" class="field full" style="display:${defaultCat === 'COMMERCIAL' ? 'grid' : 'none'};grid-template-columns:1fr 1fr;gap:12px;background:#f0fdf4;padding:14px;border-radius:12px;border:1px solid #bbf7d0;">
+              <div>
+                <label style="font-size:12px;font-weight:700;color:#166534;">Commercial Sub-Type</label>
+                <select class="select" name="commSubType" id="deal-comm-subtype" style="font-size:12.5px;">
+                  <option value="Commercial Office Space" ${(!dealObj?.subType || dealObj?.subType === 'Commercial Office Space') ? 'selected' : ''}>Office Space</option>
+                  <option value="Retail / Showroom" ${dealObj?.subType === 'Retail / Showroom' ? 'selected' : ''}>Retail / Showroom</option>
+                  <option value="Industrial / Warehouse" ${dealObj?.subType === 'Industrial / Warehouse' ? 'selected' : ''}>Industrial / Warehouse</option>
+                  <option value="Clinic / Healthcare" ${dealObj?.subType === 'Clinic / Healthcare' ? 'selected' : ''}>Clinic / Healthcare</option>
+                  <option value="Commercial Land / Plot" ${dealObj?.subType === 'Commercial Land / Plot' ? 'selected' : ''}>Commercial Land</option>
+                </select>
+              </div>
+              <div>
+                <label style="font-size:12px;font-weight:700;color:#166534;">CAM / Maintenance (₹/mo)</label>
+                <input class="input" name="camAmount" type="number" placeholder="e.g. 15000" value="${dealObj?.camAmount || ''}" style="font-size:12.5px;" />
+              </div>
+              <div>
+                <label style="font-size:12px;font-weight:700;color:#166534;">Lock-in Period</label>
+                <select class="select" name="lockInPeriod" style="font-size:12.5px;">
+                  <option value="12 Months" ${(!dealObj?.lockInPeriod || dealObj?.lockInPeriod === '12 Months') ? 'selected' : ''}>12 Months</option>
+                  <option value="24 Months" ${dealObj?.lockInPeriod === '24 Months' ? 'selected' : ''}>24 Months</option>
+                  <option value="36 Months" ${dealObj?.lockInPeriod === '36 Months' ? 'selected' : ''}>36 Months</option>
+                  <option value="60 Months" ${dealObj?.lockInPeriod === '60 Months' ? 'selected' : ''}>60 Months</option>
+                  <option value="None" ${dealObj?.lockInPeriod === 'None' ? 'selected' : ''}>None</option>
+                </select>
+              </div>
+              <div>
+                <label style="font-size:12px;font-weight:700;color:#166534;">GST Applicability</label>
+                <select class="select" name="gstApplicable" style="font-size:12.5px;">
+                  <option value="18% GST Applicable" ${(!dealObj?.gstApplicable || dealObj?.gstApplicable === '18% GST Applicable') ? 'selected' : ''}>18% GST Applicable</option>
+                  <option value="Included in Price" ${dealObj?.gstApplicable === 'Included in Price' ? 'selected' : ''}>Included in Price</option>
+                  <option value="GST Exempt" ${dealObj?.gstApplicable === 'GST Exempt' ? 'selected' : ''}>GST Exempt</option>
+                </select>
+              </div>
+            </div>
+
             <div class="field">
               <label>Agreed Deal Value (₹)</label>
               <input class="input" name="agreedPrice" type="number" required value="${dealObj?.agreedPrice || ''}" placeholder="e.g. 12500000" />
@@ -8579,6 +8810,40 @@ Best regards,
     backdrop.onclick = close;
     if (drawer.querySelector('.close')) drawer.querySelector('.close').onclick = close;
     if (drawer.querySelector('#cancel-deal')) drawer.querySelector('#cancel-deal').onclick = close;
+
+    const btnResi = drawer.querySelector('#deal-cat-resi-btn');
+    const btnComm = drawer.querySelector('#deal-cat-comm-btn');
+    const inputCat = drawer.querySelector('#deal-prop-category');
+    const resiSection = drawer.querySelector('#deal-resi-section');
+    const commSection = drawer.querySelector('#deal-comm-section');
+
+    const setDealCategory = (cat) => {
+      inputCat.value = cat;
+      if (cat === 'COMMERCIAL') {
+        btnComm.className = 'button primary';
+        btnResi.className = 'button secondary';
+        commSection.style.display = 'grid';
+        resiSection.style.display = 'none';
+      } else {
+        btnResi.className = 'button primary';
+        btnComm.className = 'button secondary';
+        resiSection.style.display = 'grid';
+        commSection.style.display = 'none';
+      }
+    };
+
+    if (btnResi) btnResi.onclick = () => setDealCategory('RESIDENTIAL');
+    if (btnComm) btnComm.onclick = () => setDealCategory('COMMERCIAL');
+
+    const propSelect = drawer.querySelector('#deal-prop-select');
+    if (propSelect) {
+      propSelect.onchange = () => {
+        const selOpt = propSelect.options[propSelect.selectedIndex];
+        const propCat = selOpt?.dataset?.category;
+        if (propCat) setDealCategory(propCat === 'COMMERCIAL' ? 'COMMERCIAL' : 'RESIDENTIAL');
+      };
+    }
+
     if (drawer.querySelector('#save-deal-btn')) drawer.querySelector('#save-deal-btn').onclick = async () => {
       const form = new FormData(drawer.querySelector('#deal-form'));
       const leadId = Number(form.get('leadId'));
@@ -8590,6 +8855,14 @@ Best regards,
       const tokenAmount = Number(form.get('tokenAmount') || 0);
       const assignedAgentName = form.get('assignedAgentName') || 'Aarav Mehta';
       const notes = form.get('notes') || '';
+      const propertyCategory = form.get('propertyCategory') || 'RESIDENTIAL';
+      const isComm = propertyCategory === 'COMMERCIAL';
+      const subType = isComm ? form.get('commSubType') : form.get('resiConfig');
+      const camAmount = isComm ? Number(form.get('camAmount') || 0) : 0;
+      const lockInPeriod = isComm ? form.get('lockInPeriod') : null;
+      const gstApplicable = isComm ? form.get('gstApplicable') : null;
+      const resiConfig = !isComm ? form.get('resiConfig') : null;
+      const resiMaint = !isComm ? form.get('resiMaint') : null;
 
       if (!leadId || !propertyId || !agreedPrice) {
         drawer.querySelector('#deal-notice').innerHTML = `<div class="notice error">Please fill all required fields.</div>`;
@@ -8610,6 +8883,13 @@ Best regards,
         propertyTitle: prop?.title || 'Property',
         propertyLocation: prop?.location || 'Thane',
         listingType: prop?.listingType || 'SALE',
+        propertyCategory,
+        subType,
+        camAmount,
+        lockInPeriod,
+        gstApplicable,
+        resiConfig,
+        resiMaint,
         agreedPrice,
         brokerageRate,
         expectedBrokerage,
@@ -8640,7 +8920,7 @@ Best regards,
       }
 
       localStorage.setItem('brokerai.deals', JSON.stringify(state.deals));
-      showToast(`✓ Deal for "${esc(payload.propertyTitle)}" saved!`, 'success');
+      showToast(`✓ ${isComm ? 'Commercial' : 'Residential'} deal for "${esc(payload.propertyTitle)}" saved!`, 'success');
       close();
       if (state.page === 'deals') dealsView();
       else if (state.page === 'dashboard') dashboard();
@@ -10490,12 +10770,26 @@ Password: *${pass}*
         <div>
           <span class="badge" style="background:#dcfce7;color:#15803d;font-weight:800;margin-bottom:4px;">MAHARASHTRA MODEL TEMPLATE</span>
           <h2 class="panel-title">Rental Leave & License Agreement</h2>
-          <div class="subtle">Standard statutory draft with customizable tenure, touch signatures, and photo gallery uploads.</div>
+          <div class="subtle">Standard statutory draft with customizable tenure, residential/commercial options, touch signatures, and photo uploads.</div>
         </div>
         <button class="close">×</button>
       </div>
 
       <div style="padding:16px 24px;overflow-y:auto;max-height:calc(100vh - 140px);">
+        <!-- CATEGORY SELECTOR -->
+        <div class="field full" style="margin-bottom:16px;">
+          <label style="font-weight:800;color:#0f172a;margin-bottom:8px;display:block;">🏢 Property Category & Agreement Class *</label>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+            <button type="button" class="category-toggle-btn active" id="btn-cat-resi" style="padding:12px;border:2px solid #10b981;background:#ecfdf5;color:#047857;border-radius:12px;font-weight:800;font-size:13.5px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;">
+              <span>🏡</span> Residential (Flat / Villa)
+            </button>
+            <button type="button" class="category-toggle-btn" id="btn-cat-comm" style="padding:12px;border:1.5px solid #cbd5e1;background:#f8fafc;color:#475569;border-radius:12px;font-weight:750;font-size:13.5px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;">
+              <span>🏢</span> Commercial (Office / Retail)
+            </button>
+          </div>
+          <input type="hidden" id="agree-prop-category" value="${prop.propertyCategory === 'COMMERCIAL' ? 'COMMERCIAL' : 'RESIDENTIAL'}" />
+        </div>
+
         <!-- FORM CONTROLS -->
         <div class="form-section">
           <h3 style="color:#1e40af;margin-top:0;">📝 Agreement Parameters & Parties</h3>
@@ -10539,6 +10833,123 @@ Password: *${pass}*
             <div class="field">
               <label>Agreement End Date</label>
               <input class="input" id="agree-end" type="date" value="${endDate}" />
+            </div>
+          </div>
+        </div>
+
+        <!-- RESIDENTIAL SPECIFIC DETAILS SECTION -->
+        <div class="form-section" id="section-resi-details" style="margin-top:20px;border-left:4px solid #10b981;">
+          <h3 style="color:#047857;margin-top:0;display:flex;align-items:center;gap:6px;">
+            <span>🏡</span> Residential Tenancy Specifications
+          </h3>
+          <div class="form-grid">
+            <div class="field">
+              <label>Residential Configuration</label>
+              <select class="select" id="agree-resi-bhk">
+                <option value="1 BHK Flat">1 BHK Flat / Studio</option>
+                <option value="2 BHK Apartment" selected>2 BHK Apartment</option>
+                <option value="3 BHK Premium Apartment">3 BHK Premium Apartment</option>
+                <option value="4 BHK Luxury Penthouse">4 BHK Luxury Penthouse</option>
+                <option value="Independent Villa / Row House">Independent Villa / Row House</option>
+              </select>
+            </div>
+            <div class="field">
+              <label>RERA Carpet Area (sq.ft)</label>
+              <input class="input" id="agree-resi-area" type="number" value="${prop.area || 785}" placeholder="e.g. 785" />
+            </div>
+            <div class="field">
+              <label>Furnishing Level</label>
+              <select class="select" id="agree-resi-furnish">
+                <option value="Semi-Furnished (Modular Kitchen + Wardrobes)" selected>Semi-Furnished (Kitchen + Wardrobes)</option>
+                <option value="Fully Furnished (White Goods, Sofa, Beds, ACs)">Fully Furnished (White Goods + ACs)</option>
+                <option value="Unfurnished / Bare Flat">Unfurnished / Bare Flat</option>
+              </select>
+            </div>
+            <div class="field">
+              <label>Dedicated Parking Slot</label>
+              <select class="select" id="agree-resi-parking">
+                <option value="1 Covered Car Park + 1 Two-Wheeler" selected>1 Covered Car Park + 1 Two-Wheeler</option>
+                <option value="2 Covered Car Parking Slots">2 Covered Car Parking Slots</option>
+                <option value="Open Society Car Park">Open Society Car Park</option>
+                <option value="Two-Wheeler Parking Only">Two-Wheeler Parking Only</option>
+                <option value="No Parking Slot">No Parking Slot</option>
+              </select>
+            </div>
+            <div class="field full">
+              <label>Society Maintenance Charges</label>
+              <select class="select" id="agree-resi-maint">
+                <option value="Included in Monthly License Fee (Paid by Owner/Licensor)" selected>Included in Monthly License Fee (Paid by Owner/Licensor)</option>
+                <option value="Payable Extra by Tenant/Licensee to Society directly">Payable Extra by Tenant/Licensee to Society directly</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <!-- COMMERCIAL SPECIFIC DETAILS SECTION -->
+        <div class="form-section" id="section-comm-details" style="margin-top:20px;border-left:4px solid #2563eb;display:none;">
+          <h3 style="color:#1d4ed8;margin-top:0;display:flex;align-items:center;gap:6px;">
+            <span>🏢</span> Commercial Lease & Operational Covenants
+          </h3>
+          <div class="form-grid">
+            <div class="field">
+              <label>Commercial Sub-Type / Usage *</label>
+              <select class="select" id="agree-comm-type">
+                <option value="Corporate IT / Business Office Space" selected>Corporate IT / Business Office Space</option>
+                <option value="Retail Shop / High-Street Showroom">Retail Shop / High-Street Showroom</option>
+                <option value="Doctor Clinic / Diagnostic Lab">Doctor Clinic / Diagnostic Lab</option>
+                <option value="Industrial Warehouse / Logistics Godown">Industrial Warehouse / Logistics Godown</option>
+                <option value="Commercial Bare Shell / Studio">Commercial Bare Shell / Studio</option>
+              </select>
+            </div>
+            <div class="field">
+              <label>Super Built-Up / Chargeable Area (sq.ft)</label>
+              <input class="input" id="agree-comm-area" value="${prop.area ? `${prop.area} sq.ft (${Math.round(prop.area*1.4)} sq.ft SBU)` : '1,250 sq.ft (1,750 sq.ft SBU)'}" placeholder="e.g. 1,250 sq.ft Carpet" />
+            </div>
+            <div class="field">
+              <label>Fit-Out / Rent-Free Period</label>
+              <select class="select" id="agree-comm-fitout">
+                <option value="0 Days (Immediate Possession)" selected>0 Days (Immediate Possession)</option>
+                <option value="15 Days Rent-Free Fitout">15 Days Rent-Free Fitout</option>
+                <option value="30 Days Rent-Free Fitout">30 Days Rent-Free Fitout</option>
+                <option value="45 Days Rent-Free Fitout">45 Days Rent-Free Fitout</option>
+                <option value="60 Days Rent-Free Fitout">60 Days Rent-Free Fitout</option>
+              </select>
+            </div>
+            <div class="field">
+              <label>Lock-In Period (Mandatory)</label>
+              <select class="select" id="agree-comm-lockin">
+                <option value="12 Months Mandatory Lock-In" selected>12 Months Mandatory Lock-In</option>
+                <option value="24 Months Mandatory Lock-In">24 Months Mandatory Lock-In</option>
+                <option value="36 Months Mandatory Lock-In">36 Months Mandatory Lock-In</option>
+                <option value="60 Months Mandatory Lock-In">60 Months Mandatory Lock-In</option>
+                <option value="No Mandatory Lock-In">No Mandatory Lock-In</option>
+              </select>
+            </div>
+            <div class="field">
+              <label>Annual Lease Escalation Rate</label>
+              <select class="select" id="agree-comm-escalation">
+                <option value="5% Increase per annum" selected>5% Increase per annum</option>
+                <option value="7% Increase per annum">7% Increase per annum</option>
+                <option value="10% Increase every 2 Years">10% Increase every 2 Years</option>
+                <option value="15% Increase every 3 Years">15% Increase every 3 Years</option>
+                <option value="Fixed Rate (No Escalation)">Fixed Rate (No Escalation)</option>
+              </select>
+            </div>
+            <div class="field">
+              <label>Common Area Maintenance (CAM ₹/mo)</label>
+              <input class="input" id="agree-comm-cam" value="₹15/sq.ft (Included in monthly billing)" placeholder="e.g. ₹15,000 / month" />
+            </div>
+            <div class="field">
+              <label>Power Load & 100% DG Backup</label>
+              <input class="input" id="agree-comm-power" value="15 KVA 3-Phase with 100% DG Backup" placeholder="e.g. 15 KVA with 100% DG Backup" />
+            </div>
+            <div class="field">
+              <label>Licensor GSTIN (Optional)</label>
+              <input class="input" id="agree-comm-licensor-gst" value="27AABCB1234F1Z8" placeholder="27XXXXX0000X0Z0" style="text-transform:uppercase;" />
+            </div>
+            <div class="field full">
+              <label>Licensee / Corporate Entity GSTIN (Optional)</label>
+              <input class="input" id="agree-comm-licensee-gst" value="27XYZPA5678K1ZQ" placeholder="27XXXXX0000X0Z0" style="text-transform:uppercase;" />
             </div>
           </div>
         </div>
@@ -10640,6 +11051,50 @@ Password: *${pass}*
     backdrop.onclick = close;
     if (drawer.querySelector('.close')) drawer.querySelector('.close').onclick = close;
 
+    // Category Toggle Interactive Logic
+    const toggleCategory = (cat) => {
+      const resiBtn = drawer.querySelector('#btn-cat-resi');
+      const commBtn = drawer.querySelector('#btn-cat-comm');
+      const resiSec = drawer.querySelector('#section-resi-details');
+      const commSec = drawer.querySelector('#section-comm-details');
+      const catInput = drawer.querySelector('#agree-prop-category');
+      
+      if (cat === 'COMMERCIAL') {
+        if (catInput) catInput.value = 'COMMERCIAL';
+        if (commBtn) {
+          commBtn.style.border = '2px solid #2563eb';
+          commBtn.style.background = '#eff6ff';
+          commBtn.style.color = '#1e40af';
+        }
+        if (resiBtn) {
+          resiBtn.style.border = '1.5px solid #cbd5e1';
+          resiBtn.style.background = '#f8fafc';
+          resiBtn.style.color = '#475569';
+        }
+        if (resiSec) resiSec.style.display = 'none';
+        if (commSec) commSec.style.display = 'block';
+      } else {
+        if (catInput) catInput.value = 'RESIDENTIAL';
+        if (resiBtn) {
+          resiBtn.style.border = '2px solid #10b981';
+          resiBtn.style.background = '#ecfdf5';
+          resiBtn.style.color = '#047857';
+        }
+        if (commBtn) {
+          commBtn.style.border = '1.5px solid #cbd5e1';
+          commBtn.style.background = '#f8fafc';
+          commBtn.style.color = '#475569';
+        }
+        if (resiSec) resiSec.style.display = 'block';
+        if (commSec) commSec.style.display = 'none';
+      }
+    };
+
+    if (drawer.querySelector('#btn-cat-resi')) drawer.querySelector('#btn-cat-resi').onclick = () => toggleCategory('RESIDENTIAL');
+    if (drawer.querySelector('#btn-cat-comm')) drawer.querySelector('#btn-cat-comm').onclick = () => toggleCategory('COMMERCIAL');
+    if (prop.propertyCategory === 'COMMERCIAL') toggleCategory('COMMERCIAL');
+    else toggleCategory('RESIDENTIAL');
+
     // Live update signature label previews
     const updatePreview = () => {
       const licLabel = drawer.querySelector('#sig-label-licensor');
@@ -10659,7 +11114,7 @@ Password: *${pass}*
       }
     };
 
-    drawer.querySelectorAll('input').forEach(inp => {
+    drawer.querySelectorAll('input, select').forEach(inp => {
       inp.oninput = () => {
         if (inp.id === 'agree-duration' || inp.id === 'agree-start') {
           autoSyncEndDate();
@@ -10813,6 +11268,8 @@ Password: *${pass}*
     if (drawer.querySelector('#agree-print-btn')) drawer.querySelector('#agree-print-btn').onclick = () => window.print();
 
     if (drawer.querySelector('#agree-copy-text-btn')) drawer.querySelector('#agree-copy-text-btn').onclick = () => {
+      const cat = drawer.querySelector('#agree-prop-category')?.value || 'RESIDENTIAL';
+      const isComm = cat === 'COMMERCIAL';
       const licName = drawer.querySelector('#agree-licensor-name')?.value || '';
       const licPan = drawer.querySelector('#agree-licensor-pan')?.value || '';
       const licseName = drawer.querySelector('#agree-licensee-name')?.value || '';
@@ -10824,19 +11281,60 @@ Password: *${pass}*
       const start = drawer.querySelector('#agree-start')?.value || '';
       const end = drawer.querySelector('#agree-end')?.value || '';
 
-      const text = `RENTAL LEAVE & LICENSE AGREEMENT DETAILS\n` +
-        `----------------------------------------\n` +
-        `Licensor (Owner): ${licName} (PAN/Aadhaar: ${licPan})\n` +
-        `Licensee (Tenant): ${licseName} (PAN/Aadhaar: ${licsePan})\n` +
-        `Premises: ${addr}\n` +
-        `Monthly License Fee: ₹${rent}/month\n` +
-        `Security Deposit: ₹${dep}\n` +
-        `Term: ${duration} Months (${start} to ${end})\n` +
-        `Witnessed by: ${s.agencyName || 'BrokerAI Realty'} (RERA: ${s.reraNumber || 'A51700012345'})\n` +
-        `Status: Digitally Configured & Signed`;
+      let text = '';
+      if (isComm) {
+        const commType = drawer.querySelector('#agree-comm-type')?.value || 'Commercial Office';
+        const commArea = drawer.querySelector('#agree-comm-area')?.value || '1,250 sq.ft';
+        const fitout = drawer.querySelector('#agree-comm-fitout')?.value || '0 Days';
+        const lockin = drawer.querySelector('#agree-comm-lockin')?.value || '12 Months';
+        const escalation = drawer.querySelector('#agree-comm-escalation')?.value || '5% per annum';
+        const cam = drawer.querySelector('#agree-comm-cam')?.value || 'Included';
+        const power = drawer.querySelector('#agree-comm-power')?.value || 'Standard';
+        const licGst = drawer.querySelector('#agree-comm-licensor-gst')?.value || 'N/A';
+        const licseGst = drawer.querySelector('#agree-comm-licensee-gst')?.value || 'N/A';
+
+        text = `🏢 COMMERCIAL LEASE & LICENSE AGREEMENT DETAILS\n` +
+          `--------------------------------------------------\n` +
+          `Category: Commercial Asset (${commType})\n` +
+          `Licensor (Owner): ${licName} (PAN: ${licPan} | GSTIN: ${licGst})\n` +
+          `Licensee (Tenant): ${licseName} (PAN: ${licsePan} | GSTIN: ${licseGst})\n` +
+          `Premises Address: ${addr}\n` +
+          `Chargeable Area: ${commArea}\n` +
+          `Monthly License Fee (Lease): ₹${rent}/month\n` +
+          `Security Deposit: ₹${dep}\n` +
+          `Lease Duration: ${duration} Months (${start} to ${end})\n` +
+          `Fit-out Period: ${fitout}\n` +
+          `Lock-In Period: ${lockin}\n` +
+          `Annual Escalation: ${escalation}\n` +
+          `CAM / Maintenance: ${cam}\n` +
+          `Power & DG Backup: ${power}\n` +
+          `Witnessed by: ${s.agencyName || 'BrokerAI Realty'} (RERA: ${s.reraNumber || 'A51700012345'})\n` +
+          `Status: Digitally Configured & Signed`;
+      } else {
+        const resiBhk = drawer.querySelector('#agree-resi-bhk')?.value || '2 BHK Apartment';
+        const resiArea = drawer.querySelector('#agree-resi-area')?.value || '785';
+        const resiFurnish = drawer.querySelector('#agree-resi-furnish')?.value || 'Semi-Furnished';
+        const resiParking = drawer.querySelector('#agree-resi-parking')?.value || '1 Car Park';
+        const resiMaint = drawer.querySelector('#agree-resi-maint')?.value || 'Included';
+
+        text = `🏡 RESIDENTIAL LEAVE & LICENSE AGREEMENT DETAILS\n` +
+          `--------------------------------------------------\n` +
+          `Category: Residential Property (${resiBhk} · ${resiArea} sq.ft)\n` +
+          `Licensor (Owner): ${licName} (PAN/Aadhaar: ${licPan})\n` +
+          `Licensee (Tenant): ${licseName} (PAN/Aadhaar: ${licsePan})\n` +
+          `Premises Address: ${addr}\n` +
+          `Furnishing Level: ${resiFurnish}\n` +
+          `Dedicated Parking: ${resiParking}\n` +
+          `Society Maintenance: ${resiMaint}\n` +
+          `Monthly License Fee (Lease): ₹${rent}/month\n` +
+          `Security Deposit: ₹${dep}\n` +
+          `Tenure: ${duration} Months (${start} to ${end})\n` +
+          `Witnessed by: ${s.agencyName || 'BrokerAI Realty'} (RERA: ${s.reraNumber || 'A51700012345'})\n` +
+          `Status: Digitally Configured & Signed`;
+      }
 
       navigator.clipboard.writeText(text).then(() => {
-        showToast('📋 Rental Agreement details copied to clipboard!', 'success');
+        showToast('📋 Agreement details copied to clipboard!', 'success');
       }).catch(() => {
         showToast('📋 Agreement details copied', 'info');
       });
@@ -10844,22 +11342,38 @@ Password: *${pass}*
 
     if (drawer.querySelector('#agree-save-vault-btn')) drawer.querySelector('#agree-save-vault-btn').onclick = () => {
       if (!state.documents) state.documents = getStoredDocuments();
+      const cat = drawer.querySelector('#agree-prop-category')?.value || 'RESIDENTIAL';
+      const isComm = cat === 'COMMERCIAL';
       const duration = drawer.querySelector('#agree-duration')?.value || '11';
+      const licName = drawer.querySelector('#agree-licensor-name')?.value || 'Licensor';
+      const licseName = drawer.querySelector('#agree-licensee-name')?.value || 'Licensee';
+      const rent = drawer.querySelector('#agree-rent')?.value || '0';
+      const dep = drawer.querySelector('#agree-deposit')?.value || '0';
+      
+      const docTitle = isComm 
+        ? `Commercial Lease Agreement (${duration} Mos) - ${licName} / ${licseName}`
+        : `Residential Leave & License Agreement (${duration} Mos) - ${licName} / ${licseName}`;
+      
+      const docNotes = isComm
+        ? `Category: COMMERCIAL | Usage: ${drawer.querySelector('#agree-comm-type')?.value} | Monthly Fee: ₹${rent} | Deposit: ₹${dep} | Lock-in: ${drawer.querySelector('#agree-comm-lockin')?.value}`
+        : `Category: RESIDENTIAL | Config: ${drawer.querySelector('#agree-resi-bhk')?.value} | Monthly Fee: ₹${rent} | Deposit: ₹${dep} | Parking: ${drawer.querySelector('#agree-resi-parking')?.value}`;
+
       const doc = {
         id: Date.now(),
-        title: `Rental Leave & License Agreement (${duration} Mos) - ${drawer.querySelector('#agree-licensor-name').value} / ${drawer.querySelector('#agree-licensee-name').value}`,
+        title: docTitle,
         category: 'DEAL_PAPERWORK',
         documentType: 'RENTAL_AGREEMENT',
+        propertyCategory: cat,
         status: 'VERIFIED',
         propertyId: prop.id,
         propertyTitle: prop.title,
-        documentNumber: `LL-${Date.now().toString().slice(-6)}`,
-        notes: `Monthly License Fee (Lease): ₹${drawer.querySelector('#agree-rent').value} | Deposit: ₹${drawer.querySelector('#agree-deposit').value} | Period: ${duration} Months`,
+        documentNumber: `${isComm ? 'CLL' : 'RLL'}-${Date.now().toString().slice(-6)}`,
+        notes: docNotes,
         verifiedAt: new Date().toISOString()
       };
       state.documents.unshift(doc);
       localStorage.setItem('brokerai.documents', JSON.stringify(state.documents));
-      showToast('📥 Rental Agreement saved in Legal Vault!', 'success');
+      showToast(`📥 ${isComm ? 'Commercial Lease' : 'Residential Agreement'} saved in Legal Vault!`, 'success');
       close();
       if (state.page === 'documents') documentsView();
     };
@@ -11162,22 +11676,37 @@ Password: *${pass}*
         <!-- SECTION 2: PROPERTY & UNIT DETAILS -->
         <div class="form-section">
           <h3 style="display:flex;align-items:center;gap:6px;color:#1e40af;">
-            <span>🏡</span> Property & Unit Information
+            <span>🏢</span> Property & Unit Information
           </h3>
           <div class="form-grid">
             <div class="field full">
               <label>Select Property Listing *</label>
               <select class="select" id="receipt-prop-select" name="propertyId" required>
                 <option value="">-- Select Property --</option>
-                ${properties.map(p => `<option value="${p.id}">${esc(p.title)} · ${esc(p.location)} (${formatPrice(p.price, p.listingType)})</option>`).join('')}
+                ${properties.map(p => `<option value="${p.id}" data-category="${p.category || (p.propertyType === 'COMMERCIAL' ? 'COMMERCIAL' : 'RESIDENTIAL')}">${esc(p.title)} · ${esc(p.location)} (${formatPrice(p.price, p.listingType)})</option>`).join('')}
               </select>
             </div>
+
+            <!-- RECEIPT CATEGORY TOGGLE -->
+            <div class="field full">
+              <label>Property Category</label>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:4px;">
+                <button type="button" class="button primary" id="receipt-cat-resi-btn" style="padding:9px;font-size:13px;font-weight:750;border-radius:10px;">
+                  🏡 Residential Unit
+                </button>
+                <button type="button" class="button secondary" id="receipt-cat-comm-btn" style="padding:9px;font-size:13px;font-weight:750;border-radius:10px;">
+                  🏢 Commercial Space / Office
+                </button>
+              </div>
+              <input type="hidden" name="propertyCategory" id="receipt-prop-category" value="RESIDENTIAL" />
+            </div>
+
             <div class="field">
-              <label>Unit / Flat / Floor No. *</label>
+              <label id="receipt-unit-label">Unit / Flat / Floor No. *</label>
               <input class="input" id="receipt-unit-no" name="unitNo" required placeholder="e.g. Flat #1402, Wing-B" />
             </div>
             <div class="field">
-              <label>Building / Society Name *</label>
+              <label id="receipt-society-label">Building / Society Name *</label>
               <input class="input" id="receipt-society-name" name="societyName" required placeholder="e.g. Rodas Enclave - Hiranandani" />
             </div>
             <div class="field full">
@@ -11217,7 +11746,7 @@ Password: *${pass}*
             </div>
             <div class="field full">
               <label>Token Validity & Conditions</label>
-              <textarea class="input" name="notes" placeholder="e.g. Token valid for 15 days until Agreement for Sale execution. Balance consideration payable as per standard builder slab schedule. Title clearance guaranteed.">Subject to clear title search report and standard agreement execution within 15 days.</textarea>
+              <textarea class="input" name="notes" placeholder="e.g. Token valid for 15 days until Agreement execution. Balance consideration payable as per agreed milestone schedule. Title clearance guaranteed.">Subject to clear title search report and standard agreement execution within 15 days.</textarea>
             </div>
           </div>
         </div>
@@ -11256,6 +11785,36 @@ Password: *${pass}*
     if (drawer.querySelector('.close')) drawer.querySelector('.close').onclick = close;
     if (drawer.querySelector('#cancel-receipt')) drawer.querySelector('#cancel-receipt').onclick = close;
 
+    const btnResi = drawer.querySelector('#receipt-cat-resi-btn');
+    const btnComm = drawer.querySelector('#receipt-cat-comm-btn');
+    const inputCat = drawer.querySelector('#receipt-prop-category');
+    const unitLabel = drawer.querySelector('#receipt-unit-label');
+    const societyLabel = drawer.querySelector('#receipt-society-label');
+    const unitInput = drawer.querySelector('#receipt-unit-no');
+    const societyInput = drawer.querySelector('#receipt-society-name');
+
+    const setReceiptCategory = (cat) => {
+      inputCat.value = cat;
+      if (cat === 'COMMERCIAL') {
+        btnComm.className = 'button primary';
+        btnResi.className = 'button secondary';
+        if (unitLabel) unitLabel.textContent = 'Office / Unit / Floor No. *';
+        if (societyLabel) societyLabel.textContent = 'Commercial Complex / IT Park *';
+        if (unitInput && (!unitInput.value || unitInput.value.includes('Flat'))) unitInput.placeholder = 'e.g. Office #604, Tower B';
+        if (societyInput && (!societyInput.value || societyInput.value.includes('Enclave'))) societyInput.placeholder = 'e.g. Lodha Supremus / Tech Park';
+      } else {
+        btnResi.className = 'button primary';
+        btnComm.className = 'button secondary';
+        if (unitLabel) unitLabel.textContent = 'Unit / Flat / Floor No. *';
+        if (societyLabel) societyLabel.textContent = 'Building / Society Name *';
+        if (unitInput && (!unitInput.value || unitInput.value.includes('Office'))) unitInput.placeholder = 'e.g. Flat #1402, Wing-B';
+        if (societyInput && (!societyInput.value || societyInput.value.includes('Supremus'))) societyInput.placeholder = 'e.g. Rodas Enclave - Hiranandani';
+      }
+    };
+
+    if (btnResi) btnResi.onclick = () => setReceiptCategory('RESIDENTIAL');
+    if (btnComm) btnComm.onclick = () => setReceiptCategory('COMMERCIAL');
+
     // Auto-fill buyer details when a lead is chosen
     drawer.querySelector('#receipt-lead-select').onchange = (e) => {
       const selectedId = Number(e.target.value);
@@ -11270,10 +11829,13 @@ Password: *${pass}*
     // Auto-fill property & unit info when property is chosen
     drawer.querySelector('#receipt-prop-select').onchange = (e) => {
       const selectedId = Number(e.target.value);
+      const selOpt = e.target.options[e.target.selectedIndex];
       const prop = properties.find(p => p.id === selectedId);
       if (prop) {
+        const propCat = selOpt?.dataset?.category || prop.category;
+        if (propCat) setReceiptCategory(propCat === 'COMMERCIAL' ? 'COMMERCIAL' : 'RESIDENTIAL');
         drawer.querySelector('#receipt-society-name').value = prop.title || '';
-        drawer.querySelector('#receipt-unit-no').value = `Unit #${Math.floor(100 + Math.random()*900)}, Wing-A`;
+        drawer.querySelector('#receipt-unit-no').value = (propCat === 'COMMERCIAL') ? `Office #${Math.floor(100 + Math.random()*900)}, Tower-A` : `Unit #${Math.floor(100 + Math.random()*900)}, Wing-A`;
         if (prop.price) drawer.querySelector('#receipt-deal-value').value = prop.price;
       }
     };
@@ -11296,6 +11858,7 @@ Password: *${pass}*
       const agentName = form.get('agentName')?.trim() || defaultAgentName;
       const agentPhone = form.get('agentPhone')?.trim() || defaultAgentPhone;
       const agentRera = form.get('agentRera')?.trim() || defaultRera;
+      const propertyCategory = form.get('propertyCategory') || 'RESIDENTIAL';
 
       if (!buyerName || !buyerPhone || !tokenAmount || !unitNo || !societyName || !transactionReference) {
         drawer.querySelector('#receipt-notice').innerHTML = `<div class="notice error">Please fill all required fields (Buyer Name, Phone, Unit, Society, Token Amount, Ref).</div>`;
@@ -11306,9 +11869,10 @@ Password: *${pass}*
 
       const doc = {
         id: Date.now(),
-        title: `Token Booking Receipt #${receiptNum} (${buyerName} · ${unitNo})`,
+        title: `${propertyCategory === 'COMMERCIAL' ? 'Commercial Token Receipt' : 'Residential Token Receipt'} #${receiptNum} (${buyerName} · ${unitNo})`,
         category: 'DEAL_PAPERWORK',
         documentType: 'TOKEN_RECEIPT',
+        propertyCategory,
         status: 'VERIFIED',
         documentNumber: receiptNum,
         buyerName,
@@ -11327,7 +11891,7 @@ Password: *${pass}*
         agentName,
         agentPhone,
         agentRera,
-        notes,
+        notes: `Category: ${propertyCategory} | ${notes}`,
         verifiedAt: new Date().toISOString()
       };
 
@@ -11350,6 +11914,7 @@ Password: *${pass}*
     if (!doc) return;
     document.querySelectorAll('.modal-backdrop, .drawer-backdrop, .spotlight-backdrop').forEach(b => b.remove());
     const s = state.agencySettings || defaultAgencySettings || {};
+    const isComm = doc.propertyCategory === 'COMMERCIAL' || (doc.notes && doc.notes.includes('COMMERCIAL'));
 
     const receiptNum = doc.documentNumber || `TR-${new Date().getFullYear()}-${String(doc.id || Date.now()).slice(-5)}`;
     const buyerName = doc.buyerName || doc.leadName || 'Rahul Sharma';
@@ -11358,8 +11923,8 @@ Password: *${pass}*
     const buyerPan = doc.buyerPan || 'ABCPS1234F';
     const buyerAddress = doc.buyerAddress || 'Flat 602, Eden Woods, Gladys Alwares Road, Thane West';
 
-    const propertyTitle = doc.propertyTitle || 'Spacious 2 BHK at Hiranandani Estate';
-    const unitNo = doc.unitNo || (propertyTitle.includes('Unit') ? propertyTitle.split(',')[0] : 'Unit #1402, Wing-B');
+    const propertyTitle = doc.propertyTitle || (isComm ? 'Commercial Office at Wagle Estate' : 'Spacious 2 BHK at Hiranandani Estate');
+    const unitNo = doc.unitNo || (propertyTitle.includes('Unit') ? propertyTitle.split(',')[0] : (isComm ? 'Office #604, Tower-B' : 'Unit #1402, Wing-B'));
     const societyName = doc.societyName || (propertyTitle.includes(' at ') ? propertyTitle.split(' at ').pop() : propertyTitle);
 
     let tokenAmount = doc.tokenAmount;
@@ -11408,26 +11973,28 @@ Password: *${pass}*
     backdrop.className = 'modal-backdrop';
     const modal = document.createElement('div');
     modal.className = 'modal';
-    modal.style.cssText = 'max-width:740px;width:95vw;max-height:92vh;overflow-y:auto;background:#ffffff;padding:28px;border-radius:24px;box-shadow:0 25px 60px rgba(0,0,0,0.35);position:relative;box-sizing:border-box;color:#0f172a;font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","SF Pro Display","Segoe UI",Roboto,Helvetica,Arial,sans-serif;';
+    modal.style.cssText = 'max-width:740px;width:95vw;max-height:92vh;overflow-y:auto;background:#ffffff;padding:28px;border-radius:24px;box-shadow:0 25px 60px rgba(0,0,0,0.35);position:relative;box-sizing:border-box;color:#0f172a;font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","SF Pro Display","Inter","Segoe UI",Roboto,Helvetica,Arial,sans-serif;';
 
     modal.innerHTML = `
       <!-- Top Action Bar -->
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
         <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
-          <span style="background:#ecfdf5;color:#047857;border:1px solid #a7f3d0;font-size:11px;font-weight:800;padding:4px 10px;border-radius:20px;text-transform:uppercase;letter-spacing:0.5px;">✓ Tripartite Legal Instrument</span>
+          <span style="background:${isComm ? '#f0fdf4' : '#ecfdf5'};color:${isComm ? '#166534' : '#047857'};border:1px solid ${isComm ? '#bbf7d0' : '#a7f3d0'};font-size:11px;font-weight:800;padding:4px 10px;border-radius:20px;text-transform:uppercase;letter-spacing:0.5px;">
+            ${isComm ? '🏢 Commercial Asset Instrument' : '🏡 Residential Unit Instrument'}
+          </span>
           <span style="background:#eff6ff;color:#1d4ed8;border:1px solid #bfdbfe;font-size:11px;font-weight:700;padding:4px 10px;border-radius:20px;">MahaRERA: ${esc(agentRera)}</span>
         </div>
         <button class="close" id="close-receipt-modal-x" style="font-size:24px;border:none;background:transparent;cursor:pointer;color:#64748b;line-height:1;padding:4px 8px;">×</button>
       </div>
 
       <!-- Letterhead Header -->
-      <div style="border-bottom:2px solid #0f172a;padding-bottom:16px;margin-bottom:20px;display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:12px;">
+      <div style="border-bottom:2px solid #0f172a;padding-bottom:16px;margin-bottom:20px;display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:gap:12px;">
         <div>
           <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">
-            <div style="width:32px;height:32px;border-radius:8px;background:#165dff;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:16px;">🏢</div>
+            <div style="width:32px;height:32px;border-radius:8px;background:#165dff;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:16px;">${isComm ? '🏢' : '🏡'}</div>
             <h2 style="font-size:22px;font-weight:800;color:#0f172a;margin:0;letter-spacing:-0.4px;">${esc(agencyName)}</h2>
           </div>
-          <div style="font-size:12px;color:#475569;font-weight:600;">Institutional Real Estate Advisory & Certified RERA Brokerage</div>
+          <div style="font-size:12px;color:#475569;font-weight:600;">${isComm ? 'Institutional Commercial Real Estate Advisory & Certified RERA Brokerage' : 'Institutional Real Estate Advisory & Certified RERA Brokerage'}</div>
           <div style="font-size:11.5px;color:#64748b;margin-top:4px;">📍 ${esc(officeAddress)}</div>
         </div>
         <div style="text-align:right;font-size:11.5px;color:#475569;">
@@ -11440,7 +12007,9 @@ Password: *${pass}*
 
       <!-- Receipt Title Banner -->
       <div style="text-align:center;background:#f8fafc;border:1px solid #e2e8f0;padding:12px 16px;border-radius:12px;margin-bottom:20px;">
-        <h3 style="font-size:16px;font-weight:800;color:#0f172a;letter-spacing:0.5px;margin:0 0 4px;text-transform:uppercase;">Official Token Booking Advance Receipt</h3>
+        <h3 style="font-size:16px;font-weight:800;color:#0f172a;letter-spacing:0.5px;margin:0 0 4px;text-transform:uppercase;">
+          ${isComm ? 'Official Commercial Token Booking Advance Receipt' : 'Official Residential Token Booking Advance Receipt'}
+        </h3>
         <div style="font-size:12px;color:#64748b;">Issued under Maharashtra Real Estate (Regulation and Development) Act, 2016</div>
       </div>
 
@@ -11462,25 +12031,25 @@ Password: *${pass}*
         <!-- Buyer Information -->
         <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:14px;padding:16px;">
           <div style="display:flex;align-items:center;gap:6px;font-size:13px;font-weight:800;color:#1e40af;margin-bottom:12px;text-transform:uppercase;letter-spacing:0.5px;">
-            <span>👤</span> Buyer (Client) Details
+            <span>👤</span> ${isComm ? 'Client / Entity Details' : 'Buyer (Client) Details'}
           </div>
           <div style="display:flex;flex-direction:column;gap:8px;font-size:12.5px;color:#334155;">
-            <div><span style="color:#64748b;font-size:11.5px;display:block;">Full Name</span><strong style="color:#0f172a;font-size:13.5px;">${esc(buyerName)}</strong></div>
+            <div><span style="color:#64748b;font-size:11.5px;display:block;">${isComm ? 'Authorized Signatory / Entity Name' : 'Full Name'}</span><strong style="color:#0f172a;font-size:13.5px;">${esc(buyerName)}</strong></div>
             <div><span style="color:#64748b;font-size:11.5px;display:block;">Mobile / WhatsApp</span><strong style="color:#0f172a;">${esc(buyerPhone)}</strong></div>
             ${buyerEmail ? `<div><span style="color:#64748b;font-size:11.5px;display:block;">Email Address</span><span>${esc(buyerEmail)}</span></div>` : ''}
-            ${buyerPan ? `<div><span style="color:#64748b;font-size:11.5px;display:block;">PAN / ID Card</span><span style="font-family:monospace;font-weight:700;color:#0f172a;">${esc(buyerPan)}</span></div>` : ''}
-            ${buyerAddress ? `<div><span style="color:#64748b;font-size:11.5px;display:block;">Residential Address</span><span>${esc(buyerAddress)}</span></div>` : ''}
+            ${buyerPan ? `<div><span style="color:#64748b;font-size:11.5px;display:block;">PAN / GSTIN</span><span style="font-family:monospace;font-weight:700;color:#0f172a;">${esc(buyerPan)}</span></div>` : ''}
+            ${buyerAddress ? `<div><span style="color:#64748b;font-size:11.5px;display:block;">Registered Address</span><span>${esc(buyerAddress)}</span></div>` : ''}
           </div>
         </div>
 
         <!-- Property & Deal Details -->
         <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:14px;padding:16px;">
           <div style="display:flex;align-items:center;gap:6px;font-size:13px;font-weight:800;color:#1e40af;margin-bottom:12px;text-transform:uppercase;letter-spacing:0.5px;">
-            <span>🏡</span> Property & Consideration
+            <span>${isComm ? '🏢' : '🏡'}</span> ${isComm ? 'Commercial Asset & Value' : 'Property & Consideration'}
           </div>
           <div style="display:flex;flex-direction:column;gap:8px;font-size:12.5px;color:#334155;">
-            <div><span style="color:#64748b;font-size:11.5px;display:block;">Unit / Flat No.</span><strong style="color:#0f172a;font-size:13.5px;">${esc(unitNo)}</strong></div>
-            <div><span style="color:#64748b;font-size:11.5px;display:block;">Building / Society / Project</span><strong style="color:#0f172a;">${esc(societyName || propertyTitle)}</strong></div>
+            <div><span style="color:#64748b;font-size:11.5px;display:block;">${isComm ? 'Office / Shop / Floor No.' : 'Unit / Flat No.'}</span><strong style="color:#0f172a;font-size:13.5px;">${esc(unitNo)}</strong></div>
+            <div><span style="color:#64748b;font-size:11.5px;display:block;">${isComm ? 'Commercial IT Park / Complex' : 'Building / Society / Project'}</span><strong style="color:#0f172a;">${esc(societyName || propertyTitle)}</strong></div>
             <div><span style="color:#64748b;font-size:11.5px;display:block;">Agreed Total Deal Consideration</span><strong style="color:#0f172a;font-size:14px;">₹${agreedValue.toLocaleString('en-IN')}</strong> <span style="color:#64748b;font-size:12px;">(${formatPrice(agreedValue, 'SALE')})</span></div>
             <div><span style="color:#64748b;font-size:11.5px;display:block;">Balance Consideration on Agreement</span><strong style="color:#2563eb;">₹${balanceDue.toLocaleString('en-IN')}</strong></div>
           </div>
@@ -11493,7 +12062,7 @@ Password: *${pass}*
         <div style="font-size:12px;color:#78350f;line-height:1.5;">
           ${doc.notes ? `<p style="margin:0 0 6px;"><strong>Specific Notes:</strong> ${esc(doc.notes)}</p>` : ''}
           <p style="margin:0;">1. This earnest token deposit acknowledges booking intent and blocks the property from general marketing for 15 days.</p>
-          <p style="margin:4px 0 0;">2. Balance consideration and stamp duty registration shall be executed as per standard registered Agreement for Sale in accordance with MahaRERA guidelines.</p>
+          <p style="margin:4px 0 0;">2. Balance consideration and stamp duty registration shall be executed as per standard registered Agreement in accordance with MahaRERA guidelines.</p>
         </div>
       </div>
 

@@ -4576,13 +4576,25 @@ aside.drawer {
   border-color: #94a3b8;
 }
 
-/* --- PERFECT A4 PRINT & PDF EXPORT STYLING --- */
+/* --- PERFECT MINIMAL A4 PRINT & PDF EXPORT STYLING --- */
 @media print {
+  @page {
+    size: A4 portrait;
+    margin: 12mm 10mm;
+  }
+
   body, html {
     background: #ffffff !important;
-    color: #000000 !important;
+    color: #0f172a !important;
     margin: 0 !important;
     padding: 0 !important;
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Inter", "Segoe UI", Roboto, -apple-system-subheadline, sans-serif !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  * {
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Inter", "Segoe UI", Roboto, sans-serif !important;
   }
 
   .sidebar,
@@ -4598,7 +4610,14 @@ aside.drawer {
   button,
   .button,
   .page-actions,
-  .property-card-footer {
+  .property-card-footer,
+  .sig-action-row,
+  .sig-clear-btn,
+  .sig-adopt-btn,
+  .sig-upload-btn,
+  .signature-sign-hint,
+  .form-actions,
+  .no-print-bar {
     display: none !important;
   }
 
@@ -4610,28 +4629,42 @@ aside.drawer {
     padding: 0 !important;
   }
 
-  .modal {
+  .modal,
+  .drawer {
     position: static !important;
     transform: none !important;
     max-width: 100% !important;
+    width: 100% !important;
     max-height: none !important;
     box-shadow: none !important;
     border: none !important;
     padding: 0 !important;
   }
 
-  .brochure-sheet {
-    border: 2px solid #1e3a8a !important;
+  .legal-agreement-paper,
+  .brochure-sheet,
+  .tax-invoice-sheet {
     box-shadow: none !important;
-    padding: 20px !important;
     page-break-inside: avoid !important;
-    width: 100% !important;
-    max-width: 750px !important;
+    break-inside: avoid !important;
+    border: 1px solid #cbd5e1 !important;
     margin: 0 auto !important;
+    padding: 20px !important;
+  }
+
+  .signature-blocks-grid,
+  .signature-box,
+  .cost-breakdown-table {
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+  }
+
+  .signature-canvas-wrap {
+    border: 1px solid #cbd5e1 !important;
   }
 
   .brochure-header {
-    border-bottom: 2px solid #1e3a8a !important;
+    border-bottom: 2px solid #0f172a !important;
   }
 }
 
